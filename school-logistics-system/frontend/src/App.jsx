@@ -10,6 +10,7 @@ import {
   StatCard,
 } from './components/UI'
 import { statusClass } from './utils/status'
+import { AuthPage } from './pages/Auth/AuthPage'
 
 function Dashboard({ requests, onNavigate, onRequest }) {
   return (
@@ -196,6 +197,7 @@ function HistoryPage() {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [page, setPage] = useState('Dashboard')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All Categories')
@@ -238,6 +240,10 @@ function App() {
     'My Requests': <RequestsPage requests={requests} />,
     'Claim Schedule': <SchedulePage />,
     'Distribution History': <HistoryPage />,
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage onLogin={() => setIsAuthenticated(true)} />
   }
 
   return (
