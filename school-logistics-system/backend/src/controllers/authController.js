@@ -1,0 +1,51 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+
+const publicUser = (user) => ({
+	id: user._id,
+	name: user.name,
+	email: user.email,
+	studentId: user.studentId,
+	role: user.role,
+	status: user.status,
+	grade: user.grade,
+	strand: user.strand,
+	avatar: user.avatar,
+	campus: user.campus,
+});
+
+const createToken = (user) => jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || "development_secret", { expiresIn: "7d" });
+
+async function signup(req, res) {
+	try {
+		const { name, email, studentId, password, campus, role = "student" } = req.body;
+		if (!name || !email || !password || !studentId || !campus) return res.status(400).json({ message: "Name, ID, email, password, and campus are required." });
+		if (!["student", "admin", "staff"].includes(role)) return res.status(400).json({ message: "Choose a valid account type." });
+		const normalizedName = name.trim();
+		const normalizedEmail = email.toLowerCase().trim();
+		const normalizedStudentId = studentId.trim();
+		const normalizedCampus = campus.trim();
+		if (!normalizedName || !normalizedStudentId || !normalizedCampus) return res.status(400).json({ message: "Name, ID, and campus cannot be empty." });
+		if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });
+		const user = await User.create({ name: normalizedName, email: normalizedEmail, studentId: normalizedStudentId, campus: normalizedCampus, role, password: await bcrypt.hash(password, 12) });
+		res.status(201).json({ user: publicUser(user), token: createToken(user) });
+	} catch (error) {
+		if (error.code === 11000) return res.status(409).json({ message: "An account with this email or ID already exists." });
+		res.status(500).json({ message: "Unable to create account." });
+	}
+}
+
+async function login(req, res) {
+	try {
+		const { email, password } = req.body;
+		const user = await User.findOne({ email: email?.toLowerCase().trim() }).select("+password");
+		if (!user || !(await bcrypt.compare(password || "", user.password))) return res.status(401).json({ message: "Invalid email or password." });
+		if (user.status === "suspended") return res.status(403).json({ message: "This account has been suspended. Contact an administrator." });
+		res.json({ user: publicUser(user), token: createToken(user) });
+	} catch (error) {
+		res.status(500).json({ message: "Unable to log in." });
+	}
+}
+
+module.exports = { signup, login, publicUser };
