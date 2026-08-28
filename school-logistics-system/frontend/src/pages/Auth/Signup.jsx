@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { campuses } from '../../data/campuses'
 
-export function SignupPage({ onSignup, onChangeMode, error, isSubmitting = false }) {
-  const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: campuses[0].name })
+export function SignupPage({ onSignup, onCampusChange, onChangeMode, error, isSubmitting = false }) {
+  const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [campusMenuOpen, setCampusMenuOpen] = useState(false)
   const [customCampuses, setCustomCampuses] = useState(() => {
@@ -18,7 +18,7 @@ export function SignupPage({ onSignup, onChangeMode, error, isSubmitting = false
   const [campusError, setCampusError] = useState('')
   const [validationErrors, setValidationErrors] = useState({})
   const availableCampuses = [...campuses, ...customCampuses]
-  const selectedCampus = availableCampuses.find(campus => campus.name === form.campus) || availableCampuses[0]
+  const selectedCampus = availableCampuses.find(campus => campus.name === form.campus)
   const update = key => event => {
     setForm({ ...form, [key]: event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
@@ -48,6 +48,7 @@ export function SignupPage({ onSignup, onChangeMode, error, isSubmitting = false
     setCustomCampuses(updatedCampuses)
     localStorage.setItem('srmsCustomCampuses', JSON.stringify(updatedCampuses))
     setForm(current => ({ ...current, campus: name }))
+    onCampusChange(campus)
     setNewCampusName('')
     setCampusError('')
     setAddCampusOpen(false)
@@ -55,7 +56,7 @@ export function SignupPage({ onSignup, onChangeMode, error, isSubmitting = false
   }
 
   return (
-    <div className="auth-form-wrap">
+    <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
       <div className="auth-heading">
         <h2>Create account</h2>
         <p>Create your School Logistics account.</p>
@@ -80,11 +81,11 @@ export function SignupPage({ onSignup, onChangeMode, error, isSubmitting = false
         </fieldset>
         <label className="auth-field compact-field form-wide signup-campus-field">
           <span>Campus</span>
-          <button className="signup-campus-select" type="button" aria-label={`Selected campus: ${selectedCampus.name}`} aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen(open => !open)}>
-            {selectedCampus.logo ? <img src={selectedCampus.logo} alt="" /> : <i>{selectedCampus.code}</i>}
-            <span>{selectedCampus.name}</span><b aria-hidden="true">⌄</b>
+          <button className="signup-campus-select" type="button" aria-label={selectedCampus ? `Selected campus: ${selectedCampus.name}` : 'Please select your campus'} aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen(open => !open)}>
+            {selectedCampus && (selectedCampus.logo ? <img src={selectedCampus.logo} alt="" /> : <i>{selectedCampus.code}</i>)}
+            <span>{selectedCampus ? selectedCampus.name : 'Please Select Your Campus'}</span><b aria-hidden="true">⌄</b>
           </button>
-          {campusMenuOpen && <div className="signup-campus-menu" role="listbox" aria-label="Choose campus">{availableCampuses.map(campus => <button className={campus.name === selectedCampus.name ? 'selected' : ''} type="button" role="option" aria-selected={campus.name === selectedCampus.name} key={campus.name} onClick={() => { setForm(current => ({ ...current, campus: campus.name })); setCampusMenuOpen(false) }}>{campus.logo ? <img src={campus.logo} alt="" /> : <i>{campus.code}</i>}<span><b>{campus.name}</b><small>{campus.name === selectedCampus.name ? 'Selected campus' : 'Campus'}</small></span>{campus.name === selectedCampus.name && <strong aria-hidden="true">✓</strong>}</button>)}<button className="signup-other-campus" type="button" onClick={() => { setAddCampusOpen(true); setCampusError('') }}><i>+</i><span><b>Add other campus</b><small>Create a campus option</small></span></button></div>}
+          {campusMenuOpen && <div className="signup-campus-menu" role="listbox" aria-label="Choose campus">{availableCampuses.map(campus => <button className={campus.name === form.campus ? 'selected' : ''} type="button" role="option" aria-selected={campus.name === form.campus} key={campus.name} onClick={() => { setForm(current => ({ ...current, campus: campus.name })); localStorage.setItem('srmsCampus', campus.name); onCampusChange(campus); setCampusMenuOpen(false) }}>{campus.logo ? <img src={campus.logo} alt="" /> : <i>{campus.code}</i>}<span><b>{campus.name}</b><small>{campus.name === form.campus ? 'Selected campus' : 'Campus'}</small></span>{campus.name === form.campus && <strong aria-hidden="true">✓</strong>}</button>)}<button className="signup-other-campus" type="button" onClick={() => { setAddCampusOpen(true); setCampusError('') }}><i>+</i><span><b>Add other campus</b><small>Create a campus option</small></span></button></div>}
         </label>
         {addCampusOpen && <form className="signup-add-campus form-wide" onSubmit={addCampus}><div className="signup-add-campus-heading"><b>Add other campus</b><button type="button" onClick={() => { setAddCampusOpen(false); setCampusError('') }}>Cancel</button></div><div className="signup-add-campus-fields"><input value={newCampusName} onChange={event => { setNewCampusName(event.target.value); setCampusError('') }} placeholder="Campus name" aria-label="New campus name" autoFocus /><button type="submit" className="signup-add-submit">Add campus</button></div>{campusError && <small className="signup-campus-error">{campusError}</small>}</form>}
         <label className="auth-field compact-field">

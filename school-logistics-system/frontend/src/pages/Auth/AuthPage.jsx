@@ -6,11 +6,16 @@ import { LoginPage } from './Login'
 import { SignupPage } from './Signup'
 
 export function AuthPage() {
-  const [mode, setMode] = useState('login')
+  const [mode, setMode] = useState('signup')
+  const [selectedCampus, setSelectedCampus] = useState(undefined)
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
   const { login, signup, logout } = useAuth()
+  const handleModeChange = nextMode => {
+    if (nextMode === 'signup') setSelectedCampus(undefined)
+    setMode(nextMode)
+  }
 
   const handleLogin = async (email, password) => {
     setAuthError('')
@@ -39,11 +44,11 @@ export function AuthPage() {
   }
 
   return (
-    <AuthLayout mode={mode} onChangeMode={setMode}>
+    <AuthLayout mode={mode} onChangeMode={handleModeChange} campus={selectedCampus}>
       {mode === 'login' ? (
-        <LoginPage onLogin={handleLogin} onChangeMode={setMode} error={authError} />
+        <LoginPage onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
-        <SignupPage onSignup={handleSignup} onChangeMode={setMode} error={authError} isSubmitting={isSubmitting} />
+        <SignupPage onSignup={handleSignup} onCampusChange={setSelectedCampus} onChangeMode={handleModeChange} error={authError} isSubmitting={isSubmitting} />
       )}
     </AuthLayout>
   )

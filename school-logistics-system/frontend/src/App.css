@@ -1550,6 +1550,12 @@ main > header > div:first-child > b {
 .signup-form .form-wide { grid-column: 1 / -1; }
 .signup-form .terms { margin-top: -1px; font-size: 11px; }
 .signup-form .auth-submit { margin-top: 2px; }
+.auth-page .auth-intro { background: var(--auth-gradient, linear-gradient(150deg, #2563eb, #1e40af)); }
+.auth-page .auth-heading h2 { color: var(--auth-deep); }
+.auth-page .intro-action { border-color: var(--auth-accent, #fff); }
+.auth-page .auth-submit { background: var(--auth-primary); }
+.auth-page .auth-submit:hover { background: var(--auth-primary-dark); }
+.auth-page .auth-options button, .auth-page .auth-footer button, .auth-page .terms button { color: var(--auth-primary-dark); }
 @media (max-width: 700px) {
   .auth-panel { padding: 38px 22px 48px; }
   .signup-form { grid-template-columns: 1fr; }
@@ -1735,6 +1741,13 @@ main > header > div:first-child > b {
 .auth-form-wrap > :nth-child(1) { animation-delay: 110ms; }
 .auth-form-wrap > :nth-child(2) { animation-delay: 170ms; }
 .auth-form-wrap > :nth-child(3) { animation-delay: 230ms; }
+
+.auth-panel { position: relative; isolation: isolate; }
+.auth-panel.has-campus-theme::before { position: absolute; top: 62%; left: 50%; z-index: 0; width: min(78%, 430px); aspect-ratio: 1; border-radius: 50%; background: var(--auth-primary); content: ''; opacity: .06; filter: blur(28px); pointer-events: none; transform: translate(-50%, -50%); }
+.auth-panel.has-campus-theme::after { position: absolute; top: 62%; left: 50%; z-index: 0; width: min(72%, 390px); aspect-ratio: 1; background: var(--selected-campus-logo) center / contain no-repeat; content: ''; opacity: .24; filter: drop-shadow(0 12px 22px rgb(20 50 80 / 12%)); pointer-events: none; transform: translate(-50%, -50%); }
+.auth-panel-inner { position: relative; z-index: 1; }
+.signup-form-wrap { position: relative; }
+.signup-form-wrap > * { position: relative; z-index: 1; }
 
 .auth-form > * {
   animation: auth-item-in 380ms cubic-bezier(.16, 1, .3, 1) both;
