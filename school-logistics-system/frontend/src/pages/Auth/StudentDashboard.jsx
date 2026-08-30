@@ -5,20 +5,28 @@ import Sidebar from "../../components/Sidebar";
 import StatusBadge from "../../components/StatusBadge";
 import { useAuth } from "../../context/useAuth";
 import { requestAPI } from "../../services/api";
+import DashboardIcon from "../../components/DashboardIcon";
 
 const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year"];
 const strandOptions = ["STEM", "ABM", "HUMSS", "GAS", "TVL", "Arts and Design", "Sports", "BS Information Technology", "BS Business Administration", "Other Course"];
 
 function StudentDashboard() {
   const { user, updateUser } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem("srmsDashboardTheme");
+    return savedTheme ? savedTheme === "dark" : false;
+  });
+  useEffect(() => {
+    localStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [draftProfile, setDraftProfile] = useState(() => ({
-    name: user?.name || "Juan Dela Cruz",
-    email: user?.email || "juan@student.edu",
-    grade: user?.grade || "Grade 11",
-    strand: user?.strand || "STEM",
+    name: user?.name || "Ramos, Markbrexsphere O.",
+    email: user?.email || "maol.ramos.up@phinmaed.com",
+    grade: user?.grade || "3rd Year",
+    strand: user?.strand || "Batchelor of Science in Information Technology",
     avatar: user?.avatar || "",
   }));
   const [requests, setRequests] = useState([]);
@@ -31,8 +39,8 @@ function StudentDashboard() {
     approved: requests.filter((request) => request.status === "approved").length,
     released: requests.filter((request) => request.status === "released").length,
   };
-  const firstName = user?.name?.split(" ")[0] || "Juan";
-  const profileName = user?.name || "Juan Dela Cruz";
+  const firstName = user?.name?.split(" ")[0] || "Markbrexsphere";
+  const profileName = user?.name || "Ramos, Markbrexsphere O.";
   const profileInitials = profileName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   const updateDraft = (field, value) => {
@@ -62,10 +70,10 @@ function StudentDashboard() {
 
   const openProfile = () => {
     setDraftProfile({
-      name: user?.name || "Juan Dela Cruz",
-      email: user?.email || "juan@student.edu",
-      grade: user?.grade || "Grade 11",
-      strand: user?.strand || "STEM",
+      name: user?.name || "Ramos, Markbrexsphere O.",
+      email: user?.email || "maol.ramos.up@phinmaed.com",
+      grade: user?.grade || "3rd Year",
+      strand: user?.strand || "Batchelor of Science in Information Technology",
       avatar: user?.avatar || "",
     });
     setProfileSaved(false);
@@ -86,14 +94,14 @@ function StudentDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className={`dashboard-shell ${isDarkMode ? 'dark-mode' : ''}`}>
 
       <Sidebar />
 
       <div className="flex flex-1 flex-col">
-        <Navbar />
+        <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
 
-        <main className="student-dashboard flex-1 p-6 lg:p-8">
+        <main className={`student-dashboard flex-1 p-6 lg:p-8 ${isDarkMode ? 'dark-mode' : ''}`}>
           <div className="dashboard-welcome">
             <div>
               <span className="dashboard-kicker">Student Portal / Overview</span>
@@ -128,7 +136,7 @@ function StudentDashboard() {
             </section>
 
             <section className="dashboard-panel claim-panel">
-              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>One collection is scheduled</p></div><span className="claim-day">29<span>WED</span></span></div>
+              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>One collection is scheduled</p></div><span className="claim-day"><DashboardIcon name="calendar" /><b>29</b><span>WED</span></span></div>
               <div className="claim-resource"><span>U</span><div><strong>School Uniform Set</strong><small>Approved and ready for collection</small></div></div>
               <div className="claim-details"><span>◷ <b>9:00 AM - 11:00 AM</b></span><span>⌖ <b>Student Affairs Office</b></span></div>
               <Link className="panel-action" to="/claim-schedule">View claim details <span>→</span></Link>
@@ -137,9 +145,9 @@ function StudentDashboard() {
 
           <section className="quick-links">
             <div><span className="dashboard-kicker">Shortcuts</span><h2>Quick actions</h2></div>
-            <Link to="/resources"><b>▣</b><span><strong>Browse resources</strong><small>Find books, uniforms, and more</small></span><i>→</i></Link>
-            <Link to="/requests"><b>☷</b><span><strong>Track requests</strong><small>Check your latest request status</small></span><i>→</i></Link>
-            <Link to="/distribution-history"><b>◴</b><span><strong>View history</strong><small>See previously released items</small></span><i>→</i></Link>
+            <Link to="/resources"><b><DashboardIcon name="resources" /></b><span><strong>Browse resources</strong><small>Find books, uniforms, and more</small></span><i>→</i></Link>
+            <Link to="/requests"><b><DashboardIcon name="requests" /></b><span><strong>Track requests</strong><small>Check your latest request status</small></span><i>→</i></Link>
+            <Link to="/distribution-history"><b><DashboardIcon name="history" /></b><span><strong>View history</strong><small>See previously released items</small></span><i>→</i></Link>
           </section>
 
           {profileOpen && (

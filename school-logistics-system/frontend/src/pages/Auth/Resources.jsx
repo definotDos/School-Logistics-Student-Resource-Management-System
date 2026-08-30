@@ -13,6 +13,12 @@ function Resources() {
   const [submitting, setSubmitting] = useState(false);
   const [resources, setResources] = useState([]);
   const [loadError, setLoadError] = useState("");
+  const resourcePresentation = (resource) => ({
+    ...resource,
+    quantity: resource.stock.available,
+    image: resource.name === "Mathematics Book" ? "/mathematics-book.svg" : "",
+    icon: resource.category === "Uniform" ? "👕" : resource.category === "Footwear" ? "👟" : resource.category === "Books" ? "📚" : resource.category === "Modules" ? "📖" : "🪪",
+  });
   const filteredResources = useMemo(() => resources.filter((resource) => {
     const matchesQuery = resource.name.toLowerCase().includes(query.toLowerCase());
     const matchesCategory = category === "All Categories" || resource.category === category;
@@ -20,7 +26,7 @@ function Resources() {
   }), [category, query, resources]);
 
   useEffect(() => {
-    resourceAPI.getAll().then((result) => setResources(result.resources.map((resource) => ({ ...resource, quantity: resource.stock.available, icon: resource.category === "Uniform" ? "👕" : resource.category === "Footwear" ? "👟" : resource.category === "Books" ? "📚" : resource.category === "Modules" ? "📖" : "🪪" })))).catch((error) => setLoadError(error.message));
+    resourceAPI.getAll().then((result) => setResources(result.resources.map(resourcePresentation))).catch((error) => setLoadError(error.message));
   }, []);
 
   const confirmRequest = async () => {

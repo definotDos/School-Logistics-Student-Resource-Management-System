@@ -1,0 +1,8 @@
+{
+  "name": "school-logistics-system-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix school-logistics-system",
+    "install:all": "npm install --prefix school-logistics-system"
+  }
+}

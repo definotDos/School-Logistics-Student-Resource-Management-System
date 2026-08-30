@@ -3,7 +3,8 @@ function ResourceCard({ resource, onRequest }) {
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 
       <div className="flex h-32 items-center justify-center bg-slate-100 text-5xl">
-        {resource.icon}
+        {resource.image ? <img className="h-full w-full object-cover" src={resource.image} alt={resource.name} onError={(event) => { event.currentTarget.style.display = "none"; event.currentTarget.nextElementSibling.style.display = "block"; }} /> : null}
+        <span style={{ display: resource.image ? "none" : "block" }}>{resource.icon}</span>
       </div>
 
       <div className="p-5">

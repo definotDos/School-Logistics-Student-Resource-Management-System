@@ -10,6 +10,7 @@ const resourceRoutes = require("./routes/resourceRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const distributionRoutes = require("./routes/distributionRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
+const reportsRoutes = require("./routes/reportsRoutes");
 const Resource = require("./models/Resource");
 const Inventory = require("./models/Inventory");
 
@@ -21,6 +22,8 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
+
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/requests", requestRoutes);
@@ -28,6 +31,7 @@ app.use("/api/resources", resourceRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/distribution", distributionRoutes);
 app.use("/api/allocations", allocationRoutes);
+app.use("/api/reports", reportsRoutes);
 
 app.get("/", (req, res) => {
   res.json({

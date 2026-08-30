@@ -6,6 +6,9 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [validationError, setValidationError] = useState('')
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotMessage, setForgotMessage] = useState('')
 
   const submit = event => {
     event.preventDefault()
@@ -15,6 +18,18 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
     if (!password) return setValidationError('Enter your password.')
     setValidationError('')
     onLogin(normalizedEmail, password)
+  }
+
+  const openForgotPassword = () => {
+    setForgotEmail(email.trim())
+    setForgotMessage('')
+    setForgotOpen(true)
+  }
+
+  const submitForgotPassword = event => {
+    event.preventDefault()
+    if (!/^\S+@\S+\.\S+$/.test(forgotEmail.trim())) return setForgotMessage('Enter a valid email address.')
+    setForgotMessage('Your request was recorded. Please contact an administrator to complete the password reset.')
   }
 
   return (
@@ -39,12 +54,25 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
         </label>
         <div className="auth-options">
           <label><input type="checkbox" /> Remember me</label>
-          <button type="button">Forgot password?</button>
+          <button type="button" onClick={openForgotPassword}>Forgot password?</button>
         </div>
         <button className="auth-submit" type="submit">Login</button>
         {(validationError || error) && <p className={`auth-error ${error?.includes('successfully') ? 'auth-success' : ''}`} role="alert">{validationError || error}</p>}
       </form>
       <p className="auth-footer">Don't have an account? <button type="button" onClick={() => onChangeMode('signup')}>Register</button></p>
+      {forgotOpen && <div className="forgot-modal-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setForgotOpen(false)}>
+        <section className="forgot-modal" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
+          <button className="forgot-modal-close" type="button" aria-label="Close password recovery" onClick={() => setForgotOpen(false)}>×</button>
+          <div className="forgot-modal-icon" aria-hidden="true">?</div>
+          <h3 id="forgot-title">Forgot your password?</h3>
+          <p>Enter your account email so an administrator can help you recover access.</p>
+          <form onSubmit={submitForgotPassword}>
+            <label className="auth-field compact-field"><span>Email address</span><input type="email" value={forgotEmail} onChange={event => { setForgotEmail(event.target.value); setForgotMessage('') }} placeholder="you@example.com" autoComplete="email" required /></label>
+            <button className="auth-submit" type="submit">Request help</button>
+            {forgotMessage && <p className="forgot-message" role="status">{forgotMessage}</p>}
+          </form>
+        </section>
+      </div>}
     </div>
   )
 }

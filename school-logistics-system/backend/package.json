@@ -1,7 +1,11 @@
 {
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest tests/integration --detectOpenHandles"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -9,6 +13,12 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.9.3"
+    "mongoose": "^9.9.3",
+    "nodemailer": "^9.0.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^6.3.3"
   }
 }

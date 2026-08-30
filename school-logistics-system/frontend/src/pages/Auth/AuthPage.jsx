@@ -1,20 +1,27 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AuthLayout } from '../../components/auth/AuthLayout'
 import { useAuth } from '../../context/useAuth'
 import { LoginPage } from './Login'
 import { SignupPage } from './Signup'
 
 export function AuthPage() {
-  const [mode, setMode] = useState('signup')
+  const location = useLocation()
+  const mode = location.pathname === '/login' ? 'login' : 'signup'
   const [selectedCampus, setSelectedCampus] = useState(undefined)
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { login, signup, logout } = useAuth()
+  const { login, signup } = useAuth()
+
   const handleModeChange = nextMode => {
-    if (nextMode === 'signup') setSelectedCampus(undefined)
-    setMode(nextMode)
+    if (nextMode === mode) return
+    if (nextMode === 'signup') {
+      setSelectedCampus(undefined)
+      navigate('/signup', { replace: true })
+    } else {
+      navigate('/login', { replace: true })
+    }
   }
 
   const handleLogin = async (email, password) => {
@@ -32,23 +39,34 @@ export function AuthPage() {
     setAuthError('')
     setIsSubmitting(true)
     try {
-      const createdUser = await signup(details)
-      logout()
-      setMode('login')
-      setAuthError(`Account created for ${createdUser.name}. Please log in to continue.`)
+      const result = await signup(details)
+      setSelectedCampus(undefined)
+      navigate('/login', { replace: true })
+      return result
     } catch (error) {
       setAuthError(error.message)
+      throw error
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <AuthLayout mode={mode} onChangeMode={handleModeChange} campus={selectedCampus}>
+    <AuthLayout
+      mode={mode}
+      onChangeMode={handleModeChange}
+      campus={selectedCampus}
+    >
       {mode === 'login' ? (
         <LoginPage onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
-        <SignupPage onSignup={handleSignup} onCampusChange={setSelectedCampus} onChangeMode={handleModeChange} error={authError} isSubmitting={isSubmitting} />
+        <SignupPage
+          onSignup={handleSignup}
+          onCampusChange={setSelectedCampus}
+          onChangeMode={handleModeChange}
+          error={authError}
+          isSubmitting={isSubmitting}
+        />
       )}
     </AuthLayout>
   )

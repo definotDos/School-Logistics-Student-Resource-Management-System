@@ -4,9 +4,10 @@ import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../context/useAuth";
 import { inventoryAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
+import DashboardIcon from "../../components/DashboardIcon";
 
 const sections = {
-  dashboard: { label: "Overview", title: "Administrator dashboard", description: "A live view of school resource operations." },
+  dashboard: { label: "Overview", title: "Welcomeback Admin!", description: "A live view of school resource operations." },
   users: { label: "User management", title: "Users and permissions", description: "Manage student, staff, and administrator access." },
   catalog: { label: "Resource catalog", title: "Resource catalog", description: "Keep the school resource directory accurate and useful." },
   inventory: { label: "Inventory", title: "Inventory control", description: "Track stock, reserved units, and receiving activity." },
@@ -32,6 +33,13 @@ const initialRows = {
 
 function AdminDashboard() {
   const { section: requestedSection } = useParams();
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem("srmsDashboardTheme");
+    return savedTheme ? savedTheme === "dark" : false;
+  });
+  useEffect(() => {
+    localStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
   const [rows, setRows] = useState(() => {
     try {
@@ -56,6 +64,13 @@ function AdminDashboard() {
     userAPI.getAll().then((result) => { setUserError(""); setRows((current) => ({ ...current, users: result.users.map((user) => ({ databaseId: user.id, name: user.name, detail: `${user.email} · ${user.role} · ${user.campus}`, status: user.status === "suspended" ? "Suspended" : "Active", action: user.status === "suspended" ? "Restore" : "Suspend" })) })); }).catch((error) => setUserError(error.message));
   }, [activeSection]);
 
+  useEffect(() => {
+    if (activeSection !== "catalog") return;
+    resourceAPI.getAll().then((result) => {
+      setRows((current) => ({ ...current, catalog: result.resources.map((resource) => ({ databaseId: resource._id, name: resource.name, detail: `${resource.category} · ${resource.campus}`, status: resource.status, action: "Edit" })) }));
+    }).catch((error) => setNotice(error.message));
+  }, [activeSection]);
+
   const completeAction = (collection, index, action) => {
     setRows((current) => ({ ...current, [collection]: current[collection].map((row, rowIndex) => rowIndex === index ? { ...row, status: action === "Publish" ? "Published" : action === "Send" ? "Sent" : "Completed", action: "View" } : row) }));
     setNotice(`${action} completed successfully.`);
@@ -69,13 +84,13 @@ function AdminDashboard() {
       setRequestError(error.message);
     }
   };
-  const addResource = (resource) => {
-    setRows((current) => {
-      const catalog = [...current.catalog, resource];
-      localStorage.setItem("srmsAdminCatalog", JSON.stringify(catalog));
-      return { ...current, catalog };
-    });
-    setNotice(`${resource.name} was added to the resource catalog.`);
+  const addResource = async (resource) => {
+    const [category, description] = resource.detail.split(" · ");
+    const campus = localStorage.getItem("srmsCampus") || "PHINMA University of Pangasinan";
+    const result = await resourceAPI.create({ name: resource.name, category, description, campus, quantity: 0 });
+    const createdResource = result.resource;
+    setRows((current) => ({ ...current, catalog: [...current.catalog, { databaseId: createdResource._id, name: createdResource.name, detail: `${createdResource.category} · ${createdResource.campus}`, status: createdResource.status, action: "Edit" }] }));
+    setNotice(`${createdResource.name} was added to the resource catalog and is now available to students.`);
   };
   const updateManagedUser = async (user, status) => {
     try {
@@ -97,7 +112,7 @@ function AdminDashboard() {
     }
   };
 
-  return <div className="admin-shell"><Sidebar type="admin" /><div className="admin-content"><Navbar /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""}`}>
+  return <div className={`admin-shell ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><button className="admin-primary" onClick={() => setNotice("New workspace action opened. Choose a record below to continue.")}>+ New action</button></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
     {activeSection === "dashboard" ? <Overview setNotice={setNotice} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
@@ -107,7 +122,7 @@ function AdminDashboard() {
 function Overview({ setNotice }) { return <>
   <div className="admin-stats"><AdminStat label="Pending requests" value="48" change="12 need review" tone="orange" /><AdminStat label="Available resources" value="1,284" change="92% stock health" tone="blue" /><AdminStat label="Active users" value="2,450" change="+86 this month" tone="green" /><AdminStat label="Scheduled claims" value="632" change="18 this week" tone="navy" /></div>
   <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title="12 requests awaiting approval" detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title="3 resources below reorder level" detail="Receive new stock before the next distribution run." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title="2 distribution schedules this week" detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>78%</strong></div><div className="progress"><i style={{ width: "78%" }} /></div></div><div className="progress-block"><div><span>Inventory accuracy</span><strong>94%</strong></div><div className="progress green"><i style={{ width: "94%" }} /></div></div><div className="progress-block"><div><span>Claim completion</span><strong>63%</strong></div><div className="progress orange"><i style={{ width: "63%" }} /></div></div><button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>Export monthly report →</button></section></div>
-  <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests">☷<span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory">▤<span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution">◷<span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports">⌁<span>View analytics<small>Track performance</small></span>→</Link></div></section>
+  <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="resources" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="history" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
 </>; }
 function AdminStat({ label, value, change, tone }) { return <article className={`admin-stat ${tone}`}><span>{label}</span><strong>{value}</strong><small>{change}</small></article>; }
 function PanelHeading({ title, description }) { return <div className="admin-panel-heading"><div><h2>{title}</h2><p>{description}</p></div></div>; }
@@ -140,11 +155,11 @@ function InventoryPanel({ setNotice }) {
       loadInventory();
     } catch (receiveError) { setError(receiveError.message); }
   };
-  return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Stock overview</h2><p>{items.length} resources synchronized from MongoDB.</p></div><button className="admin-secondary" onClick={() => setShowReceive((visible) => !visible)}>{showReceive ? "Close" : "+ Receive resources"}</button></div>{showReceive && <form className="resource-form" onSubmit={receive}><label>Resource<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} required><option value="">Choose resource</option>{items.map((item) => <option key={item.resource._id} value={item.resource._id}>{item.resource.name}</option>)}</select></label><label>Quantity<input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label><button className="admin-primary" type="submit">Save intake</button></form>}{error && <p className="auth-error" role="alert">{error}</p>}<div className="inventory-table"><div className="inventory-head"><span>Resource</span><span>Category</span><span>Available</span><span>Reserved</span><span>Total</span></div>{items.map((item) => <div className="inventory-row" key={item._id}><strong>{item.resource.name}</strong><span>{item.resource.category}</span><b className={item.available < 35 ? "low-stock" : ""}>{item.available}</b><span>{item.reserved}</span><span>{item.available + item.reserved + item.issued}</span></div>)}</div><div className="receive-strip"><b>Resource receiving</b><span>Received quantities are written to MongoDB and reflected across the catalog.</span></div></section>;
+  return <section className="admin-panel record-panel inventory-panel"><div className="record-toolbar"><div><h2>Stock overview</h2><p>{items.length} resources synchronized from MongoDB.</p></div><button className="admin-secondary" onClick={() => setShowReceive((visible) => !visible)}>{showReceive ? "Close" : "+ Receive resources"}</button></div>{showReceive && <form className="resource-form" onSubmit={receive}><label>Resource<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} required><option value="">Choose resource</option>{items.map((item) => <option key={item.resource._id} value={item.resource._id}>{item.resource.name}</option>)}</select></label><label>Quantity<input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label><button className="admin-primary" type="submit">Save intake</button></form>}{error && <p className="auth-error" role="alert">{error}</p>}<div className="inventory-table"><div className="inventory-head"><span>Resource</span><span>Category</span><span>Available</span><span>Reserved</span><span>Total</span></div>{items.map((item) => <div className="inventory-row" key={item._id}><strong>{item.resource.name}</strong><span>{item.resource.category}</span><b className={item.available < 35 ? "low-stock" : ""}>{item.available}</b><span>{item.reserved}</span><span>{item.available + item.reserved + item.issued}</span></div>)}</div><div className="receive-strip"><b>Resource receiving</b><span>Received quantities are written to MongoDB and reflected across the catalog.</span></div></section>;
 }
 
 function RequestPanel({ requests, requestError, approveRequest }) { return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Requests awaiting action</h2><p>{requests.length} database request{requests.length === 1 ? "" : "s"} awaiting review.</p></div><select aria-label="Filter requests"><option>All statuses</option><option>Pending</option><option>Approved</option></select></div>{requestError && <p className="auth-error" role="alert">{requestError}</p>}{!requestError && !requests.length && <p className="request-empty">No student requests yet.</p>}<div className="record-list">{requests.map((row) => <div className="record-row" key={row.databaseId}><div className="record-icon">{row.resource.slice(0, 2).toUpperCase()}</div><div className="record-copy"><strong>{row.resource}</strong><small>{row.student?.name || "Student"} · {row.id}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.status !== "pending"} onClick={() => approveRequest(row)}>{row.status === "pending" ? "Approve" : "View"}</button></div>)}</div><div className="verification-note"><b>Verification checklist</b><span>Confirm student identity, campus eligibility, stock availability, and requested quantity before approval.</span></div></section>; }
 
-function ReportsPanel() { return <><div className="report-cards"><AdminStat label="Requests fulfilled" value="86%" change="+8.4% vs last month" tone="green" /><AdminStat label="Average approval time" value="1.8d" change="0.4d faster" tone="blue" /><AdminStat label="Distribution success" value="93%" change="Across 4 campuses" tone="orange" /></div><section className="admin-panel chart-panel"><PanelHeading title="Demand by resource category" description="Approved requests over the last 30 days" /><div className="chart-summary"><span><i />Approved request share</span><b>Last 30 days</b></div><div className="bar-chart"><div><i data-value="72%" style={{ height: "72%" }} /><span>Academic</span></div><div><i data-value="48%" style={{ height: "48%" }} /><span>Uniforms</span></div><div><i data-value="86%" style={{ height: "86%" }} /><span>Footwear</span></div><div><i data-value="35%" style={{ height: "35%" }} /><span>IDs</span></div><div><i data-value="61%" style={{ height: "61%" }} /><span>Other</span></div></div></section></>; }
+function ReportsPanel() { return <><div className="report-cards"><AdminStat label="Requests fulfilled" value="86%" change="+8.4% vs last month" tone="green" /><AdminStat label="Average approval time" value="1.8d" change="0.4d faster" tone="blue" /><AdminStat label="Distribution success" value="93%" change="Across 4 campuses" tone="orange" /></div><section className="admin-panel chart-panel"><div className="report-heading"><PanelHeading title="Demand by resource category" description="Approved requests over the last 30 days" /><div className="report-heading-icon"><DashboardIcon name="performance" /></div></div><div className="chart-summary"><span><i />Approved request share</span><b>Last 30 days</b></div><div className="bar-chart"><div><i data-value="72%" style={{ height: "72%" }} /><span>Academic</span></div><div><i data-value="48%" style={{ height: "48%" }} /><span>Uniforms</span></div><div><i data-value="86%" style={{ height: "86%" }} /><span>Footwear</span></div><div><i data-value="35%" style={{ height: "35%" }} /><span>IDs</span></div><div><i data-value="61%" style={{ height: "61%" }} /><span>Other</span></div></div></section></>; }
 
 export default AdminDashboard;

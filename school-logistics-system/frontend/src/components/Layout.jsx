@@ -39,8 +39,8 @@ export function Sidebar({ page, onNavigate }) {
         <div className="user">
           <b>AM</b>
           <span>
-            Alex Morgan
-            <small>Grade 11 | STEM</small>
+            Ramos, Markbrexsphere O.
+            <small>3rd year | Bachelor of Science in Information Technology</small>
           </span>
         </div>
       </div>
@@ -53,14 +53,14 @@ export function Header({ page, showNotices, onToggleNotices }) {
     <header>
       <div>
         <b>{page}</b>
-        {page === 'Dashboard' && <small>Welcome back, Alex</small>}
+        {page === 'Dashboard' && <small>Welcome back, Ramos, Markbrexsphere O.</small>}
       </div>
 
       <div>
         <button className="bell" onClick={onToggleNotices}>
           N<i />
         </button>
-        <b className="profile">AM</b> Alex Morgan
+        <b className="profile">AM</b> Ramos, Markbrexsphere O.
       </div>
 
       {showNotices && (

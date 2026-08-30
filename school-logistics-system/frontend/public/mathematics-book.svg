@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title">
+  <title id="title">Mathematics books on a bookshelf</title>
+  <rect width="640" height="360" fill="#241b16"/>
+  <rect y="132" width="640" height="16" fill="#9a4e24"/>
+  <rect y="288" width="640" height="20" fill="#8c431f"/>
+  <g stroke="#140e0b" stroke-width="5">
+    <rect x="20" y="16" width="44" height="116" rx="3" fill="#bd6a28"/>
+    <rect x="70" y="8" width="40" height="124" rx="3" fill="#d49a39"/>
+    <rect x="116" y="26" width="46" height="106" rx="3" fill="#566b42"/>
+    <rect x="168" y="2" width="47" height="130" rx="3" fill="#a73d29"/>
+    <rect x="220" y="18" width="43" height="114" rx="3" fill="#c5a052"/>
+    <rect x="268" y="12" width="50" height="120" rx="3" fill="#3d5360"/>
+    <rect x="324" y="24" width="44" height="108" rx="3" fill="#8e4631"/>
+    <rect x="374" y="4" width="48" height="128" rx="3" fill="#6b7650"/>
+    <rect x="428" y="18" width="44" height="114" rx="3" fill="#c27b31"/>
+    <rect x="478" y="10" width="52" height="122" rx="3" fill="#73462f"/>
+    <rect x="536" y="22" width="40" height="110" rx="3" fill="#a85c2c"/>
+    <rect x="582" y="6" width="42" height="126" rx="3" fill="#4e5d4a"/>
+    <rect x="18" y="154" width="54" height="134" rx="3" fill="#d1a044"/>
+    <rect x="78" y="168" width="48" height="120" rx="3" fill="#b84932"/>
+    <rect x="132" y="150" width="56" height="138" rx="3" fill="#477565"/>
+    <rect x="194" y="160" width="52" height="128" rx="3" fill="#d58b36"/>
+    <rect x="252" y="148" width="60" height="140" rx="3" fill="#5c6f9a"/>
+    <rect x="318" y="170" width="46" height="118" rx="3" fill="#ae4433"/>
+    <rect x="370" y="154" width="58" height="134" rx="3" fill="#c5a04b"/>
+    <rect x="434" y="166" width="50" height="122" rx="3" fill="#3d6c5e"/>
+    <rect x="490" y="150" width="62" height="138" rx="3" fill="#b95032"/>
+    <rect x="558" y="174" width="48" height="114" rx="3" fill="#d1923a"/>
+  </g>
+  <g fill="#f5dfaa" font-family="Georgia, serif" font-size="13" font-weight="bold">
+    <text x="29" y="244" transform="rotate(-90 29 244)">ALGEBRA</text>
+    <text x="142" y="270" transform="rotate(-90 142 270)">GEOMETRY</text>
+    <text x="266" y="270" transform="rotate(-90 266 270)">CALCULUS</text>
+    <text x="445" y="270" transform="rotate(-90 445 270)">NUMBER THEORY</text>
+  </g>
+</svg>

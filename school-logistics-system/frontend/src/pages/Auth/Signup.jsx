@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { campuses } from '../../data/campuses'
 
-export function SignupPage({ onSignup, onCampusChange, onChangeMode, error, isSubmitting = false }) {
+export function SignupPage({
+  onSignup,
+  onCampusChange,
+  onChangeMode,
+  error,
+  isSubmitting = false,
+}) {
   const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [campusMenuOpen, setCampusMenuOpen] = useState(false)
@@ -25,7 +31,7 @@ export function SignupPage({ onSignup, onCampusChange, onChangeMode, error, isSu
   }
   const identityLabel = form.role === 'student' ? 'Student ID' : form.role === 'admin' ? 'Admin ID' : 'Employee ID'
 
-  const submit = event => {
+  const submit = async event => {
     event.preventDefault()
     if (isSubmitting || !form.campus) return
     const errors = {}
@@ -35,7 +41,11 @@ export function SignupPage({ onSignup, onCampusChange, onChangeMode, error, isSu
     if (form.password.length < 8) errors.password = 'Password must be at least 8 characters.'
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
-    onSignup(form)
+    try {
+      await onSignup(form)
+    } catch {
+      // handled upstream
+    }
   }
 
   const addCampus = event => {
@@ -114,7 +124,7 @@ export function SignupPage({ onSignup, onCampusChange, onChangeMode, error, isSu
           {validationErrors.password && <small className="field-error">{validationErrors.password}</small>}
         </label>
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
-        <button className="auth-submit form-wide" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Create account'}</button>
+        <button className="auth-submit form-wide" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Sign Up'}</button>
         {error && <p className="auth-error form-wide" role="alert">{error}</p>}
       </form>
       <p className="auth-footer">Already have an account? <button type="button" onClick={() => onChangeMode('login')}>Login</button></p>

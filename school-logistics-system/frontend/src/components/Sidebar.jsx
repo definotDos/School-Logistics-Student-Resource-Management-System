@@ -1,33 +1,48 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { campuses } from "../data/campuses";
+import DashboardIcon from "./DashboardIcon";
 
 const studentLinks = [
-  { name: "Dashboard", path: "/student", icon: "⌂" },
-  { name: "Browse Resources", path: "/resources", icon: "▣" },
-  { name: "My Requests", path: "/requests", icon: "☷", count: 2 },
-  { name: "Claim Schedule", path: "/claim-schedule", icon: "□" },
+  { name: "Dashboard", path: "/student", icon: "home" },
+  { name: "Browse Resources", path: "/resources", icon: "resources" },
+  { name: "My Requests", path: "/requests", icon: "requests", count: 2 },
+  { name: "Claim Schedule", path: "/claim-schedule", icon: "calendar" },
   {
     name: "Distribution History",
     path: "/distribution-history",
-    icon: "◴",
+    icon: "history",
   },
 ];
 
 const adminLinks = [
-  { name: "Dashboard", path: "/admin", icon: "⌂" },
-  { name: "Users", path: "/admin/users", icon: "◎" },
-  { name: "Resource Catalog", path: "/admin/catalog", icon: "▣" },
-  { name: "Inventory", path: "/admin/inventory", icon: "▤" },
-  { name: "Requests", path: "/admin/requests", icon: "☷", count: 12 },
-  { name: "Allocation", path: "/admin/allocation", icon: "⇄" },
-  { name: "Distribution", path: "/admin/distribution", icon: "◷" },
-  { name: "Campuses", path: "/admin/campuses", icon: "⌖" },
-  { name: "Reports", path: "/admin/reports", icon: "⌁" },
-  { name: "Notifications", path: "/admin/notifications", icon: "♢" },
-  { name: "Audit Logs", path: "/admin/audit", icon: "≡" },
-  { name: "My Profile", path: "/admin/profile", icon: "◉" },
+  { name: "Dashboard", path: "/admin", icon: "home" },
+  { name: "Users", path: "/admin/users", icon: "users" },
+  { name: "Resource Catalog", path: "/admin/catalog", icon: "catalog" },
+  { name: "Inventory", path: "/admin/inventory", icon: "resources" },
+  { name: "Requests", path: "/admin/requests", icon: "requests", count: 12 },
+  { name: "Allocation", path: "/admin/allocation", icon: "requests" },
+  { name: "Distribution", path: "/admin/distribution", icon: "calendar" },
+  { name: "Campuses", path: "/admin/campuses", icon: "school" },
+  { name: "Reports", path: "/admin/reports", icon: "history" },
+  { name: "Notifications", path: "/admin/notifications", icon: "notification" },
+  { name: "Audit Logs", path: "/admin/audit", icon: "requests" },
+  { name: "My Profile", path: "/admin/profile", icon: "profile" },
+];
+
+const staffLinks = [
+  { name: "Dashboard", path: "/staff", icon: "home" },
+  { name: "Verify Eligibility", path: "/staff/verify_eligibility", icon: "users" },
+  { name: "Review Requests", path: "/staff/review_requests", icon: "requests", count: 12 },
+  { name: "Approve/Reject", path: "/staff/approve_reject", icon: "requests" },
+  { name: "Claim Schedules", path: "/staff/manage_schedules", icon: "calendar" },
+  { name: "Verify Claims", path: "/staff/verify_claims", icon: "resources" },
+  { name: "Monitor Distribution", path: "/staff/monitor_distribution", icon: "calendar" },
+  { name: "Student History", path: "/staff/student_history", icon: "history" },
+  { name: "Update Status", path: "/staff/update_status", icon: "requests" },
+  { name: "Reports", path: "/staff/reports", icon: "history" },
+  { name: "Notifications", path: "/staff/notifications", icon: "notification" },
 ];
 
 function CampusMark({ campus, menu = false }) {
@@ -37,8 +52,9 @@ function CampusMark({ campus, menu = false }) {
 }
 
 function Sidebar({ type = "student" }) {
-  const { user, updateUser } = useAuth();
-  const links = type === "admin" ? adminLinks : studentLinks;
+  const { user, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const links = type === "admin" ? adminLinks : type === "staff" ? staffLinks : studentLinks;
   const [customCampuses, setCustomCampuses] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("srmsCustomCampuses") || "[]");
@@ -59,6 +75,7 @@ function Sidebar({ type = "student" }) {
   const [newCampusName, setNewCampusName] = useState("");
   const [newCampusLogo, setNewCampusLogo] = useState("");
   const [campusError, setCampusError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const displayName = user?.name || "Juan Dela Cruz";
   const initials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
@@ -95,10 +112,17 @@ function Sidebar({ type = "student" }) {
     reader.readAsDataURL(file);
   };
 
+  const handleLogout = () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    logout();
+    window.setTimeout(() => navigate("/login", { replace: true }), 1300);
+  };
+
   return (
     <aside className="app-sidebar">
       <div className="sidebar-brand">
-        <div className="brand-mark">SL</div>
+        <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
         <div><strong>SRMS</strong><small>Student Resource Management</small></div>
       </div>
       <div className={`campus-switch ${campusMenuOpen ? "is-open" : ""}`}>
@@ -109,7 +133,7 @@ function Sidebar({ type = "student" }) {
       </div>
       <nav className="sidebar-nav">
         <p>
-          {type === "admin" ? "Administration" : "Student Portal"}
+          {type === "admin" ? "Administration" : type === "staff" ? "Staff Services" : "Student Portal"}
         </p>
 
           {links.map((link) => (
@@ -126,16 +150,21 @@ function Sidebar({ type = "student" }) {
               }
               aria-label={link.name}
             >
-              <span className="nav-icon">{link.icon}</span>
+              <span className="nav-icon"><DashboardIcon name={link.icon} /></span>
               <span className="sidebar-label">{link.name}</span>
               {link.count && <em>{link.count}</em>}
             </NavLink>
           ))}
+        <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={isLoggingOut}>
+          <span className="nav-icon" aria-hidden="true">↪</span>
+          <span className="sidebar-label">{isLoggingOut ? "Signing out..." : "Logout"}</span>
+        </button>
       </nav>
       <div className="sidebar-footer">
         <button>◌ Help and Support</button><button>⚙ Settings</button>
-        <div className="sidebar-user">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{type === "admin" ? "Administrator" : `${user?.grade || "Grade 11"} | ${user?.strand || "STEM"}`}</small></span></div>
+        <div className="sidebar-user">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{type === "admin" ? "Administrator" : type === "staff" ? "Staff Member" : `${user?.grade || "Grade 11"} | ${user?.strand || "STEM"}`}</small></span></div>
       </div>
+      {isLoggingOut && <div className="logout-notice" role="status"><span className="logout-spinner" aria-hidden="true" /><span><strong>Signed out successfully</strong><small>Please come back soon.</small></span></div>}
     </aside>
   );
 }

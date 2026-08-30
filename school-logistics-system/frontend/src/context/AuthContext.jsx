@@ -24,6 +24,11 @@ export function AuthProvider({ children }) {
 
   const signup = async (details) => {
     const result = await authAPI.signup(details);
+    return result;
+  };
+
+  const verifyEmail = async (email, code) => {
+    const result = await authAPI.verifyEmail({ email, code });
     setUser(result.user);
     localStorage.setItem("srmsToken", result.token);
     localStorage.setItem("srmsUser", JSON.stringify(result.user));
@@ -49,6 +54,7 @@ export function AuthProvider({ children }) {
         user,
         login,
         signup,
+        verifyEmail,
         logout,
         updateUser,
       }}
