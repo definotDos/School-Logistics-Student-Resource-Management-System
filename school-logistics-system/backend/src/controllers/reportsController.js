@@ -165,6 +165,9 @@ async function getApprovalAnalytics(req, res) {
 			}
 		});
 
+		const approvedStatuses = ["approved", "ready_for_claim", "claimed", "completed"];
+		const totalApproved = requests.filter(r => approvedStatuses.includes(r.status)).length;
+
 		const report = {
 			generatedAt: new Date(),
 			period: {
@@ -173,10 +176,10 @@ async function getApprovalAnalytics(req, res) {
 			},
 			campus: campus || "All",
 			summary: {
-				totalApproved: requests.filter(r => r.status === "approved").length,
+				totalApproved,
 				totalRejected: requests.filter(r => r.status === "rejected").length,
 				approvalRate: requests.length > 0
-					? Math.round((requests.filter(r => r.status === "approved").length / requests.length) * 100)
+					? Math.round((totalApproved / requests.length) * 100)
 					: 0,
 			},
 			approvalsByStaff: Object.entries(approvalsByStaff).map(([name, count]) => ({ name, count })),
@@ -439,7 +442,7 @@ async function getDashboardOverview(req, res) {
 		] = await Promise.all([
 			Request.countDocuments(filter),
 			Request.countDocuments({ ...filter, status: "pending" }),
-			Request.countDocuments({ ...filter, status: "approved" }),
+			Request.countDocuments({ ...filter, status: { $in: ["approved", "ready_for_claim", "claimed", "completed"] } }),
 			Request.countDocuments({ ...filter, status: "rejected" }),
 			Request.countDocuments({ ...filter, status: "completed" }),
 			Allocation.countDocuments(campus ? { campus } : {}),

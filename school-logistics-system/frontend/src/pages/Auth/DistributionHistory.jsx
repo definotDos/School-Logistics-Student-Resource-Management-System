@@ -1,20 +1,18 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatusBadge from "../../components/StatusBadge";
+import { distributionAPI } from "../../services/api";
 
 function DistributionHistory() {
-  const history = [
-    {
-      resource: "School ID",
-      date: "August 18, 2026",
-      status: "released",
-    },
-    {
-      resource: "Learning Module",
-      date: "August 10, 2026",
-      status: "released",
-    },
-  ];
+  const [history, setHistory] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    distributionAPI.getAll()
+      .then((result) => setHistory(result.distributions || []))
+      .catch((historyError) => setError(historyError.message));
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -34,18 +32,20 @@ function DistributionHistory() {
           </p>
 
           <div className="mt-8 space-y-3">
+            {error && <p className="text-red-600" role="alert">{error}</p>}
+            {!error && !history.length && <p className="rounded-xl border border-slate-200 bg-white p-6 text-slate-500">No distributed resources yet.</p>}
             {history.map((item, index) => (
               <div
-                key={index}
+                key={item._id || index}
                 className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-5"
               >
                 <div>
                   <h3 className="font-medium text-slate-900">
-                    {item.resource}
+                    {item.resource?.name || "Resource"}
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Released on {item.date}
+                    Released on {item.releasedAt ? new Date(item.releasedAt).toLocaleDateString() : "Date unavailable"}
                   </p>
                 </div>
 

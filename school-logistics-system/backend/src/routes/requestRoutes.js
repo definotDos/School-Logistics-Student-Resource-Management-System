@@ -24,8 +24,8 @@ router.use(protect);
 // Step 1: Student creates request
 router.post("/", allowRoles("student"), createRequest);
 
-// Student views their requests
-router.get("/my", allowRoles("student"), getMyRequests);
+// Student views their requests; staff/admin may access the endpoint but should not see any student data
+router.get("/my", allowRoles("student", "staff", "admin"), getMyRequests);
 
 // ============================================
 // STAFF/ADMIN ROUTES

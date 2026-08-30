@@ -55,6 +55,11 @@ describe("Complete 9-Step Workflow Integration Tests", () => {
 
   beforeAll(async () => {
     await connectDB();
+
+    const collections = mongoose.connection.collections;
+    for (const key in collections) {
+      await collections[key].deleteMany({});
+    }
   });
 
   describe("Step 1: User Login (Role-based)", () => {

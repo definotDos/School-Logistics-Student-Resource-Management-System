@@ -214,6 +214,12 @@ export const allocationAPI = {
       body: JSON.stringify(schedule),
     }),
 
+  assignStaff: (allocationId, staffId) =>
+    apiRequest(`/allocations/${allocationId}/assign-staff`, {
+      method: "PATCH",
+      body: JSON.stringify({ staffId }),
+    }),
+
   /**
    * Get all allocations (staff/admin)
    */
@@ -490,8 +496,9 @@ export const workflowHelper = {
    * Aggregates pending requests, schedules, distributions
    */
   getStaffDashboard: async (filters = {}) => {
+    const requestStatus = filters.status || "pending";
     const [pending, scheduled, distributions] = await Promise.all([
-      requestAPI.getByStatus("pending").catch(() => ({ requests: [] })),
+      requestAPI.getByStatus(requestStatus).catch(() => ({ requests: [] })),
       distributionAPI.getAllSchedules().catch(() => ({ schedules: [] })),
       distributionAPI.getAll().catch(() => ({ distributions: [] })),
     ]);

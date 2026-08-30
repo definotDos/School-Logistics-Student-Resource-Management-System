@@ -2,14 +2,22 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatusBadge from "../../components/StatusBadge";
-import { requestAPI } from "../../services/api";
+import { requestAPI, resourceAPI } from "../../services/api";
 
 function Requests() {
   const [requests, setRequests] = useState([]);
+  const [resourceNames, setResourceNames] = useState({});
   const [error, setError] = useState("");
 
   useEffect(() => {
     requestAPI.getMyRequests().then((result) => setRequests(result.requests)).catch((requestError) => setError(requestError.message));
+    resourceAPI.getAll().then((result) => {
+      const map = {};
+      result.resources.forEach((resource) => {
+        map[resource._id] = resource.name;
+      });
+      setResourceNames(map);
+    }).catch(() => setResourceNames({}));
   }, []);
 
   return (
@@ -51,11 +59,11 @@ function Requests() {
                       </td>
 
                       <td className="px-6 py-4 text-slate-600">
-                        {request.resource}
+                        {resourceNames[request.resourceId] || request.resourceName || request.resource || "Resource"}
                       </td>
 
                       <td className="px-6 py-4 text-slate-500">
-                        {request.date}
+                        {new Date(request.date).toLocaleDateString()}
                       </td>
 
                       <td className="px-6 py-4">

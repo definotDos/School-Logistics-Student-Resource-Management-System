@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../context/useAuth";
-import { inventoryAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
+import { allocationAPI, distributionAPI, inventoryAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 
 const sections = {
@@ -50,6 +50,8 @@ function AdminDashboard() {
     }
   });
   const [requests, setRequests] = useState([]);
+  const [workflowRows, setWorkflowRows] = useState({ allocation: [], distribution: [] });
+  const [staffMembers, setStaffMembers] = useState([]);
   const [requestError, setRequestError] = useState("");
   const [userError, setUserError] = useState("");
   const [notice, setNotice] = useState("");
@@ -71,13 +73,43 @@ function AdminDashboard() {
     }).catch((error) => setNotice(error.message));
   }, [activeSection]);
 
+  useEffect(() => {
+    if (activeSection === "allocation") {
+      Promise.all([allocationAPI.getAll(), userAPI.getAll()]).then(([allocationResult, userResult]) => {
+        setStaffMembers(userResult.users.filter((user) => user.role === "staff" && user.status !== "suspended"));
+        setWorkflowRows((current) => ({ ...current, allocation: (allocationResult.allocations || []).map((allocation) => ({
+          databaseId: allocation._id,
+          name: allocation.request?.id || `Allocation ${String(allocation._id).slice(-6)}`,
+          detail: `${allocation.student?.name || "Student"} · ${allocation.resource?.name || "Resource"} · ${allocation.quantity} unit(s)`,
+          status: allocation.status,
+          action: "View",
+          assignedStaff: allocation.assignedStaff,
+        })) }));
+      }).catch((error) => setNotice(error.message));
+    }
+    if (activeSection === "distribution") {
+      distributionAPI.getAllSchedules().then((result) => {
+        setWorkflowRows((current) => ({ ...current, distribution: (result.schedules || []).map((schedule) => ({
+          databaseId: schedule._id,
+          name: schedule.resource?.name || "Resource claim",
+          detail: `${schedule.student?.name || "Student"} · ${schedule.pickupDate ? new Date(schedule.pickupDate).toLocaleDateString() : "Date not set"} · ${schedule.location}`,
+          status: schedule.status,
+          action: "View",
+        })) }));
+      }).catch((error) => setNotice(error.message));
+    }
+  }, [activeSection]);
+
   const completeAction = (collection, index, action) => {
     setRows((current) => ({ ...current, [collection]: current[collection].map((row, rowIndex) => rowIndex === index ? { ...row, status: action === "Publish" ? "Published" : action === "Send" ? "Sent" : "Completed", action: "View" } : row) }));
     setNotice(`${action} completed successfully.`);
   };
   const approveRequest = async (request) => {
     try {
-      const result = await requestAPI.updateStatus(request.databaseId, "approved");
+      if (request.eligibilityStatus !== "eligible") {
+        await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
+      }
+      const result = await requestAPI.approve(request.databaseId, {});
       setRequests((current) => current.map((item) => item.databaseId === request.databaseId ? result.request : item));
       setNotice("Request approved and moved to allocation.");
     } catch (error) {
@@ -111,11 +143,19 @@ function AdminDashboard() {
       setUserError(error.message);
     }
   };
+  const assignAllocation = async (allocation, staffId) => {
+    if (!staffId) return;
+    try {
+      const result = await allocationAPI.assignStaff(allocation.databaseId, staffId);
+      setWorkflowRows((current) => ({ ...current, allocation: current.allocation.map((item) => item.databaseId === allocation.databaseId ? { ...item, assignedStaff: result.allocation.assignedStaff } : item) }));
+      setNotice(`${staffMembers.find((staff) => staff.id === staffId)?.name || "Staff member"} was assigned to distribute this request.`);
+    } catch (error) { setNotice(error.message); }
+  };
 
   return <div className={`admin-shell ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><button className="admin-primary" onClick={() => setNotice("New workspace action opened. Choose a record below to continue.")}>+ New action</button></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
-    {activeSection === "dashboard" ? <Overview setNotice={setNotice} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
+    {activeSection === "dashboard" ? <Overview setNotice={setNotice} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
   </main></div></div>;
 }
 
@@ -159,6 +199,27 @@ function InventoryPanel({ setNotice }) {
 }
 
 function RequestPanel({ requests, requestError, approveRequest }) { return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Requests awaiting action</h2><p>{requests.length} database request{requests.length === 1 ? "" : "s"} awaiting review.</p></div><select aria-label="Filter requests"><option>All statuses</option><option>Pending</option><option>Approved</option></select></div>{requestError && <p className="auth-error" role="alert">{requestError}</p>}{!requestError && !requests.length && <p className="request-empty">No student requests yet.</p>}<div className="record-list">{requests.map((row) => <div className="record-row" key={row.databaseId}><div className="record-icon">{row.resource.slice(0, 2).toUpperCase()}</div><div className="record-copy"><strong>{row.resource}</strong><small>{row.student?.name || "Student"} · {row.id}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.status !== "pending"} onClick={() => approveRequest(row)}>{row.status === "pending" ? "Approve" : "View"}</button></div>)}</div><div className="verification-note"><b>Verification checklist</b><span>Confirm student identity, campus eligibility, stock availability, and requested quantity before approval.</span></div></section>; }
+
+function AllocationPanel({ rows, staffMembers, onAssign }) {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("All statuses");
+  const filteredRows = rows.filter((row) => {
+    const matchesSearch = `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = status === "All statuses" || row.status === status;
+    return matchesSearch && matchesStatus;
+  });
+  const assignedCount = rows.filter((row) => row.assignedStaff).length;
+
+  return <section className="admin-panel record-panel allocation-panel">
+    <div className="record-toolbar"><div><h2>Resource allocations</h2><p>{assignedCount} assigned · {rows.length - assignedCount} awaiting distributor assignment.</p></div><div className="record-tools"><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter allocations by status"><option>All statuses</option>{[...new Set(rows.map((row) => row.status))].map((value) => <option key={value}>{value}</option>)}</select><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search allocations..." aria-label="Search allocations" /></div></div>
+    {!filteredRows.length && <p className="request-empty">No allocations match the current filters.</p>}
+    <div className="record-list allocation-list">{filteredRows.map((row) => <div className="record-row allocation-row" key={row.databaseId}>
+      <div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div>
+      <div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div>
+      <div className="allocation-meta"><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><label className="assignment-control"><span>Distributor</span><select aria-label={`Assign staff for ${row.name}`} value={row.assignedStaff?._id || row.assignedStaff || ""} onChange={(event) => onAssign(row, event.target.value)}><option value="">Unassigned</option>{staffMembers.map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label></div>
+    </div>)}</div>
+  </section>;
+}
 
 function ReportsPanel() { return <><div className="report-cards"><AdminStat label="Requests fulfilled" value="86%" change="+8.4% vs last month" tone="green" /><AdminStat label="Average approval time" value="1.8d" change="0.4d faster" tone="blue" /><AdminStat label="Distribution success" value="93%" change="Across 4 campuses" tone="orange" /></div><section className="admin-panel chart-panel"><div className="report-heading"><PanelHeading title="Demand by resource category" description="Approved requests over the last 30 days" /><div className="report-heading-icon"><DashboardIcon name="performance" /></div></div><div className="chart-summary"><span><i />Approved request share</span><b>Last 30 days</b></div><div className="bar-chart"><div><i data-value="72%" style={{ height: "72%" }} /><span>Academic</span></div><div><i data-value="48%" style={{ height: "48%" }} /><span>Uniforms</span></div><div><i data-value="86%" style={{ height: "86%" }} /><span>Footwear</span></div><div><i data-value="35%" style={{ height: "35%" }} /><span>IDs</span></div><div><i data-value="61%" style={{ height: "61%" }} /><span>Other</span></div></div></section></>; }
 

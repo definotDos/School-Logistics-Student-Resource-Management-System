@@ -8,6 +8,7 @@ function Resources() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [selectedResource, setSelectedResource] = useState(null);
+  const [requestQuantity, setRequestQuantity] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [requestError, setRequestError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,10 +31,24 @@ function Resources() {
   }, []);
 
   const confirmRequest = async () => {
+    if (!selectedResource) return;
+    const quantity = Number(requestQuantity);
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      setRequestError("Quantity must be a positive whole number.");
+      return;
+    }
+    if (quantity > Number(selectedResource.quantity || 0)) {
+      setRequestError("The requested quantity exceeds the available stock.");
+      return;
+    }
     setSubmitting(true);
     setRequestError("");
     try {
-      await requestAPI.create({ resource: selectedResource.name, category: selectedResource.category });
+      await requestAPI.create({
+        resource: selectedResource._id,
+        category: selectedResource.category,
+        quantity,
+      });
       setSubmitted(true);
     } catch (error) {
       setRequestError(error.message);
@@ -44,6 +59,7 @@ function Resources() {
 
   const handleRequest = (resource) => {
     setSelectedResource(resource);
+    setRequestQuantity(1);
     setSubmitted(false);
   };
 
@@ -106,6 +122,17 @@ function Resources() {
           <div className="modal-icon">{selectedResource.icon}</div>
           <h2>Request {selectedResource.name}?</h2>
           <p>Your request will be reviewed by Student Affairs. You can track its progress in My Requests.</p>
+          <div className="request-quantity-row">
+            <label htmlFor="request-quantity">Quantity</label>
+            <input
+              id="request-quantity"
+              type="number"
+              min="1"
+              max={selectedResource.quantity || 1}
+              value={requestQuantity}
+              onChange={(event) => setRequestQuantity(Math.max(1, Number(event.target.value) || 1))}
+            />
+          </div>
           <div className="modal-actions"><button className="modal-secondary" onClick={() => setSelectedResource(null)}>Cancel</button><button className="modal-primary" onClick={confirmRequest} disabled={submitting}>{submitting ? "Submitting..." : "Submit Request"}</button></div>
           {requestError && <p className="auth-error" role="alert">{requestError}</p>}
         </> : <>

@@ -4,6 +4,7 @@ const allowRoles = require("../middleware/roleMiddleware");
 const {
 	processAllocation,
 	createClaimSchedule,
+	assignStaff,
 	listAllocations,
 	getAllocationById,
 	getStudentAllocations,
@@ -24,6 +25,9 @@ router.post("/:id/process", allowRoles("admin", "staff"), processAllocation);
 
 // Step 5: Logistics staff creates claim schedule
 router.post("/:id/schedule", allowRoles("staff", "admin"), createClaimSchedule);
+
+// Admin assigns distribution responsibility to an active staff member
+router.patch("/:id/assign-staff", allowRoles("admin"), assignStaff);
 
 // View all allocations (admin/staff)
 router.get("/all", allowRoles("admin", "staff"), listAllocations);

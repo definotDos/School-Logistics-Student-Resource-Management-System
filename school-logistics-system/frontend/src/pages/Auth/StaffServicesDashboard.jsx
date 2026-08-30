@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
-import { requestAPI } from "../../services/api";
+import { allocationAPI, distributionAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 import "./StaffServicesDashboard.css";
 
@@ -85,20 +85,92 @@ function StaffServicesDashboard() {
   const [selectedStudentHistory, setSelectedStudentHistory] = useState(null);
 
   useEffect(() => {
-    if (activeSection !== "review_requests") return;
+    if (!["review_requests", "approve_reject", "verify_eligibility", "update_status"].includes(activeSection)) return;
     requestAPI.getAll()
       .then((result) => {
         const staffRequests = result.requests.map((req) => ({
-          databaseId: req.id,
-          name: `REQ-${req.id?.slice(-6).toUpperCase()}`,
-          detail: `${req.studentName || "Student"} · ${req.resourceName || "Resource"} · Submitted ${req.submittedAt || "recently"}`,
+          databaseId: req.databaseId,
+          name: req.id || "Request",
+          detail: `${req.student?.name || "Student"} · ${req.resourceName || req.resource || "Resource"} · Submitted ${req.date ? new Date(req.date).toLocaleDateString() : "recently"}`,
           status: req.status || "Pending",
           action: "Review",
           priority: "medium",
+          eligibilityStatus: req.eligibilityStatus,
+          student: req.student,
+          resource: req.resourceName || req.resource,
         }));
         setRequests(staffRequests);
+        setRows((current) => ({
+          ...current,
+          review_requests: staffRequests,
+          approve_reject: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, action: "Approve", reason: "Pending eligibility and approval review" })),
+          update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: ["approved", "rejected", "ready_for_claim", "completed"], action: "Update" })),
+          verify_eligibility: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, name: request.student?.name || "Student", eligibility: request.eligibilityStatus === "eligible" ? "Eligible" : "Pending", action: "Verify" })),
+        }));
       })
       .catch((error) => setRequestError(error.message));
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== "student_history") return;
+    requestAPI.getAll()
+      .then((result) => setRows((current) => ({
+        ...current,
+        student_history: (result.requests || []).map((request) => ({
+          databaseId: request.databaseId,
+          name: request.student?.name || "Student",
+          detail: `${request.resourceName || request.resource || "Resource"} · ${request.status}`,
+          action: "View History",
+          claimed: request.status === "completed" ? `${request.quantity || 1} resource(s)` : "Not claimed",
+        })),
+      })))
+      .catch((error) => setRequestError(error.message));
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection === "manage_schedules") {
+      Promise.all([allocationAPI.getByStatus("Reserved"), distributionAPI.getAllSchedules()])
+        .then(([allocationResult, scheduleResult]) => {
+          const existing = new Set((scheduleResult.schedules || []).map((schedule) => String(schedule.allocation?._id || schedule.allocation)));
+          setRows((current) => ({ ...current, manage_schedules: (allocationResult.allocations || []).filter((allocation) => !existing.has(String(allocation._id))).map((allocation) => ({
+            databaseId: allocation._id,
+            name: allocation.resource?.name || "Resource claim",
+            detail: `${allocation.student?.name || "Student"} · ${allocation.quantity} unit(s) · ${allocation.campus || "Campus not set"}`,
+            status: allocation.status,
+            assigned: `${allocation.quantity} unit(s)`,
+            action: "Schedule",
+          })) }));
+        })
+        .catch((error) => setRequestError(error.message));
+    }
+    if (activeSection === "verify_claims") {
+      distributionAPI.getAllSchedules()
+        .then((result) => {
+          const claims = (result.schedules || []).map((schedule) => ({
+            databaseId: schedule._id,
+            allocationId: schedule.allocation?._id || schedule.allocation,
+            name: schedule.resource?.name || "Resource claim",
+            detail: `${schedule.student?.name || "Student"} · ${schedule.location}`,
+            status: schedule.status === "Confirmed" ? "Verified" : schedule.status,
+            action: schedule.status === "Scheduled" ? "Verify" : schedule.status === "Confirmed" ? "Release" : "View",
+            date: schedule.pickupDate ? new Date(schedule.pickupDate).toLocaleDateString() : "Date not set",
+          }));
+          setRows((current) => ({ ...current, verify_claims: claims }));
+        })
+        .catch((error) => setRequestError(error.message));
+    }
+    if (activeSection === "monitor_distribution") {
+      distributionAPI.getAll()
+        .then((result) => setRows((current) => ({ ...current, monitor_distribution: (result.distributions || []).map((distribution) => ({
+          databaseId: distribution._id,
+          name: distribution.resource?.name || "Resource distribution",
+          detail: `${distribution.student?.name || "Student"} · ${distribution.campus || "Campus not set"}`,
+          status: distribution.status,
+          released: `${distribution.quantityDelivered || 0} items`,
+          pending: distribution.status === "Released" ? "0 items" : `${distribution.quantityRequested || distribution.quantity || 0} items`,
+        })) })))
+        .catch((error) => setRequestError(error.message));
+    }
   }, [activeSection]);
 
   const completeAction = (collection, index, action) => {
@@ -111,26 +183,32 @@ function StaffServicesDashboard() {
     setNotice(`${action} completed successfully.`);
   };
 
-  const handleApproveRequest = (index) => {
+  const handleApproveRequest = async (index) => {
     const request = rows.approve_reject[index];
-    setRows((current) => ({
-      ...current,
-      approve_reject: current.approve_reject.map((row, i) =>
-        i === index ? { ...row, status: "Approved", action: "Done" } : row
-      ),
-    }));
-    setNotice(`Request ${request.name} has been approved. Student will be notified.`);
+    try {
+      if (request.eligibilityStatus !== "eligible") await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
+      await requestAPI.approve(request.databaseId, {});
+      setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
+      setNotice(`Request ${request.name} has been approved. Student will be notified.`);
+    } catch (error) { setRequestError(error.message); }
   };
 
-  const handleRejectRequest = (index) => {
+  const handleVerifyEligibility = async (index) => {
+    const request = rows.verify_eligibility[index];
+    try {
+      await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
+      setRows((current) => ({ ...current, verify_eligibility: current.verify_eligibility.map((row, rowIndex) => rowIndex === index ? { ...row, eligibility: "Eligible", status: "Verified", action: "Verified" } : row) }));
+      setNotice(`${request.name} eligibility was verified.`);
+    } catch (error) { setRequestError(error.message); }
+  };
+
+  const handleRejectRequest = async (index) => {
     const request = rows.approve_reject[index];
-    setRows((current) => ({
-      ...current,
-      approve_reject: current.approve_reject.map((row, i) =>
-        i === index ? { ...row, status: "Rejected", action: "Done" } : row
-      ),
-    }));
-    setNotice(`Request ${request.name} has been rejected. Student will be notified with reason.`);
+    try {
+      await requestAPI.reject(request.databaseId, { requestId: request.databaseId, rejectionReason: "Request did not meet the eligibility requirements." });
+      setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
+      setNotice(`Request ${request.name} has been rejected. Student will be notified with reason.`);
+    } catch (error) { setRequestError(error.message); }
   };
 
   const handleUpdateStatus = (index, newStatus) => {
@@ -152,6 +230,30 @@ function StaffServicesDashboard() {
       ),
     }));
     setNotice(`${notificationType} notification sent successfully to all recipients.`);
+  };
+
+  const handleSchedule = async (index, schedule) => {
+    const allocation = rows.manage_schedules[index];
+    try {
+      await allocationAPI.createSchedule(allocation.databaseId, schedule);
+      setRows((current) => ({ ...current, manage_schedules: current.manage_schedules.filter((_, rowIndex) => rowIndex !== index) }));
+      setNotice(`${allocation.name} was scheduled successfully.`);
+    } catch (error) { setRequestError(error.message); }
+  };
+
+  const handleClaimAction = async (index) => {
+    const claim = rows.verify_claims[index];
+    try {
+      if (claim.action === "Verify") {
+        await distributionAPI.verifyClaimIdentity(claim.databaseId, { quantityClaimed: 1, verificationDetails: "Identity verified by staff." });
+        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row, rowIndex) => rowIndex === index ? { ...row, status: "Verified", action: "Release" } : row) }));
+        setNotice(`${claim.name} was verified.`);
+      } else if (claim.action === "Release") {
+        await distributionAPI.release(claim.allocationId, { quantityDelivered: 1, distributionLocation: "Student Affairs Office" });
+        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row, rowIndex) => rowIndex === index ? { ...row, status: "Released", action: "View" } : row) }));
+        setNotice(`${claim.name} was released and recorded in distribution history.`);
+      }
+    } catch (error) { setRequestError(error.message); }
   };
 
   return (
@@ -184,7 +286,7 @@ function StaffServicesDashboard() {
             <StaffOverview setNotice={setNotice} />
           )}
           {activeSection === "verify_eligibility" && (
-            <EligibilityPanel rows={rows.verify_eligibility} onAction={completeAction} />
+            <EligibilityPanel rows={rows.verify_eligibility} onAction={handleVerifyEligibility} />
           )}
           {activeSection === "review_requests" && (
             <ReviewRequestsPanel
@@ -202,10 +304,10 @@ function StaffServicesDashboard() {
             />
           )}
           {activeSection === "manage_schedules" && (
-            <SchedulesPanel rows={rows.manage_schedules} onAction={completeAction} />
+            <SchedulesPanel rows={rows.manage_schedules} onSchedule={handleSchedule} />
           )}
           {activeSection === "verify_claims" && (
-            <VerifyClaimsPanel rows={rows.verify_claims} onAction={completeAction} />
+            <VerifyClaimsPanel rows={rows.verify_claims} onAction={handleClaimAction} />
           )}
           {activeSection === "monitor_distribution" && (
             <MonitorDistributionPanel rows={rows.monitor_distribution} />
@@ -435,7 +537,7 @@ function EligibilityPanel({ rows, onAction }) {
       </div>
       <div className="record-list">
         {filteredRows.map((row, index) => (
-          <div className="record-row" key={index}>
+          <div className="record-row">
             <div className="record-icon">
               {row.name.slice(0, 2).toUpperCase()}
             </div>
@@ -448,7 +550,7 @@ function EligibilityPanel({ rows, onAction }) {
             </span>
             <button
               className="row-action"
-              onClick={() => onAction("verify_eligibility", index, "Review")}
+              onClick={() => onAction(index)}
             >
               {row.action}
             </button>
@@ -564,8 +666,10 @@ function ApproveRejectPanel({ rows, onApprove, onReject }) {
   );
 }
 
-function SchedulesPanel({ rows, onAction }) {
+function SchedulesPanel({ rows, onSchedule }) {
   const [search, setSearch] = useState("");
+  const [scheduleIndex, setScheduleIndex] = useState(null);
+  const [schedule, setSchedule] = useState({ pickupDate: "", startTime: "09:00", endTime: "11:00", location: "Student Affairs Office" });
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -587,7 +691,8 @@ function SchedulesPanel({ rows, onAction }) {
       </div>
       <div className="record-list">
         {filteredRows.map((row, index) => (
-          <div className="record-row" key={index}>
+          <div key={row.databaseId || index}>
+          <div className="record-row">
             <div className="record-icon">◷</div>
             <div className="record-copy">
               <strong>{row.name}</strong>
@@ -597,12 +702,15 @@ function SchedulesPanel({ rows, onAction }) {
             <span className={`status-pill ${row.status.toLowerCase()}`}>
               {row.status}
             </span>
-            <button
-              className="row-action"
-              onClick={() => onAction("manage_schedules", index, row.action)}
-            >
-              {row.action}
-            </button>
+            <button className="row-action" onClick={() => setScheduleIndex(scheduleIndex === index ? null : index)}>{row.action}</button>
+          </div>
+          {scheduleIndex === index && <form className="resource-form" onSubmit={(event) => { event.preventDefault(); onSchedule(index, schedule); setScheduleIndex(null); }}>
+            <label>Date<input type="date" value={schedule.pickupDate} onChange={(event) => setSchedule((current) => ({ ...current, pickupDate: event.target.value }))} required /></label>
+            <label>Start time<input type="time" value={schedule.startTime} onChange={(event) => setSchedule((current) => ({ ...current, startTime: event.target.value }))} required /></label>
+            <label>End time<input type="time" value={schedule.endTime} onChange={(event) => setSchedule((current) => ({ ...current, endTime: event.target.value }))} required /></label>
+            <label>Location<input value={schedule.location} onChange={(event) => setSchedule((current) => ({ ...current, location: event.target.value }))} required /></label>
+            <button className="admin-primary" type="submit">Save schedule</button>
+          </form>}
           </div>
         ))}
       </div>
@@ -794,6 +902,17 @@ function UpdateStatusPanel({ rows, onUpdateStatus }) {
 }
 
 function ReportsPanel({ setNotice }) {
+  const generateReport = async (type, loader) => {
+    try {
+      const report = await loader();
+      const summary = report.summary || {};
+      const total = summary.totalRequests ?? summary.totalDistributed ?? summary.totalApproved ?? 0;
+      setNotice(`${type} generated successfully. ${total} records found.`);
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
   return (
     <section className="admin-panel reports-panel">
       <PanelHeading
@@ -805,25 +924,25 @@ function ReportsPanel({ setNotice }) {
           title="Request Summary Report"
           description="Total requests, approvals, rejections, and fulfillment rates"
           action="Generate"
-          onClick={() => setNotice("Request summary report generated.")}
+          onClick={() => generateReport("Request summary report", reportsAPI.getRequestReport)}
         />
         <ReportCard
           title="Approval Analytics"
           description="Track approval patterns and staff performance metrics"
           action="Generate"
-          onClick={() => setNotice("Approval analytics report generated.")}
+          onClick={() => generateReport("Approval analytics", reportsAPI.getApprovalAnalytics)}
         />
         <ReportCard
           title="Distribution Report"
           description="Monitor resource distribution and claim completion"
           action="Generate"
-          onClick={() => setNotice("Distribution report generated.")}
+          onClick={() => generateReport("Distribution report", reportsAPI.getDistributionReport)}
         />
         <ReportCard
           title="Student Eligibility Report"
           description="Analysis of student eligibility and qualification trends"
           action="Generate"
-          onClick={() => setNotice("Eligibility report generated.")}
+          onClick={() => generateReport("Eligibility report", reportsAPI.getRequestReport)}
         />
       </div>
     </section>

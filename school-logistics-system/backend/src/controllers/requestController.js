@@ -10,9 +10,12 @@ const Inventory = require("../models/Inventory");
 // ============================================
 
 const formatRequest = (request) => ({
+	...request.toObject ? request.toObject() : request,
 	id: `REQ-${request._id.toString().slice(-8).toUpperCase()}`,
 	databaseId: request._id.toString(),
-	resource: request.resource,
+	resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+	resource: request.resourceRef?.name || request.resource || "Resource",
+	resourceName: request.resourceRef?.name || request.resource || "Resource",
 	quantity: request.quantity,
 	category: request.category,
 	date: request.createdAt,
@@ -21,12 +24,13 @@ const formatRequest = (request) => ({
 	approvedAt: request.approvedAt,
 	rejectedAt: request.rejectedAt,
 	releasedAt: request.releasedAt,
-	student: request.student ? { 
-		id: request.student._id,
-		name: request.student.name, 
+	student: request.student ? {
+		_id: request.student._id || request.student.id,
+		id: request.student._id || request.student.id,
+		name: request.student.name,
 		email: request.student.email,
 		campus: request.student.campus,
-		grade: request.student.grade
+		grade: request.student.grade,
 	} : undefined,
 });
 
@@ -64,10 +68,11 @@ const sendNotification = async (userId, type, title, message, relatedEntityId = 
 
 async function createRequest(req, res) {
 	try {
-		const { resource, category, quantity = 1, notes = "" } = req.body;
+		const { resource, category, quantity = 1, notes = "", reason = "" } = req.body;
+		const resourceId = resource && (typeof resource === "string" ? resource.trim() : String(resource));
 		
 		// Validation
-		if (!resource?.trim()) {
+		if (!resourceId) {
 			return res.status(400).json({ message: "Choose a resource before submitting." });
 		}
 		
@@ -75,27 +80,36 @@ async function createRequest(req, res) {
 			return res.status(400).json({ message: "Quantity must be a positive whole number." });
 		}
 
+		const resourceExists = await Resource.findById(resourceId);
+		if (!resourceExists) {
+			return res.status(404).json({ message: "Resource not found." });
+		}
+
+		if (Number(quantity) > (resourceExists.maxQuantityPerStudent || 5)) {
+			return res.status(400).json({ message: `Quantity exceeds the maximum allowed per student (${resourceExists.maxQuantityPerStudent || 5}).` });
+		}
+
 		// Check for duplicate active requests
 		const duplicate = await Request.findOne({ 
 			student: req.user._id, 
-			resource: resource.trim(), 
+			resource: resourceId, 
 			status: { $in: ["pending", "approved", "ready_for_claim"] } 
 		});
 		
 		if (duplicate) {
-			return res.status(409).json({ message: "You already have an active request for this resource." });
+			return res.status(400).json({ message: "You already have an active request for this resource." });
 		}
 
 		// Create request with initial status
 		const request = await Request.create({
 			student: req.user._id,
-			resource: resource.trim(),
+			resource: resourceId,
 			quantity: Number(quantity),
 			category: category?.trim() || "Other",
 			campus: req.user.campus,
 			status: "pending",
 			eligibilityStatus: "pending",
-			notes: notes?.trim() || "",
+			notes: notes?.trim() || reason?.trim() || "",
 			priority: "medium"
 		});
 
@@ -129,7 +143,9 @@ async function createRequest(req, res) {
 
 async function verifyEligibility(req, res) {
 	try {
-		const { requestId, isEligible, notes = "" } = req.body;
+		const requestId = req.params.id || req.body.requestId || req.body.id;
+		const isEligible = req.body.eligible ?? req.body.isEligible;
+		const notes = req.body.notes || req.body.note || "";
 
 		const request = await Request.findById(requestId);
 		if (!request) {
@@ -177,7 +193,8 @@ async function verifyEligibility(req, res) {
 
 async function approveRequest(req, res) {
 	try {
-		const { requestId, notes = "" } = req.body;
+		const requestId = req.params.id || req.body.requestId || req.body.id;
+		const notes = req.body.notes || req.body.reason || "";
 
 		const request = await Request.findById(requestId);
 		if (!request) {
@@ -194,7 +211,7 @@ async function approveRequest(req, res) {
 		}
 
 		// Get resource
-		const resource = await Resource.findOne({ name: request.resource });
+		const resource = await Resource.findById(request.resource) || await Resource.findOne({ name: request.resource });
 		if (!resource) {
 			return res.status(409).json({ message: "This resource is no longer in the catalog." });
 		}
@@ -342,11 +359,30 @@ async function rejectRequest(req, res) {
 
 async function getMyRequests(req, res) {
 	try {
+		if (req.user.role !== "student") {
+			return res.json({ requests: [] });
+		}
+
 		const requests = await Request.find({ student: req.user._id })
+			.populate("resourceRef", "name category")
 			.populate("student", "name email campus grade")
 			.sort({ createdAt: -1 });
-		
-		res.json({ requests: requests.map(formatRequest) });
+
+		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
+		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
+
+		res.json({
+			requests: requests.map((request) => {
+				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
+				return {
+					...formatRequest(request),
+					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resource: resource?.name || request.resource || "Resource",
+					resourceName: resource?.name || request.resource || "Resource",
+				};
+			})
+		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to load your requests.", error: error.message });
 	}
@@ -362,10 +398,25 @@ async function getAllRequests(req, res) {
 		if (priority) filter.priority = priority;
 
 		const requests = await Request.find(filter)
+			.populate("resourceRef", "name category")
 			.populate("student", "name email campus grade")
 			.sort({ priority: -1, createdAt: -1 });
-		
-		res.json({ requests: requests.map(formatRequest) });
+
+		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
+		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
+
+		res.json({
+			requests: requests.map((request) => {
+				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
+				return {
+					...formatRequest(request),
+					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resource: resource?.name || request.resource || "Resource",
+					resourceName: resource?.name || request.resource || "Resource",
+				};
+			})
+		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to load requests.", error: error.message });
 	}
@@ -374,6 +425,7 @@ async function getAllRequests(req, res) {
 async function getRequestById(req, res) {
 	try {
 		const request = await Request.findById(req.params.id)
+			.populate("resourceRef", "name category")
 			.populate("student", "name email campus grade")
 			.populate("checkedBy", "name")
 			.populate("approvedBy", "name")
@@ -383,7 +435,15 @@ async function getRequestById(req, res) {
 			return res.status(404).json({ message: "Request not found." });
 		}
 
-		res.json({ request: formatRequest(request) });
+		const resource = request.resourceRef || (request.resource ? await Resource.findById(request.resource).lean() : null);
+		res.json({
+			request: {
+				...formatRequest(request),
+				resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+				resource: resource?.name || request.resource || "Resource",
+				resourceName: resource?.name || request.resource || "Resource",
+			}
+		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to load request.", error: error.message });
 	}
@@ -399,13 +459,26 @@ async function getRequestsByStatus(req, res) {
 		}
 
 		const requests = await Request.find({ status })
+			.populate("resourceRef", "name category")
 			.populate("student", "name email campus")
 			.sort({ createdAt: -1 });
+
+		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
+		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
 
 		res.json({ 
 			status,
 			count: requests.length,
-			requests: requests.map(formatRequest) 
+			requests: requests.map((request) => {
+				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
+				return {
+					...formatRequest(request),
+					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resource: resource?.name || request.resource || "Resource",
+					resourceName: resource?.name || request.resource || "Resource",
+				};
+			})
 		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to load requests.", error: error.message });

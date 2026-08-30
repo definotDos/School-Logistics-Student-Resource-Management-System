@@ -14,16 +14,14 @@ global.console = {
   error: console.error,
 };
 
-// Clean up after all tests
+// Close DB after the suite completes.
 afterAll(async () => {
-  await mongoose.connection.close();
-});
-
-// Clean up collections before each test
-beforeEach(async () => {
-  const collections = mongoose.connection.collections;
-  for (const key in collections) {
-    const collection = collections[key];
-    await collection.deleteMany({});
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.connection.close();
   }
 });
+
+// NOTE: End-to-end workflow tests intentionally keep state across steps.
+// Do not delete collections before each test here because that breaks
+// the complete request lifecycle under test.
+

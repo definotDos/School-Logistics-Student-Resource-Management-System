@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import StatusBadge from "../../components/StatusBadge";
 import { useAuth } from "../../context/useAuth";
-import { requestAPI } from "../../services/api";
+import { requestAPI, resourceAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 
 const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year"];
@@ -30,8 +30,16 @@ function StudentDashboard() {
     avatar: user?.avatar || "",
   }));
   const [requests, setRequests] = useState([]);
+  const [resourceNames, setResourceNames] = useState({});
   useEffect(() => {
     requestAPI.getMyRequests().then((result) => setRequests(result.requests)).catch(() => setRequests([]));
+    resourceAPI.getAll().then((result) => {
+      const map = {};
+      result.resources.forEach((resource) => {
+        map[resource._id] = resource.name;
+      });
+      setResourceNames(map);
+    }).catch(() => setResourceNames({}));
   }, []);
   const counts = {
     total: requests.length,
@@ -130,7 +138,14 @@ function StudentDashboard() {
               <div className="panel-heading"><div><span className="dashboard-kicker">Activity</span><h2>Recent Requests</h2><p>{counts.total} requests in your account</p></div><Link to="/requests">View all <span aria-hidden="true">→</span></Link></div>
               <div className="request-list">
                 {requests.length ? requests.map((request, index) => (
-                  <div className="request-row" key={`${request.resource}-${index}`}><span className="request-symbol">{request.resource.charAt(0)}</span><div><strong>{request.resource}</strong><small>Requested {request.date}</small></div><StatusBadge status={request.status} /></div>
+                  <div className="request-row" key={request.databaseId || `${request.resourceId || request.resource}-${index}`}>
+                    <span className="request-symbol">{(resourceNames[request.resourceId] || request.resourceName || request.resource || "R").charAt(0).toUpperCase()}</span>
+                    <div>
+                      <strong>{resourceNames[request.resourceId] || request.resourceName || request.resource || "Resource"}</strong>
+                      <small>Requested {new Date(request.date).toLocaleDateString()}</small>
+                    </div>
+                    <StatusBadge status={request.status} />
+                  </div>
                 )) : <p className="request-empty">Your requests will appear here.</p>}
               </div>
             </section>
@@ -142,13 +157,6 @@ function StudentDashboard() {
               <Link className="panel-action" to="/claim-schedule">View claim details <span>→</span></Link>
             </section>
           </div>
-
-          <section className="quick-links">
-            <div><span className="dashboard-kicker">Shortcuts</span><h2>Quick actions</h2></div>
-            <Link to="/resources"><b><DashboardIcon name="resources" /></b><span><strong>Browse resources</strong><small>Find books, uniforms, and more</small></span><i>→</i></Link>
-            <Link to="/requests"><b><DashboardIcon name="requests" /></b><span><strong>Track requests</strong><small>Check your latest request status</small></span><i>→</i></Link>
-            <Link to="/distribution-history"><b><DashboardIcon name="history" /></b><span><strong>View history</strong><small>See previously released items</small></span><i>→</i></Link>
-          </section>
 
           {profileOpen && (
             <div className="profile-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setProfileOpen(false)}>

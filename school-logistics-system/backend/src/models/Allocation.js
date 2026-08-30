@@ -13,6 +13,7 @@ const allocationSchema = new mongoose.Schema(
 		
 		// Staff Assignment
 		allocatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Admin or Staff who approved
+		assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		
 		// Tracking
 		allocationDate: { type: Date, default: Date.now },

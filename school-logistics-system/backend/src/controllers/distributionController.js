@@ -43,7 +43,9 @@ const sendNotification = async (userId, type, title, message, relatedEntityId = 
 
 async function verifyClaimIdentity(req, res) {
 	try {
-		const { scheduleId, quantityClaimed, verificationNotes = "" } = req.body;
+		const scheduleId = req.params.id || req.body.scheduleId || req.body.id;
+		const quantityClaimed = req.body.quantityClaimed ?? req.body.quantity;
+		const verificationNotes = req.body.verificationDetails || req.body.verificationNotes || "";
 
 		if (!scheduleId || !quantityClaimed || quantityClaimed < 1) {
 			return res.status(400).json({ message: "Schedule ID and quantity are required." });
@@ -58,7 +60,7 @@ async function verifyClaimIdentity(req, res) {
 			return res.status(404).json({ message: "Claim schedule not found." });
 		}
 
-		if (schedule.status !== "Scheduled") {
+		if (schedule.status !== "Scheduled" && schedule.status !== "Confirmed") {
 			return res.status(409).json({ message: "Only scheduled claims can be verified." });
 		}
 
@@ -76,6 +78,14 @@ async function verifyClaimIdentity(req, res) {
 		allocation.status = "Verified";
 		allocation.verifiedDate = new Date();
 		await allocation.save();
+
+		const request = await Request.findById(allocation.request);
+		if (request) {
+			request.status = "claimed";
+			request.claimedAt = new Date();
+			request.claimedBy = schedule.student?.name || "Student";
+			await request.save();
+		}
 
 		// Audit log
 		await createAuditLog(
@@ -97,9 +107,10 @@ async function verifyClaimIdentity(req, res) {
 			schedule._id
 		);
 
-		res.json({ 
-			message: "Claim verified successfully", 
-			schedule 
+		res.status(200).json({ 
+			message: "Claim verified successfully",
+			claimSchedule: schedule,
+			schedule
 		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to verify claim.", error: error.message });
@@ -112,7 +123,10 @@ async function verifyClaimIdentity(req, res) {
 
 async function releaseAllocation(req, res) {
 	try {
-		const { allocationId, quantityDelivered = null, distributionNotes = "" } = req.body;
+		const allocationId = req.params.allocationId || req.params.id || req.body.allocationId || req.body.id;
+		const quantityDelivered = req.body.quantityDelivered ?? req.body.quantity ?? null;
+		const distributionNotes = req.body.distributionNotes || req.body.notes || "";
+		const distributionLocation = req.body.distributionLocation || req.body.location || "";
 
 		const allocation = await Allocation.findById(allocationId)
 			.populate("request")
@@ -126,6 +140,12 @@ async function releaseAllocation(req, res) {
 		if (allocation.status !== "Verified") {
 			return res.status(409).json({ message: "Only verified allocations can be released." });
 		}
+
+		const request = allocation.request;
+		request.status = "completed";
+		request.releasedAt = new Date();
+		request.releasedBy = req.user._id;
+		await request.save();
 
 		// Get claim schedule for more info
 		const schedule = await ClaimSchedule.findOne({ allocation: allocationId });
@@ -156,11 +176,10 @@ async function releaseAllocation(req, res) {
 		await allocation.save();
 
 		// Update request
-		const request = allocation.request;
 		const previousReqStatus = request.status;
-		request.status = "claimed";
-		request.claimedAt = new Date();
-		request.claimedBy = allocation.student.name;
+		request.status = "completed";
+		request.claimedAt = request.claimedAt || new Date();
+		request.claimedBy = request.claimedBy || allocation.student.name;
 		request.releasedAt = new Date();
 		request.releasedBy = req.user._id;
 		await request.save();
@@ -189,7 +208,8 @@ async function releaseAllocation(req, res) {
 			claimedAt: new Date(),
 			campus: allocation.campus,
 			notes: distributionNotes,
-			referenceId: `DIST-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+			distributionLocation,
+			referenceId: `DIST-${Date.now()}-${Math.random().toString(36).substr(2, 9).toLowerCase()}`
 		});
 
 		// Audit log
@@ -210,7 +230,7 @@ async function releaseAllocation(req, res) {
 			"Request",
 			request._id,
 			previousReqStatus,
-			"claimed",
+			"completed",
 			`Request completed and resource delivered to ${allocation.student.name}`
 		);
 
@@ -224,10 +244,11 @@ async function releaseAllocation(req, res) {
 			"/student/history"
 		);
 
-		res.json({ 
-			message: "Allocation released successfully", 
+		res.status(201).json({ 
+			message: "Allocation released successfully",
 			allocation,
-			distribution
+			distribution,
+			distributionRecord: distribution
 		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to release allocation.", error: error.message });
@@ -253,7 +274,10 @@ async function getMySchedules(req, res) {
 
 		res.json({ 
 			count: schedules.length,
-			schedules 
+			schedules: schedules.map(schedule => ({
+				...schedule.toObject(),
+				pickupDate: schedule.pickupDate ? new Date(schedule.pickupDate).toISOString().slice(0, 10) : null,
+			}))
 		});
 	} catch (error) {
 		res.status(500).json({ message: "Unable to load claim schedules.", error: error.message });
@@ -268,6 +292,10 @@ async function getAllSchedules(req, res) {
 		if (status) filter.status = status;
 		if (campus) filter.campus = campus;
 		if (studentId) filter.student = studentId;
+		if (req.user.role === "staff") {
+			const assignedAllocations = await Allocation.find({ assignedStaff: req.user._id }).select("_id").lean();
+			filter.allocation = { $in: assignedAllocations.map((allocation) => allocation._id) };
+		}
 
 		const schedules = await ClaimSchedule.find(filter)
 			.populate("allocation", "quantity campus")
