@@ -209,6 +209,22 @@ describe("Complete 9-Step Workflow Integration Tests", () => {
       requestId = res.body.request._id;
     });
 
+    it("should include the student ID and avatar in admin/staff request listings", async () => {
+      const student = await User.findOne({ email: "student@university.edu" });
+      student.studentId = "2023-001";
+      student.avatar = "https://example.com/avatar.png";
+      await student.save();
+
+      const res = await request(app)
+        .get("/api/requests/all")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.requests.length).toBeGreaterThan(0);
+      expect(res.body.requests[0].studentId).toBe("2023-001");
+      expect(res.body.requests[0].avatar).toBe("https://example.com/avatar.png");
+    });
+
     it("should prevent duplicate active requests", async () => {
       const res = await request(app)
         .post("/api/requests")

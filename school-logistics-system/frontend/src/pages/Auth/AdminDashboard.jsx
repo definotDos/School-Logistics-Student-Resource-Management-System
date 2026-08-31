@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../context/useAuth";
-import { allocationAPI, distributionAPI, inventoryAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
+import { allocationAPI, distributionAPI, inventoryAPI, reportsAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 
 const sections = {
@@ -21,14 +21,25 @@ const sections = {
   profile: { label: "My profile", title: "Administrator profile", description: "Update your administrator details and profile picture." },
 };
 
-const initialRows = {
+const emptyRows = {
   users: [],
-  catalog: [{ name: "Learning Module Pack", detail: "Academic materials · Grades 10-12", status: "Published", action: "Edit" }, { name: "School Uniform Set", detail: "Uniforms · All students", status: "Published", action: "Edit" }, { name: "School Shoes", detail: "Footwear · All students", status: "Draft", action: "Publish" }],
-  allocation: [{ name: "REQ-2024-0157", detail: "Maria Santos · Learning Module Pack", status: "Ready", action: "Assign" }, { name: "REQ-2024-0158", detail: "Joshua Reyes · School Uniform Set", status: "Ready", action: "Assign" }],
-  distribution: [{ name: "North Campus collection", detail: "Nov 15, 2024 · 9:00 AM - 12:00 PM", status: "Scheduled", action: "Release" }, { name: "Main Campus collection", detail: "Nov 18, 2024 · 1:00 PM - 4:00 PM", status: "Scheduled", action: "Edit" }],
-  campuses: [{ name: "Main Campus", detail: "2,450 students · 18 resources", status: "Operational", action: "Edit" }, { name: "North Campus", detail: "1,120 students · 14 resources", status: "Operational", action: "Edit" }, { name: "South Campus", detail: "840 students · 9 resources", status: "Setup", action: "Edit" }],
-  notifications: [{ name: "Collection reminder", detail: "Sent to 64 students · Today, 08:30", status: "Sent", action: "View" }, { name: "Low stock alert", detail: "Inventory team · Yesterday, 16:10", status: "Draft", action: "Send" }],
-  audit: [{ name: "Request approved", detail: "Admin · REQ-2024-0157 · 5 minutes ago", status: "Request", action: "View" }, { name: "Inventory received", detail: "Lia Villanueva · 120 Mathematics Books · 1 hour ago", status: "Inventory", action: "View" }, { name: "Schedule created", detail: "Admin · Main Campus · 3 hours ago", status: "Distribution", action: "View" }],
+  catalog: [],
+  allocation: [],
+  distribution: [],
+  campuses: [],
+  notifications: [],
+  audit: [],
+};
+
+const resourceImageByName = (name = "") => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("mathematics")) return "/mathematics-book.svg";
+  return "";
+};
+
+const resourceInitials = (name = "Resource") => {
+  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return words.map((word) => word[0]).join("").toUpperCase() || "RS";
 };
 
 function AdminDashboard() {
@@ -44,17 +55,26 @@ function AdminDashboard() {
   const [rows, setRows] = useState(() => {
     try {
       const savedCatalog = JSON.parse(localStorage.getItem("srmsAdminCatalog") || "null");
-      return savedCatalog ? { ...initialRows, catalog: savedCatalog } : initialRows;
+      return savedCatalog ? { ...emptyRows, catalog: savedCatalog } : emptyRows;
     } catch {
-      return initialRows;
+      return emptyRows;
     }
   });
+  const [overviewData, setOverviewData] = useState(null);
   const [requests, setRequests] = useState([]);
   const [workflowRows, setWorkflowRows] = useState({ allocation: [], distribution: [] });
   const [staffMembers, setStaffMembers] = useState([]);
   const [requestError, setRequestError] = useState("");
   const [userError, setUserError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    if (activeSection === "dashboard") {
+      reportsAPI.getDashboardOverview()
+        .then((result) => setOverviewData(result?.overview || result || {}))
+        .catch(() => setOverviewData({}));
+    }
+  }, [activeSection]);
 
   useEffect(() => {
     if (activeSection !== "requests") return;
@@ -79,7 +99,7 @@ function AdminDashboard() {
         setStaffMembers(userResult.users.filter((user) => user.role === "staff" && user.status !== "suspended"));
         setWorkflowRows((current) => ({ ...current, allocation: (allocationResult.allocations || []).map((allocation) => ({
           databaseId: allocation._id,
-          name: allocation.request?.id || `Allocation ${String(allocation._id).slice(-6)}`,
+          name: allocation.student?.studentId || allocation.student?.id || `Student ${String(allocation._id).slice(-6)}`,
           detail: `${allocation.student?.name || "Student"} · ${allocation.resource?.name || "Resource"} · ${allocation.quantity} unit(s)`,
           status: allocation.status,
           action: "View",
@@ -155,13 +175,20 @@ function AdminDashboard() {
   return <div className={`admin-shell ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><button className="admin-primary" onClick={() => setNotice("New workspace action opened. Choose a record below to continue.")}>+ New action</button></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
-    {activeSection === "dashboard" ? <Overview setNotice={setNotice} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
+    {activeSection === "dashboard" ? <Overview setNotice={setNotice} overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
   </main></div></div>;
 }
 
-function Overview({ setNotice }) { return <>
-  <div className="admin-stats"><AdminStat label="Pending requests" value="48" change="12 need review" tone="orange" /><AdminStat label="Available resources" value="1,284" change="92% stock health" tone="blue" /><AdminStat label="Active users" value="2,450" change="+86 this month" tone="green" /><AdminStat label="Scheduled claims" value="632" change="18 this week" tone="navy" /></div>
-  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title="12 requests awaiting approval" detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title="3 resources below reorder level" detail="Receive new stock before the next distribution run." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title="2 distribution schedules this week" detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>78%</strong></div><div className="progress"><i style={{ width: "78%" }} /></div></div><div className="progress-block"><div><span>Inventory accuracy</span><strong>94%</strong></div><div className="progress green"><i style={{ width: "94%" }} /></div></div><div className="progress-block"><div><span>Claim completion</span><strong>63%</strong></div><div className="progress orange"><i style={{ width: "63%" }} /></div></div><button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>Export monthly report →</button></section></div>
+function Overview({ setNotice, overview }) {
+  const summary = overview || {};
+  const pendingRequests = Number(summary.pendingRequests || summary.pending_requests || 0);
+  const availableResources = Number(summary.availableResources || summary.available_resources || 0);
+  const activeUsers = Number(summary.activeUsers || summary.active_users || 0);
+  const scheduledClaims = Number(summary.scheduledClaims || summary.scheduled_claims || 0);
+
+  return <>
+  <div className="admin-stats"><AdminStat label="Pending requests" value={pendingRequests} change="Live from system" tone="orange" /><AdminStat label="Available resources" value={availableResources} change="Current inventory" tone="blue" /><AdminStat label="Active users" value={activeUsers} change="Registered accounts" tone="green" /><AdminStat label="Scheduled claims" value={scheduledClaims} change="Live schedule count" tone="navy" /></div>
+  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{Math.min(100, Math.max(0, pendingRequests ? 78 : 0))}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, pendingRequests ? 78 : 0))}%` }} /></div></div><div className="progress-block"><div><span>Inventory accuracy</span><strong>{availableResources ? 94 : 0}%</strong></div><div className="progress green"><i style={{ width: `${availableResources ? 94 : 0}%` }} /></div></div><div className="progress-block"><div><span>Claim completion</span><strong>{scheduledClaims ? 63 : 0}%</strong></div><div className="progress orange"><i style={{ width: `${scheduledClaims ? 63 : 0}%` }} /></div></div><button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>Export monthly report →</button></section></div>
   <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="resources" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="history" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
 </>; }
 function AdminStat({ label, value, change, tone }) { return <article className={`admin-stat ${tone}`}><span>{label}</span><strong>{value}</strong><small>{change}</small></article>; }
@@ -198,7 +225,7 @@ function InventoryPanel({ setNotice }) {
   return <section className="admin-panel record-panel inventory-panel"><div className="record-toolbar"><div><h2>Stock overview</h2><p>{items.length} resources synchronized from MongoDB.</p></div><button className="admin-secondary" onClick={() => setShowReceive((visible) => !visible)}>{showReceive ? "Close" : "+ Receive resources"}</button></div>{showReceive && <form className="resource-form" onSubmit={receive}><label>Resource<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} required><option value="">Choose resource</option>{items.map((item) => <option key={item.resource._id} value={item.resource._id}>{item.resource.name}</option>)}</select></label><label>Quantity<input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label><button className="admin-primary" type="submit">Save intake</button></form>}{error && <p className="auth-error" role="alert">{error}</p>}<div className="inventory-table"><div className="inventory-head"><span>Resource</span><span>Category</span><span>Available</span><span>Reserved</span><span>Total</span></div>{items.map((item) => <div className="inventory-row" key={item._id}><strong>{item.resource.name}</strong><span>{item.resource.category}</span><b className={item.available < 35 ? "low-stock" : ""}>{item.available}</b><span>{item.reserved}</span><span>{item.available + item.reserved + item.issued}</span></div>)}</div><div className="receive-strip"><b>Resource receiving</b><span>Received quantities are written to MongoDB and reflected across the catalog.</span></div></section>;
 }
 
-function RequestPanel({ requests, requestError, approveRequest }) { return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Requests awaiting action</h2><p>{requests.length} database request{requests.length === 1 ? "" : "s"} awaiting review.</p></div><select aria-label="Filter requests"><option>All statuses</option><option>Pending</option><option>Approved</option></select></div>{requestError && <p className="auth-error" role="alert">{requestError}</p>}{!requestError && !requests.length && <p className="request-empty">No student requests yet.</p>}<div className="record-list">{requests.map((row) => <div className="record-row" key={row.databaseId}><div className="record-icon">{row.resource.slice(0, 2).toUpperCase()}</div><div className="record-copy"><strong>{row.resource}</strong><small>{row.student?.name || "Student"} · {row.id}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.status !== "pending"} onClick={() => approveRequest(row)}>{row.status === "pending" ? "Approve" : "View"}</button></div>)}</div><div className="verification-note"><b>Verification checklist</b><span>Confirm student identity, campus eligibility, stock availability, and requested quantity before approval.</span></div></section>; }
+function RequestPanel({ requests, requestError, approveRequest }) { return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Requests awaiting action</h2><p>{requests.length} database request{requests.length === 1 ? "" : "s"} awaiting review.</p></div><select aria-label="Filter requests"><option>All statuses</option><option>Pending</option><option>Approved</option></select></div>{requestError && <p className="auth-error" role="alert">{requestError}</p>}{!requestError && !requests.length && <p className="request-empty">No student requests yet.</p>}<div className="record-list">{requests.map((row) => { const resourceName = row.resourceName || row.resource || "Resource"; const resourceImage = resourceImageByName(resourceName); return <div className="record-row" key={row.databaseId}><div className="record-avatar">{resourceImage ? <img src={resourceImage} alt={resourceName} /> : <span>{resourceInitials(resourceName)}</span>}</div><div className="record-copy"><strong>{resourceName}</strong><small>{row.student?.name || "Student"} · ID: {row.studentId || row.student?.studentId || row.student?.id || "N/A"} · {row.id}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.status !== "pending"} onClick={() => approveRequest(row)}>{row.status === "pending" ? "Approve" : "View"}</button></div>; })}</div><div className="verification-note"><b>Verification checklist</b><span>Confirm student identity, campus eligibility, stock availability, and requested quantity before approval.</span></div></section>; }
 
 function AllocationPanel({ rows, staffMembers, onAssign }) {
   const [search, setSearch] = useState("");
@@ -221,6 +248,6 @@ function AllocationPanel({ rows, staffMembers, onAssign }) {
   </section>;
 }
 
-function ReportsPanel() { return <><div className="report-cards"><AdminStat label="Requests fulfilled" value="86%" change="+8.4% vs last month" tone="green" /><AdminStat label="Average approval time" value="1.8d" change="0.4d faster" tone="blue" /><AdminStat label="Distribution success" value="93%" change="Across 4 campuses" tone="orange" /></div><section className="admin-panel chart-panel"><div className="report-heading"><PanelHeading title="Demand by resource category" description="Approved requests over the last 30 days" /><div className="report-heading-icon"><DashboardIcon name="performance" /></div></div><div className="chart-summary"><span><i />Approved request share</span><b>Last 30 days</b></div><div className="bar-chart"><div><i data-value="72%" style={{ height: "72%" }} /><span>Academic</span></div><div><i data-value="48%" style={{ height: "48%" }} /><span>Uniforms</span></div><div><i data-value="86%" style={{ height: "86%" }} /><span>Footwear</span></div><div><i data-value="35%" style={{ height: "35%" }} /><span>IDs</span></div><div><i data-value="61%" style={{ height: "61%" }} /><span>Other</span></div></div></section></>; }
+function ReportsPanel() { return <><div className="report-cards"><AdminStat label="Requests fulfilled" value="86%" change="+8.4% vs last month" tone="green" /><AdminStat label="Average approval time" value="1.8d" change="0.4d faster" tone="blue" /><AdminStat label="Distribution success" value="93%" change="Across 4 campuses" tone="orange" /></div><section className="admin-panel chart-panel"><div className="report-heading"><PanelHeading title="Demand by resource category" description="Approved requests over the last 30 days" /><div className="report-heading-icon"><DashboardIcon name="performance" /></div></div><div className="chart-summary"><span><i />Approved request share</span><b>Last 30 days</b></div><div className="chart-axes"><div className="chart-scale" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div className="bar-chart"><div><i data-value="72%" style={{ height: "72%" }} /><span>Academic</span></div><div><i data-value="48%" style={{ height: "48%" }} /><span>Uniforms</span></div><div><i data-value="86%" style={{ height: "86%" }} /><span>Footwear</span></div><div><i data-value="35%" style={{ height: "35%" }} /><span>IDs</span></div><div><i data-value="61%" style={{ height: "61%" }} /><span>Other</span></div></div></div></section></>; }
 
 export default AdminDashboard;

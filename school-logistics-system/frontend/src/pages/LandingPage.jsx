@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 const THEME_KEY = 'srmsLandingTheme'
 
+
 function readTheme() {
   try {
     return JSON.parse(localStorage.getItem(THEME_KEY) ?? 'true')
@@ -10,6 +11,7 @@ function readTheme() {
     return true
   }
 }
+
 
 const navItems = [
   { label: 'Home', target: 'top' },
@@ -49,6 +51,7 @@ const audienceCards = [
   },
 ]
 
+
 const keyFeatureTiles = [
   'Resource Requests',
   'Inventory Management',
@@ -56,6 +59,54 @@ const keyFeatureTiles = [
   'Reports & Analytics',
   'Status Tracking',
   'Notifications',
+]
+
+const contactMembers = [
+  { name: 'Ramos, Markbrexsphere O.', 
+    role: 'Fullstack, Project Manager', 
+    image: '/ramos-markbrexsphere.jpg', 
+    number:'09273249308',
+     email:'dosramos2004@gmail.com'
+     },
+
+    { name: 'Navarte, Grace Ann', 
+    role: 'Project Manager', 
+    email: 'grar.narvarte.up@phinmaed.com' , 
+    number:'09102663154',
+    image:'/Narvarte.png'
+  },
+
+   { name: 'Cabrales, Phevy Cyra',
+     role: 'UI/UX Designer' , 
+      email:'phce.cabrales.up@phinmaed.com',
+       number:'0993 761 0887',
+        image: '/Cabrales.jpg.jpg', 
+       },
+
+      { name: 'Meneses, Ashley Kate', 
+    role: 'UI Designer', 
+    email:'aspe.meneses.up@phinmaed.com', 
+    number:'09923690954',
+    image:'/Ashley.jpg',
+
+   },
+
+  { name: 'Fernandez, Brendan',
+     role: '', 
+     email:'brbl.fernandez.up@phinmaed.com',
+      number:'0915 507 3379',
+      image:'/Fernandez.jpg',
+    
+    },
+
+  { name: 'Junio, Alexa Grace',
+     role: 'Documentation',
+      email:'alsi.junio.up@phinmaed.com',
+       number:'09127757237',
+       image:'/Junio.jpg',
+      },
+
+ 
 ]
 
 export function LandingPage() {
@@ -131,12 +182,6 @@ export function LandingPage() {
         <div className="landing-header-actions">
           <button type="button" className="nav-theme-toggle" onClick={() => setIsDarkMode((prev) => !prev)}>
             {isDarkMode ? 'Light' : 'Dark'}
-          </button>
-          <button type="button" className="nav-login-btn" onClick={() => navigate('/login')}>
-            Login
-          </button>
-          <button type="button" className="nav-create-btn" onClick={() => navigate('/signup')}>
-            Create Account
           </button>
         </div>
       </header>
@@ -221,6 +266,7 @@ export function LandingPage() {
         <h2>Who’s It For</h2>
 
         <div className="audience-grid">
+          
           {audienceCards.map((card) => (
             <article key={card.title} className={`audience-card ${card.tone}`}>
               <div className="audience-avatar" aria-hidden="true" />
@@ -240,6 +286,40 @@ export function LandingPage() {
               <span className="feature-check">✓</span>
               <span>{feature}</span>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="contact" className="landing-contact">
+        <h2>Contact</h2>
+
+        <div className="contact-grid">
+          {contactMembers.map((member) => (
+            <article key={member.name} className="contact-card">
+              {member.image ? (
+                <img src={member.image} alt={member.name} className="contact-photo" />
+              ) : (
+                <div className="contact-avatar" aria-hidden="true" />
+              )}
+              <h3>{member.name}</h3>
+              <p>{member.role}</p>
+              {member.number || member.email ? (
+                <div className="contact-details">
+                  {member.number ? (
+                    <span className="contact-detail-item">
+                      <span className="contact-icon" aria-hidden="true">☎</span>
+                      {member.number}
+                    </span>
+                  ) : null}
+                  {member.email ? (
+                    <span className="contact-detail-item">
+                      <span className="contact-icon" aria-hidden="true">✉</span>
+                      {member.email}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </article>
           ))}
         </div>
       </section>

@@ -69,7 +69,6 @@ export function SignupPage({
     <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
       <div className="auth-heading">
         <h2>Create account</h2>
-        <p>Create your School Logistics account.</p>
       </div>
       <form className="auth-form signup-form" onSubmit={submit}>
         <fieldset className="account-type form-wide">

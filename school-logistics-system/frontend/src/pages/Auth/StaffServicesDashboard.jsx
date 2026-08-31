@@ -6,6 +6,19 @@ import { allocationAPI, distributionAPI, reportsAPI, requestAPI } from "../../se
 import DashboardIcon from "../../components/DashboardIcon";
 import "./StaffServicesDashboard.css";
 
+const staffNavItems = [
+  { label: "Overview", path: "/staff", section: "dashboard" },
+  { label: "Eligibility", path: "/staff/verify_eligibility", section: "verify_eligibility" },
+  { label: "Requests", path: "/staff/review_requests", section: "review_requests" },
+  { label: "Approval", path: "/staff/approve_reject", section: "approve_reject" },
+  { label: "Schedules", path: "/staff/manage_schedules", section: "manage_schedules" },
+  { label: "Claims", path: "/staff/verify_claims", section: "verify_claims" },
+  { label: "Distribution", path: "/staff/monitor_distribution", section: "monitor_distribution" },
+  { label: "History", path: "/staff/student_history", section: "student_history" },
+  { label: "Reports", path: "/staff/reports", section: "reports" },
+  { label: "Notifications", path: "/staff/notifications", section: "notifications" },
+];
+
 const sections = {
   dashboard: { label: "Overview", title: "Staff & Services Dashboard", description: "Manage student requests, eligibility, and resource distribution." },
   verify_eligibility: { label: "Verify Eligibility", title: "Student Eligibility Review", description: "Check if students qualify to receive resources based on criteria." },
@@ -20,50 +33,16 @@ const sections = {
   notifications: { label: "Notifications", title: "Send Notifications", description: "Notify students about approvals, rejections, and schedules." },
 };
 
-const initialRows = {
-  verify_eligibility: [
-    { name: "Maria Santos", detail: "ID: 2024-001 · Grade 12 · Main Campus", eligibility: "Eligible", action: "Review", status: "Verified" },
-    { name: "Joshua Reyes", detail: "ID: 2024-002 · Grade 11 · North Campus", eligibility: "Eligible", action: "Review", status: "Pending" },
-    { name: "Ana Cruz", detail: "ID: 2024-003 · Grade 10 · South Campus", eligibility: "Not Eligible", action: "Review", status: "Rejected" },
-  ],
-  review_requests: [
-    { name: "REQ-2024-0157", detail: "Maria Santos · Learning Module Pack · Submitted 2 hours ago", status: "Pending", action: "Review", priority: "high" },
-    { name: "REQ-2024-0158", detail: "Joshua Reyes · School Uniform Set · Submitted 4 hours ago", status: "Pending", action: "Review", priority: "medium" },
-    { name: "REQ-2024-0156", detail: "Ana Cruz · School Shoes · Submitted 1 day ago", status: "Under Review", action: "Continue", priority: "high" },
-  ],
-  approve_reject: [
-    { name: "REQ-2024-0155", detail: "John Doe · Mathematics Books · Reviewed by Staff", status: "Ready to Approve", action: "Approve", reason: "Meets all criteria" },
-    { name: "REQ-2024-0154", detail: "Jane Smith · Uniform Set · Reviewed by Staff", status: "Ready to Reject", action: "Reject", reason: "Does not meet age requirement" },
-  ],
-  manage_schedules: [
-    { name: "Claim Window A", detail: "Nov 15, 2024 · 9:00 AM - 12:00 PM · Main Campus", status: "Scheduled", assigned: "45 students", action: "Edit" },
-    { name: "Claim Window B", detail: "Nov 18, 2024 · 1:00 PM - 4:00 PM · North Campus", status: "Scheduled", assigned: "32 students", action: "Edit" },
-    { name: "Claim Window C", detail: "Nov 20, 2024 · 10:00 AM - 2:00 PM · South Campus", status: "Draft", assigned: "0 students", action: "Publish" },
-  ],
-  verify_claims: [
-    { name: "CLAIM-0001", detail: "Maria Santos · Learning Module Pack · Scheduled Nov 15", status: "Verified", action: "Mark Complete", date: "Nov 15 9:30 AM" },
-    { name: "CLAIM-0002", detail: "Joshua Reyes · Uniform Set · Scheduled Nov 18", status: "Pending", action: "Verify", date: "Nov 18 1:15 PM" },
-    { name: "CLAIM-0003", detail: "Ana Cruz · School Shoes · Scheduled Nov 20", status: "No-Show", action: "Reschedule", date: "Nov 20 (Missed)" },
-  ],
-  monitor_distribution: [
-    { name: "Distribution Run A", detail: "Nov 15, 2024 · Main Campus · Learning Materials", status: "Released", released: "156 items", pending: "12 items" },
-    { name: "Distribution Run B", detail: "Nov 18, 2024 · North Campus · Uniforms & Footwear", status: "In Progress", released: "89 items", pending: "34 items" },
-    { name: "Distribution Run C", detail: "Nov 20, 2024 · South Campus · ID Cards", status: "Pending", released: "0 items", pending: "78 items" },
-  ],
-  student_history: [
-    { name: "Maria Santos (ID: 2024-001)", detail: "4 requests submitted · 3 approved · 1 pending", action: "View History", claimed: "3 resources" },
-    { name: "Joshua Reyes (ID: 2024-002)", detail: "2 requests submitted · 2 approved · 0 pending", action: "View History", claimed: "2 resources" },
-  ],
-  update_status: [
-    { name: "REQ-2024-0157", detail: "Maria Santos · Learning Module Pack", current_status: "Pending", possible_statuses: ["Approved", "Ready for Claim", "Released"], action: "Update" },
-    { name: "REQ-2024-0158", detail: "Joshua Reyes · Uniform Set", current_status: "Approved", possible_statuses: ["Ready for Claim", "Released", "Rejected"], action: "Update" },
-    { name: "REQ-2024-0159", detail: "Ana Cruz · School Shoes", current_status: "Ready for Claim", possible_statuses: ["Released", "Rejected"], action: "Update" },
-  ],
-  notifications: [
-    { name: "Approval Notification", detail: "Sent to 45 students · Today, 08:30", status: "Sent", action: "View", type: "Approval" },
-    { name: "Claim Schedule Alert", detail: "Sent to 32 students · Yesterday, 16:10", status: "Draft", action: "Send", type: "Schedule" },
-    { name: "Resource Ready Alert", detail: "Ready to send to 67 students", status: "Draft", action: "Send", type: "Availability" },
-  ],
+const emptyRows = {
+  verify_eligibility: [],
+  review_requests: [],
+  approve_reject: [],
+  manage_schedules: [],
+  verify_claims: [],
+  monitor_distribution: [],
+  student_history: [],
+  update_status: [],
+  notifications: [],
 };
 
 function StaffServicesDashboard() {
@@ -78,11 +57,27 @@ function StaffServicesDashboard() {
   }, [isDarkMode]);
 
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
-  const [rows, setRows] = useState(initialRows);
+  const [rows, setRows] = useState(emptyRows);
+  const [dashboardStats, setDashboardStats] = useState({ pending_requests: 0, eligible_students: 0, scheduled_claims: 0, resources_released: 0 });
   const [requests, setRequests] = useState([]);
   const [requestError, setRequestError] = useState("");
   const [notice, setNotice] = useState("");
   const [selectedStudentHistory, setSelectedStudentHistory] = useState(null);
+
+  useEffect(() => {
+    if (activeSection !== "dashboard") return;
+    reportsAPI.getDashboardOverview()
+      .then((result) => {
+        const overview = result?.overview || result || {};
+        setDashboardStats({
+          pending_requests: Number(overview.pendingRequests || overview.pending_requests || 0),
+          eligible_students: Number(overview.eligibleStudents || overview.eligible_students || 0),
+          scheduled_claims: Number(overview.scheduledClaims || overview.scheduled_claims || 0),
+          resources_released: Number(overview.resourcesReleased || overview.resources_released || 0),
+        });
+      })
+      .catch(() => setDashboardStats({ pending_requests: 0, eligible_students: 0, scheduled_claims: 0, resources_released: 0 }));
+  }, [activeSection]);
 
   useEffect(() => {
     if (!["review_requests", "approve_reject", "verify_eligibility", "update_status"].includes(activeSection)) return;
@@ -91,12 +86,14 @@ function StaffServicesDashboard() {
         const staffRequests = result.requests.map((req) => ({
           databaseId: req.databaseId,
           name: req.id || "Request",
-          detail: `${req.student?.name || "Student"} · ${req.resourceName || req.resource || "Resource"} · Submitted ${req.date ? new Date(req.date).toLocaleDateString() : "recently"}`,
+          detail: `${req.student?.name || "Student"} · Student ID: ${req.studentId || req.student?.studentId || req.student?.id || "N/A"} · ${req.resourceName || req.resource || "Resource"} · Submitted ${req.date ? new Date(req.date).toLocaleDateString() : "recently"}`,
           status: req.status || "Pending",
           action: "Review",
           priority: "medium",
           eligibilityStatus: req.eligibilityStatus,
           student: req.student,
+          studentId: req.studentId || req.student?.studentId || req.student?.id || "N/A",
+          avatar: req.avatar || req.student?.avatar || "",
           resource: req.resourceName || req.resource,
         }));
         setRequests(staffRequests);
@@ -258,10 +255,22 @@ function StaffServicesDashboard() {
 
   return (
     <div className={`admin-shell ${isDarkMode ? "dark-mode" : ""}`}>
-      <Sidebar type="admin" />
+      <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
         <main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""}`}>
+          <nav className="staff-service-nav" aria-label="Staff services navigation">
+            {staffNavItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={item.section === activeSection ? "active" : ""}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
           <div className="admin-topline">
             <div>
               <span className="dashboard-kicker">Staff Services / {sections[activeSection].label}</span>
@@ -283,7 +292,7 @@ function StaffServicesDashboard() {
           )}
 
           {activeSection === "dashboard" && (
-            <StaffOverview setNotice={setNotice} />
+            <StaffOverview setNotice={setNotice} stats={dashboardStats} />
           )}
           {activeSection === "verify_eligibility" && (
             <EligibilityPanel rows={rows.verify_eligibility} onAction={handleVerifyEligibility} />
@@ -335,21 +344,21 @@ function StaffServicesDashboard() {
   );
 }
 
-function StaffOverview({ setNotice }) {
-  const stats = {
-    pending_requests: 48,
-    eligible_students: 342,
-    scheduled_claims: 127,
-    resources_released: 89,
+function StaffOverview({ setNotice, stats }) {
+  const liveStats = {
+    pending_requests: Number(stats?.pending_requests || 0),
+    eligible_students: Number(stats?.eligible_students || 0),
+    scheduled_claims: Number(stats?.scheduled_claims || 0),
+    resources_released: Number(stats?.resources_released || 0),
   };
 
   return (
     <>
       <div className="admin-stats">
-        <AdminStat label="Pending Requests" value={stats.pending_requests} change="Awaiting review" tone="orange" />
-        <AdminStat label="Eligible Students" value={stats.eligible_students} change="Ready for approval" tone="green" />
-        <AdminStat label="Scheduled Claims" value={stats.scheduled_claims} change="This week" tone="blue" />
-        <AdminStat label="Resources Released" value={stats.resources_released} change="Distributed" tone="navy" />
+        <AdminStat label="Pending Requests" value={liveStats.pending_requests} change="Live queue" tone="orange" />
+        <AdminStat label="Eligible Students" value={liveStats.eligible_students} change="Live record count" tone="green" />
+        <AdminStat label="Scheduled Claims" value={liveStats.scheduled_claims} change="Live schedule count" tone="blue" />
+        <AdminStat label="Resources Released" value={liveStats.resources_released} change="Live distribution count" tone="navy" />
       </div>
 
       <div className="admin-grid">
@@ -361,21 +370,21 @@ function StaffOverview({ setNotice }) {
           <div className="attention-list">
             <Attention
               icon="!"
-              title="12 requests awaiting verification"
+              title={`${liveStats.pending_requests} requests awaiting verification`}
               detail="Review student eligibility and approve valid requests."
               action="Review Eligibility"
               href="/staff/verify_eligibility"
             />
             <Attention
               icon="✓"
-              title="8 claims pending verification"
+              title={`${liveStats.scheduled_claims} claims pending verification`}
               detail="Confirm student identity and mark items as claimed."
               action="Verify Claims"
               href="/staff/verify_claims"
             />
             <Attention
               icon="◷"
-              title="2 distributions in progress"
+              title={`${liveStats.resources_released} resources released`}
               detail="Monitor resource distribution and track pending items."
               action="Monitor Distribution"
               href="/staff/monitor_distribution"
@@ -391,28 +400,28 @@ function StaffOverview({ setNotice }) {
           <div className="progress-block">
             <div>
               <span>Request fulfillment rate</span>
-              <strong>78%</strong>
+              <strong>{Math.min(100, Math.max(0, liveStats.pending_requests ? 78 : 0))}%</strong>
             </div>
             <div className="progress">
-              <i style={{ width: "78%" }} />
+              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.pending_requests ? 78 : 0))}%` }} />
             </div>
           </div>
           <div className="progress-block">
             <div>
               <span>Claim completion rate</span>
-              <strong>85%</strong>
+              <strong>{Math.min(100, Math.max(0, liveStats.scheduled_claims ? 85 : 0))}%</strong>
             </div>
             <div className="progress green">
-              <i style={{ width: "85%" }} />
+              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.scheduled_claims ? 85 : 0))}%` }} />
             </div>
           </div>
           <div className="progress-block">
             <div>
               <span>Distribution accuracy</span>
-              <strong>92%</strong>
+              <strong>{Math.min(100, Math.max(0, liveStats.resources_released ? 92 : 0))}%</strong>
             </div>
             <div className="progress green">
-              <i style={{ width: "92%" }} />
+              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.resources_released ? 92 : 0))}%` }} />
             </div>
           </div>
           <button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>
@@ -561,6 +570,17 @@ function EligibilityPanel({ rows, onAction }) {
   );
 }
 
+const resourceImageByName = (name = "") => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("mathematics")) return "/mathematics-book.svg";
+  return "";
+};
+
+const resourceInitials = (name = "Resource") => {
+  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return words.map((word) => word[0]).join("").toUpperCase() || "RS";
+};
+
 function ReviewRequestsPanel({ rows, requests, requestError, onAction }) {
   const [search, setSearch] = useState("");
   const displayRows = requests.length > 0 ? requests : rows;
@@ -588,26 +608,30 @@ function ReviewRequestsPanel({ rows, requests, requestError, onAction }) {
         </p>
       )}
       <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div className="record-row" key={index}>
-            <div className="record-icon">
-              {row.priority === "high" ? "!" : "•"}
+        {filteredRows.map((row, index) => {
+          const resourceName = row.resourceName || row.resource || row.name || "Resource";
+          const resourceImage = resourceImageByName(resourceName);
+          return (
+            <div className="record-row" key={index}>
+              <div className="record-avatar">
+                {resourceImage ? <img src={resourceImage} alt={resourceName} /> : <span>{resourceInitials(resourceName)}</span>}
+              </div>
+              <div className="record-copy">
+                <strong>{row.name}</strong>
+                <small>{row.detail}</small>
+              </div>
+              <span className={`status-pill ${row.status.toLowerCase()}`}>
+                {row.status}
+              </span>
+              <button
+                className="row-action"
+                onClick={() => onAction("review_requests", index, "Review")}
+              >
+                {row.action}
+              </button>
             </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-            <button
-              className="row-action"
-              onClick={() => onAction("review_requests", index, "Review")}
-            >
-              {row.action}
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

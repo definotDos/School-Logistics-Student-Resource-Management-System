@@ -62,13 +62,13 @@ async function processAllocation(req, res) {
 
 		let allocation = await Allocation.findOne({ request: requestId })
 			.populate("request")
-			.populate("student", "name email")
+			.populate("student", "name email studentId avatar")
 			.populate("resource", "name category");
 
 		if (!allocation && requestId) {
 			allocation = await Allocation.findById(requestId)
 				.populate("request")
-				.populate("student", "name email")
+				.populate("student", "name email studentId avatar")
 				.populate("resource", "name category");
 		}
 
@@ -130,7 +130,7 @@ async function createClaimSchedule(req, res) {
 
 		const allocation = await Allocation.findById(allocationId)
 			.populate("request")
-			.populate("student", "name email campus")
+			.populate("student", "name email campus studentId avatar")
 			.populate("resource", "name");
 
 		if (!allocation) {
@@ -218,7 +218,7 @@ async function assignStaff(req, res) {
 		if (!staff) return res.status(404).json({ message: "Active staff member was not found." });
 
 		const allocation = await Allocation.findById(req.params.id)
-			.populate("student", "name email")
+			.populate("student", "name email studentId avatar")
 			.populate("resource", "name category");
 		if (!allocation) return res.status(404).json({ message: "Allocation not found." });
 		if (!["Reserved", "Scheduled"].includes(allocation.status)) return res.status(409).json({ message: "Only reserved or scheduled allocations can be assigned." });
@@ -252,7 +252,7 @@ async function listAllocations(req, res) {
 		if (campus) filter.campus = campus;
 
 		const allocations = await Allocation.find(filter)
-			.populate("student", "name email campus grade")
+			.populate("student", "name email campus grade studentId avatar")
 			.populate("resource", "name category")
 			.populate("assignedStaff", "name email")
 			.populate("request", "status resource quantity")
@@ -270,7 +270,7 @@ async function listAllocations(req, res) {
 async function getAllocationById(req, res) {
 	try {
 		const allocation = await Allocation.findById(req.params.id)
-			.populate("student", "name email campus grade")
+			.populate("student", "name email campus grade studentId avatar")
 			.populate("resource", "name category")
 			.populate("request", "status resource quantity")
 			.populate("allocatedBy", "name");
@@ -330,7 +330,7 @@ async function getAllocationsByStatus(req, res) {
 		const filter = { status };
 		if (req.user.role === "staff") filter.assignedStaff = req.user._id;
 		const allocations = await Allocation.find(filter)
-			.populate("student", "name email campus")
+			.populate("student", "name email campus studentId avatar")
 			.populate("resource", "name category")
 			.populate("assignedStaff", "name email")
 			.sort({ createdAt: -1 });

@@ -24,11 +24,15 @@ const formatRequest = (request) => ({
 	approvedAt: request.approvedAt,
 	rejectedAt: request.rejectedAt,
 	releasedAt: request.releasedAt,
+	studentId: request.student?.studentId || request.studentId || request.student?.id || "",
+	avatar: request.student?.avatar || request.avatar || "",
 	student: request.student ? {
 		_id: request.student._id || request.student.id,
 		id: request.student._id || request.student.id,
 		name: request.student.name,
 		email: request.student.email,
+		studentId: request.student.studentId,
+		avatar: request.student.avatar,
 		campus: request.student.campus,
 		grade: request.student.grade,
 	} : undefined,
@@ -127,7 +131,7 @@ async function createRequest(req, res) {
 		// Notify staff to review
 		// Staff will see in their dashboard
 
-		await request.populate("student", "name email campus grade");
+		await request.populate("student", "name email campus grade studentId avatar");
 		res.status(201).json({ 
 			message: "Request submitted successfully", 
 			request: formatRequest(request) 
@@ -177,7 +181,7 @@ async function verifyEligibility(req, res) {
 			`Staff ${req.user.name} verified eligibility: ${isEligible ? "Eligible" : "Ineligible"}`
 		);
 
-		await request.populate("student", "name email");
+		await request.populate("student", "name email studentId avatar");
 		res.json({ 
 			message: "Eligibility verified", 
 			request: formatRequest(request) 
@@ -285,7 +289,7 @@ async function approveRequest(req, res) {
 			request._id
 		);
 
-		await request.populate("student", "name email");
+		await request.populate("student", "name email studentId avatar");
 		res.json({ 
 			message: "Request approved successfully", 
 			request: formatRequest(request),
@@ -343,7 +347,7 @@ async function rejectRequest(req, res) {
 			"/student/requests"
 		);
 
-		await request.populate("student", "name email");
+		await request.populate("student", "name email studentId avatar");
 		res.json({ 
 			message: "Request rejected", 
 			request: formatRequest(request) 
@@ -365,7 +369,7 @@ async function getMyRequests(req, res) {
 
 		const requests = await Request.find({ student: req.user._id })
 			.populate("resourceRef", "name category")
-			.populate("student", "name email campus grade")
+			.populate("student", "name email campus grade studentId avatar")
 			.sort({ createdAt: -1 });
 
 		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
@@ -399,7 +403,7 @@ async function getAllRequests(req, res) {
 
 		const requests = await Request.find(filter)
 			.populate("resourceRef", "name category")
-			.populate("student", "name email campus grade")
+			.populate("student", "name email campus grade studentId avatar")
 			.sort({ priority: -1, createdAt: -1 });
 
 		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
@@ -426,7 +430,7 @@ async function getRequestById(req, res) {
 	try {
 		const request = await Request.findById(req.params.id)
 			.populate("resourceRef", "name category")
-			.populate("student", "name email campus grade")
+			.populate("student", "name email campus grade studentId avatar")
 			.populate("checkedBy", "name")
 			.populate("approvedBy", "name")
 			.populate("rejectedBy", "name");
@@ -460,7 +464,7 @@ async function getRequestsByStatus(req, res) {
 
 		const requests = await Request.find({ status })
 			.populate("resourceRef", "name category")
-			.populate("student", "name email campus")
+			.populate("student", "name email campus studentId avatar")
 			.sort({ createdAt: -1 });
 
 		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
