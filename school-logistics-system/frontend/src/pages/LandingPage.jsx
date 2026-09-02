@@ -92,7 +92,7 @@ const contactMembers = [
    },
 
   { name: 'Fernandez, Brendan',
-     role: '', 
+     role: 'System Analyst', 
      email:'brbl.fernandez.up@phinmaed.com',
       number:'0915 507 3379',
       image:'/Fernandez.jpg',

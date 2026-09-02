@@ -288,6 +288,20 @@ describe("API Endpoint Tests", () => {
         expect(typeof res.body.requests.completionRate).toBe("number");
       });
 
+      it("should include dashboard summary fields used by the admin UI", async () => {
+        const res = await request(app)
+          .get("/api/reports/overview")
+          .set("Authorization", `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.pendingRequests).toBeDefined();
+        expect(res.body.availableResources).toBeDefined();
+        expect(res.body.activeUsers).toBeDefined();
+        expect(typeof res.body.pendingRequests).toBe("number");
+        expect(typeof res.body.availableResources).toBe("number");
+        expect(typeof res.body.activeUsers).toBe("number");
+      });
+
       it("should filter by campus if provided", async () => {
         const res = await request(app)
           .get("/api/reports/overview?campus=PHINMA University of Pangasinan")

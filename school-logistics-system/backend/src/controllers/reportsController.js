@@ -165,7 +165,7 @@ async function getApprovalAnalytics(req, res) {
 			}
 		});
 
-		const approvedStatuses = ["approved", "ready_for_claim", "claimed", "completed"];
+		const approvedStatuses = ["approved", "ready for claim", "claimed", "completed"];
 		const totalApproved = requests.filter(r => approvedStatuses.includes(r.status)).length;
 
 		const report = {
@@ -334,7 +334,7 @@ async function getResourceDemandReport(req, res) {
 
 			demandMap[key].total += req.quantity;
 
-			if (req.status === "approved" || req.status === "ready_for_claim") {
+			if (req.status === "approved" || req.status === "ready for claim") {
 				demandMap[key].approved += req.quantity;
 			} else if (req.status === "rejected") {
 				demandMap[key].rejected += req.quantity;
@@ -429,6 +429,7 @@ async function getDashboardOverview(req, res) {
 	try {
 		const { campus } = req.query;
 		const filter = campus ? { campus } : {};
+		const User = require("../models/User");
 
 		const [
 			totalRequests,
@@ -439,10 +440,11 @@ async function getDashboardOverview(req, res) {
 			totalAllocations,
 			totalDistributions,
 			inventory,
+			activeUsers,
 		] = await Promise.all([
 			Request.countDocuments(filter),
 			Request.countDocuments({ ...filter, status: "pending" }),
-			Request.countDocuments({ ...filter, status: { $in: ["approved", "ready_for_claim", "claimed", "completed"] } }),
+			Request.countDocuments({ ...filter, status: { $in: ["approved", "ready for claim", "claimed", "completed"] } }),
 			Request.countDocuments({ ...filter, status: "rejected" }),
 			Request.countDocuments({ ...filter, status: "completed" }),
 			Allocation.countDocuments(campus ? { campus } : {}),
@@ -457,6 +459,7 @@ async function getDashboardOverview(req, res) {
 					},
 				},
 			]),
+			User.countDocuments(campus ? { campus, status: { $ne: "suspended" } } : { status: { $ne: "suspended" } }),
 		]);
 
 		const inventorySummary = inventory[0] || {
@@ -468,6 +471,10 @@ async function getDashboardOverview(req, res) {
 		const overview = {
 			generatedAt: new Date(),
 			campus: campus || "All Campuses",
+			pendingRequests: pending,
+			availableResources: inventorySummary.totalAvailable,
+			activeUsers,
+			scheduledClaims: totalDistributions,
 			requests: {
 				total: totalRequests,
 				pending,
