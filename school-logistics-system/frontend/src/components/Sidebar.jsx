@@ -52,7 +52,7 @@ function CampusMark({ campus, menu = false }) {
 }
 
 function Sidebar({ type = "student" }) {
-  const { user, updateUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const links = type === "admin" ? adminLinks : type === "staff" ? staffLinks : studentLinks;
   const [customCampuses, setCustomCampuses] = useState(() => {
@@ -66,11 +66,11 @@ function Sidebar({ type = "student" }) {
     }
   });
   const availableCampuses = [...campuses, ...customCampuses];
-  const [selectedCampus, setSelectedCampus] = useState(() => {
+  const [selectedCampus] = useState(() => {
     const savedCampus = localStorage.getItem("srmsCampus");
     return availableCampuses.find((campus) => campus.name === (user?.campus || savedCampus)) || availableCampuses[0];
   });
-  const [campusMenuOpen, setCampusMenuOpen] = useState(false);
+  const [campusMenuOpen] = useState(false);
   const [addCampusOpen, setAddCampusOpen] = useState(false);
   const [newCampusName, setNewCampusName] = useState("");
   const [newCampusLogo, setNewCampusLogo] = useState("");
@@ -79,13 +79,7 @@ function Sidebar({ type = "student" }) {
   const displayName = user?.name || "Juan Dela Cruz";
   const initials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
-  const handleCampusChange = (campus) => {
-    setSelectedCampus(campus);
-    localStorage.setItem("srmsCampus", campus.name);
-    if (user && user.campus !== campus.name) updateUser({ campus: campus.name }).catch(() => {});
-    setCampusMenuOpen(false);
-    setAddCampusOpen(false);
-  };
+  const handleCampusChange = () => {};
 
   const addCampus = (event) => {
     event.preventDefault();
@@ -126,7 +120,7 @@ function Sidebar({ type = "student" }) {
         <div><strong>SRMS</strong><small>Student Resource Management</small></div>
       </div>
       <div className={`campus-switch ${campusMenuOpen ? "is-open" : ""}`}>
-        <button className="campus-current" type="button" aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen((open) => !open)}>
+        <button className="campus-current" type="button" disabled aria-label={`Assigned campus: ${selectedCampus.name}`}>
           <CampusMark campus={selectedCampus} /><span className="campus-info"><b>{selectedCampus.shortName}</b><small>Student Campus</small></span><span className="campus-chevron" aria-hidden="true">⌄</span>
         </button>
         {campusMenuOpen && <div className="campus-menu" role="listbox" aria-label="Choose campus">{availableCampuses.map((campus) => <button className={campus.name === selectedCampus.name ? "selected" : ""} type="button" role="option" aria-selected={campus.name === selectedCampus.name} key={campus.name} onClick={() => handleCampusChange(campus)}><CampusMark campus={campus} menu /><b>{campus.name}</b>{campus.name === selectedCampus.name && <i aria-hidden="true">✓</i>}</button>)}<div className="campus-add-divider" />{addCampusOpen ? <form className="campus-add-form" onSubmit={addCampus}><label htmlFor="new-campus">Add campus</label><input id="new-campus" value={newCampusName} onChange={(event) => { setNewCampusName(event.target.value); setCampusError(""); }} placeholder="Campus name" autoFocus /><label className="campus-logo-upload">Campus logo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseCampusLogo} /></label>{newCampusLogo && <img className="campus-logo-preview" src={newCampusLogo} alt="New campus logo preview" />}{campusError && <small>{campusError}</small>}<div><button type="button" onClick={() => setAddCampusOpen(false)}>Cancel</button><button type="submit">Add campus</button></div></form> : <button className="campus-add-button" type="button" onClick={() => setAddCampusOpen(true)}><span aria-hidden="true">+</span><b>Add another campus</b></button>}</div>}

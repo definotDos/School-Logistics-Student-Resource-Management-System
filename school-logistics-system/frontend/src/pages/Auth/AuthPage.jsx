@@ -12,7 +12,7 @@ export function AuthPage() {
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { login, signup } = useAuth()
+  const { login, signup, verifyEmail, resendVerificationCode } = useAuth()
 
   const handleModeChange = nextMode => {
     if (nextMode === mode) return
@@ -40,8 +40,10 @@ export function AuthPage() {
     setIsSubmitting(true)
     try {
       const result = await signup(details)
-      setSelectedCampus(undefined)
-      navigate('/login', { replace: true })
+      if (!result?.requiresVerification) {
+        setSelectedCampus(undefined)
+        navigate('/login', { replace: true })
+      }
       return result
     } catch (error) {
       setAuthError(error.message)
@@ -66,6 +68,8 @@ export function AuthPage() {
           onChangeMode={handleModeChange}
           error={authError}
           isSubmitting={isSubmitting}
+          onVerifyEmail={verifyEmail}
+          onResendVerificationCode={resendVerificationCode}
         />
       )}
     </AuthLayout>

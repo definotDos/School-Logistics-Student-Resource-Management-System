@@ -8,9 +8,20 @@ function Requests() {
   const [requests, setRequests] = useState([]);
   const [resourceNames, setResourceNames] = useState({});
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const cancelRequest = async (requestId) => {
+    try {
+      await requestAPI.cancel(requestId);
+      setRequests((current) => current.map((request) => request.databaseId === requestId ? { ...request, status: "cancelled" } : request));
+      setNotice("Request cancelled and saved to the database.");
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
 
   useEffect(() => {
-    requestAPI.getMyRequests().then((result) => setRequests(result.requests)).catch((requestError) => setError(requestError.message));
+    requestAPI.getMyRequests().then((result) => setRequests(result.requests || [])).catch((requestError) => setError(requestError.message));
     resourceAPI.getAll().then((result) => {
       const map = {};
       result.resources.forEach((resource) => {
@@ -36,6 +47,7 @@ function Requests() {
           <p className="mt-1 text-slate-500">
             Track the status of your resource requests.
           </p>
+          {notice && <p className="mt-4 text-green-700" role="status">{notice}</p>}
 
           <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
               <div className="overflow-x-auto">
@@ -48,6 +60,7 @@ function Requests() {
                     <th className="px-6 py-4 font-medium">Resource</th>
                     <th className="px-6 py-4 font-medium">Date</th>
                     <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium">Action</th>
                   </tr>
                 </thead>
 
@@ -68,6 +81,9 @@ function Requests() {
 
                       <td className="px-6 py-4">
                         <StatusBadge status={request.status} />
+                      </td>
+                      <td className="px-6 py-4">
+                        {request.status === "pending" && <button className="text-red-600 hover:underline" type="button" onClick={() => cancelRequest(request.databaseId)}>Cancel</button>}
                       </td>
                     </tr>
                   ))}

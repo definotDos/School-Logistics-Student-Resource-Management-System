@@ -17,7 +17,7 @@ async function getAllUsers(req, res) {
 async function updateUserStatus(req, res) {
 	try {
 		if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: "You cannot suspend your own administrator account." });
-		if (!["active", "suspended"].includes(req.body.status)) return res.status(400).json({ message: "Invalid account status." });
+		if (!["Active", "Suspended"].includes(req.body.status)) return res.status(400).json({ message: "Invalid account status." });
 		const user = await User.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true, runValidators: true });
 		if (!user) return res.status(404).json({ message: "User account was not found." });
 		res.json({ user: publicUser(user) });
@@ -39,7 +39,10 @@ async function deleteUser(req, res) {
 
 async function updateMe(req, res) {
 	try {
-		const allowedFields = ["name", "email", "grade", "strand", "avatar", "campus"];
+		if (req.body.campus !== undefined && req.body.campus !== req.user.campus) {
+			return res.status(403).json({ message: "Campus changes are not allowed after account creation." });
+		}
+		const allowedFields = ["name", "email", "grade", "strand", "avatar"];
 		const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowedFields.includes(key)));
 		if (updates.email) updates.email = updates.email.toLowerCase().trim();
 		if (updates.email) {

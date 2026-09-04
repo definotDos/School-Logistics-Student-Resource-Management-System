@@ -90,22 +90,22 @@ async function getRequestReport(req, res) {
 			},
 			summary: {
 				totalRequests: requests.length,
-				pending: requests.filter(r => r.status === "pending").length,
-				approved: requests.filter(r => r.status === "approved").length,
-				rejected: requests.filter(r => r.status === "rejected").length,
-				readyForClaim: requests.filter(r => r.status === "ready_for_claim").length,
-				claimed: requests.filter(r => r.status === "claimed").length,
-				released: requests.filter(r => r.status === "released").length,
-				completed: requests.filter(r => r.status === "completed").length,
+				pending: requests.filter(r => r.status === "Pending").length,
+				approved: requests.filter(r => r.status === "Approved").length,
+				rejected: requests.filter(r => r.status === "Rejected").length,
+				readyForClaim: requests.filter(r => r.status === "Ready For Claim").length,
+				claimed: requests.filter(r => r.status === "Claimed").length,
+				released: requests.filter(r => r.status === "Released" || r.status === "Completed").length,
+				completed: requests.filter(r => r.status === "Completed").length,
 			},
 			approvalRate: requests.length > 0 
-				? Math.round((requests.filter(r => r.status === "approved").length / requests.length) * 100) 
+				? Math.round((requests.filter(r => r.status === "Approved").length / requests.length) * 100) 
 				: 0,
 			rejectionRate: requests.length > 0
-				? Math.round((requests.filter(r => r.status === "rejected").length / requests.length) * 100)
+				? Math.round((requests.filter(r => r.status === "Rejected").length / requests.length) * 100)
 				: 0,
 			completionRate: requests.length > 0
-				? Math.round((requests.filter(r => r.status === "completed").length / requests.length) * 100)
+				? Math.round((requests.filter(r => r.status === "Completed").length / requests.length) * 100)
 				: 0,
 			details: requests.map(req => ({
 				requestId: req._id,
@@ -165,7 +165,7 @@ async function getApprovalAnalytics(req, res) {
 			}
 		});
 
-		const approvedStatuses = ["approved", "ready for claim", "claimed", "completed"];
+		const approvedStatuses = ["Approved", "Ready For Claim", "Claimed", "Released", "Completed"];
 		const totalApproved = requests.filter(r => approvedStatuses.includes(r.status)).length;
 
 		const report = {
@@ -177,7 +177,7 @@ async function getApprovalAnalytics(req, res) {
 			campus: campus || "All",
 			summary: {
 				totalApproved,
-				totalRejected: requests.filter(r => r.status === "rejected").length,
+				totalRejected: requests.filter(r => r.status === "Rejected").length,
 				approvalRate: requests.length > 0
 					? Math.round((totalApproved / requests.length) * 100)
 					: 0,
@@ -196,7 +196,7 @@ async function getApprovalAnalytics(req, res) {
 function getTopRejectionReasons(requests) {
 	const reasons = {};
 	requests
-		.filter(r => r.status === "rejected" && r.rejectionReason)
+		.filter(r => r.status === "Rejected" && r.rejectionReason)
 		.forEach(r => {
 			const reason = r.rejectionReason;
 			reasons[reason] = (reasons[reason] || 0) + 1;
@@ -312,14 +312,14 @@ async function getResourceDemandReport(req, res) {
 		const filter = campus ? { campus } : {};
 
 		const requests = await Request.find(filter)
-			.populate("resource", "name category")
+			.populate("resourceRef", "name category")
 			.lean();
 
 		const demandMap = {};
 
 		requests.forEach(req => {
-			const resource = req.resource;
-			const key = resource || "Unknown";
+			const resource = req.resourceRef;
+			const key = resource?.name || req.resource || "Unknown";
 
 			if (!demandMap[key]) {
 				demandMap[key] = {
@@ -334,13 +334,13 @@ async function getResourceDemandReport(req, res) {
 
 			demandMap[key].total += req.quantity;
 
-			if (req.status === "approved" || req.status === "ready for claim") {
+			if (["Approved", "Ready For Claim", "Claimed", "Released"].includes(req.status)) {
 				demandMap[key].approved += req.quantity;
-			} else if (req.status === "rejected") {
+			} else if (req.status === "Rejected") {
 				demandMap[key].rejected += req.quantity;
-			} else if (req.status === "pending") {
+			} else if (req.status === "Pending") {
 				demandMap[key].pending += req.quantity;
-			} else if (req.status === "completed" || req.status === "claimed") {
+			} else if (req.status === "Completed" || req.status === "Claimed") {
 				demandMap[key].completed += req.quantity;
 			}
 		});
@@ -439,16 +439,18 @@ async function getDashboardOverview(req, res) {
 			completed,
 			totalAllocations,
 			totalDistributions,
+			scheduledClaims,
 			inventory,
 			activeUsers,
 		] = await Promise.all([
 			Request.countDocuments(filter),
-			Request.countDocuments({ ...filter, status: "pending" }),
-			Request.countDocuments({ ...filter, status: { $in: ["approved", "ready for claim", "claimed", "completed"] } }),
-			Request.countDocuments({ ...filter, status: "rejected" }),
-			Request.countDocuments({ ...filter, status: "completed" }),
+			Request.countDocuments({ ...filter, status: "Pending" }),
+			Request.countDocuments({ ...filter, status: { $in: ["Approved", "Ready For Claim", "Claimed", "Released", "Completed"] } }),
+			Request.countDocuments({ ...filter, status: "Rejected" }),
+			Request.countDocuments({ ...filter, status: "Completed" }),
 			Allocation.countDocuments(campus ? { campus } : {}),
 			Distribution.countDocuments(campus ? { campus } : {}),
+			ClaimSchedule.countDocuments(campus ? { campus, status: { $in: ["Scheduled", "Confirmed"] } } : { status: { $in: ["Scheduled", "Confirmed"] } }),
 			Inventory.aggregate([
 				{
 					$group: {
@@ -474,7 +476,8 @@ async function getDashboardOverview(req, res) {
 			pendingRequests: pending,
 			availableResources: inventorySummary.totalAvailable,
 			activeUsers,
-			scheduledClaims: totalDistributions,
+			scheduledClaims,
+			resourcesReleased: totalDistributions,
 			requests: {
 				total: totalRequests,
 				pending,

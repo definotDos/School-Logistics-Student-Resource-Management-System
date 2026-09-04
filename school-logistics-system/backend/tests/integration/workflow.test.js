@@ -421,6 +421,30 @@ describe("Complete 9-Step Workflow Integration Tests", () => {
       expect(req.claimedAt).toBeDefined();
       expect(req.claimedBy).toBeDefined();
     });
+
+    it("should allow staff to save a claimed request via the request status endpoint", async () => {
+      const req = await Request.findById(requestId);
+      req.status = "approved";
+      req.claimedAt = null;
+      req.claimedBy = "";
+      await req.save();
+
+      const res = await request(app)
+        .post(`/api/requests/${requestId}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          status: "claimed",
+          reason: "Student picked up the approved resource.",
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.request.status).toBe("claimed");
+
+      const updated = await Request.findById(requestId);
+      expect(updated.status).toBe("claimed");
+      expect(updated.claimedAt).toBeDefined();
+      expect(updated.claimedBy).toBeDefined();
+    });
   });
 
   describe("Step 8: Distribution Completed & Inventory Updated", () => {

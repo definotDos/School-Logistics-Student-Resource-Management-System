@@ -59,6 +59,9 @@ async function verifyClaimIdentity(req, res) {
 		if (!schedule) {
 			return res.status(404).json({ message: "Claim schedule not found." });
 		}
+		if (req.user.role === "student" && schedule.student._id.toString() !== req.user._id.toString()) {
+			return res.status(403).json({ message: "You can only view your own claim schedule." });
+		}
 
 		if (schedule.status !== "Scheduled" && schedule.status !== "Confirmed") {
 			return res.status(409).json({ message: "Only scheduled claims can be verified." });
@@ -90,7 +93,7 @@ async function verifyClaimIdentity(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"claim_verified",
+			"Claim Verified",
 			"ClaimSchedule",
 			schedule._id,
 			previousStatus,
@@ -140,34 +143,23 @@ async function releaseAllocation(req, res) {
 		if (allocation.status !== "Verified") {
 			return res.status(409).json({ message: "Only verified allocations can be released." });
 		}
+		if (quantityDelivered !== null && (!Number.isInteger(Number(quantityDelivered)) || Number(quantityDelivered) < 1 || Number(quantityDelivered) > allocation.quantity)) {
+			return res.status(400).json({ message: `Delivered quantity must be between 1 and ${allocation.quantity}.` });
+		}
+		const existingDistribution = await Distribution.findOne({ allocation: allocation._id });
+		if (existingDistribution) return res.status(409).json({ message: "This allocation has already been released." });
+
+		const inventory = await Inventory.findOneAndUpdate(
+			{ resource: allocation.resource._id, reserved: { $gte: allocation.quantity } },
+			{ $inc: { reserved: -allocation.quantity, issued: allocation.quantity } },
+			{ new: true }
+		);
+		if (!inventory) return res.status(409).json({ message: "Reserved stock is unavailable." });
 
 		const request = allocation.request;
-		request.status = "completed";
-		request.releasedAt = new Date();
-		request.releasedBy = req.user._id;
-		await request.save();
 
 		// Get claim schedule for more info
 		const schedule = await ClaimSchedule.findOne({ allocation: allocationId });
-
-		// Update inventory
-		const inventory = await Inventory.findOneAndUpdate(
-			{ 
-				resource: allocation.resource._id, 
-				reserved: { $gte: allocation.quantity } 
-			},
-			{ 
-				$inc: { 
-					reserved: -allocation.quantity, 
-					issued: allocation.quantity 
-				} 
-			},
-			{ new: true }
-		);
-
-		if (!inventory) {
-			return res.status(409).json({ message: "Reserved stock is unavailable." });
-		}
 
 		// Update allocation
 		const previousAllocStatus = allocation.status;
@@ -215,7 +207,7 @@ async function releaseAllocation(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"allocation_released",
+			"Allocation Released",
 			"Allocation",
 			allocation._id,
 			previousAllocStatus,
@@ -226,7 +218,7 @@ async function releaseAllocation(req, res) {
 		// Audit log for request completion
 		await createAuditLog(
 			req.user._id,
-			"request_completed",
+			"Request Completed",
 			"Request",
 			request._id,
 			previousReqStatus,
@@ -293,8 +285,14 @@ async function getAllSchedules(req, res) {
 		if (campus) filter.campus = campus;
 		if (studentId) filter.student = studentId;
 		if (req.user.role === "staff") {
-			const assignedAllocations = await Allocation.find({ assignedStaff: req.user._id }).select("_id").lean();
-			filter.allocation = { $in: assignedAllocations.map((allocation) => allocation._id) };
+			const authorizedAllocations = await Allocation.find({
+				$or: [
+					{ assignedStaff: req.user._id },
+					{ assignedStaff: { $exists: false } },
+					{ assignedStaff: null },
+				],
+			}).select("_id").lean();
+			filter.allocation = { $in: authorizedAllocations.map((allocation) => allocation._id) };
 		}
 
 		const schedules = await ClaimSchedule.find(filter)
@@ -349,6 +347,9 @@ async function getDistributionById(req, res) {
 		if (!distribution) {
 			return res.status(404).json({ message: "Distribution not found." });
 		}
+		if (req.user.role === "student" && distribution.student._id.toString() !== req.user._id.toString()) {
+			return res.status(403).json({ message: "You can only view your own distribution history." });
+		}
 
 		res.json({ distribution });
 	} catch (error) {
@@ -390,12 +391,12 @@ async function getDistributionProgress(req, res) {
 		const filter = campusFilter ? { campus: campusFilter } : {};
 
 		const totalRequests = await Request.countDocuments(filter);
-		const pending = await Request.countDocuments({ ...filter, status: "pending" });
-		const approved = await Request.countDocuments({ ...filter, status: "approved" });
-		const readyForClaim = await Request.countDocuments({ ...filter, status: "ready_for_claim" });
-		const released = await Request.countDocuments({ ...filter, status: "released" });
-		const completed = await Request.countDocuments({ ...filter, status: "completed" });
-		const rejected = await Request.countDocuments({ ...filter, status: "rejected" });
+		const pending = await Request.countDocuments({ ...filter, status: "Pending" });
+		const approved = await Request.countDocuments({ ...filter, status: "Approved" });
+		const readyForClaim = await Request.countDocuments({ ...filter, status: "Ready For Claim" });
+		const released = await Request.countDocuments({ ...filter, status: "Released" });
+		const completed = await Request.countDocuments({ ...filter, status: "Completed" });
+		const rejected = await Request.countDocuments({ ...filter, status: "Rejected" });
 
 		res.json({
 			summary: {

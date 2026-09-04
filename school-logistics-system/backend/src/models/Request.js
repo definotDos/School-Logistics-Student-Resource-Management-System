@@ -13,7 +13,7 @@ const requestSchema = new mongoose.Schema(
 		// Workflow Status
 		status: { 
 			type: String, 
-			enum: ["pending", "approved", "rejected", "ready_for_claim", "claimed", "released", "completed"], 
+			enum: ["pending", "approved", "rejected", "cancelled", "ready_for_claim", "claimed", "released", "completed"],
 			default: "pending" 
 		},
 		
@@ -28,6 +28,8 @@ const requestSchema = new mongoose.Schema(
 		approvedAt: { type: Date },
 		rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		rejectedAt: { type: Date },
+		cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+		cancelledAt: { type: Date },
 		rejectionReason: { type: String, trim: true, default: "" },
 		reason: { type: String, trim: true, default: "" },
 		

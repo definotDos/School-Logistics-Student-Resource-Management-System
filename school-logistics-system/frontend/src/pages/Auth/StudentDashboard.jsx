@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import StatusBadge from "../../components/StatusBadge";
 import { useAuth } from "../../context/useAuth";
-import { requestAPI, resourceAPI } from "../../services/api";
+import { distributionAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 
 const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year"];
@@ -30,23 +30,24 @@ function StudentDashboard() {
     avatar: user?.avatar || "",
   }));
   const [requests, setRequests] = useState([]);
-  const [resourceNames, setResourceNames] = useState({});
+  const [schedules, setSchedules] = useState([]);
+  const [dashboardError, setDashboardError] = useState("");
   useEffect(() => {
-    requestAPI.getMyRequests().then((result) => setRequests(result.requests)).catch(() => setRequests([]));
-    resourceAPI.getAll().then((result) => {
-      const map = {};
-      result.resources.forEach((resource) => {
-        map[resource._id] = resource.name;
-      });
-      setResourceNames(map);
-    }).catch(() => setResourceNames({}));
+    requestAPI.getMyRequests()
+      .then((result) => setRequests(result.requests || []))
+      .catch((error) => setDashboardError(error.message));
+    distributionAPI.getMySchedules()
+      .then((result) => setSchedules(result.schedules || []))
+      .catch((error) => setDashboardError((current) => current || `Requests loaded, but schedules could not be loaded: ${error.message}`));
   }, []);
   const counts = {
     total: requests.length,
     pending: requests.filter((request) => request.status === "pending").length,
     approved: requests.filter((request) => request.status === "approved").length,
-    released: requests.filter((request) => request.status === "released").length,
+    released: requests.filter((request) => ["released", "completed"].includes(request.status)).length,
   };
+  const upcomingClaim = schedules.find((schedule) => ["Scheduled", "Confirmed"].includes(schedule.status));
+  const claimDate = upcomingClaim?.pickupDate ? new Date(upcomingClaim.pickupDate) : null;
   const firstName = user?.name?.split(" ")[0] || "Markbrexsphere";
   const profileName = user?.name || "Ramos, Markbrexsphere O.";
   const profileInitials = profileName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
@@ -139,9 +140,9 @@ function StudentDashboard() {
               <div className="request-list">
                 {requests.length ? requests.map((request, index) => (
                   <div className="request-row" key={request.databaseId || `${request.resourceId || request.resource}-${index}`}>
-                    <span className="request-symbol">{(resourceNames[request.resourceId] || request.resourceName || request.resource || "R").charAt(0).toUpperCase()}</span>
+                    <span className="request-symbol">{(request.resourceName || request.resource || "R").charAt(0).toUpperCase()}</span>
                     <div>
-                      <strong>{resourceNames[request.resourceId] || request.resourceName || request.resource || "Resource"}</strong>
+                      <strong>{request.resourceName || request.resource || "Resource"}</strong>
                       <small>Requested {new Date(request.date).toLocaleDateString()}</small>
                     </div>
                     <StatusBadge status={request.status} />
@@ -150,10 +151,13 @@ function StudentDashboard() {
               </div>
             </section>
 
+            {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
             <section className="dashboard-panel claim-panel">
-              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>One collection is scheduled</p></div><span className="claim-day"><DashboardIcon name="calendar" /><b>29</b><span>WED</span></span></div>
-              <div className="claim-resource"><span>U</span><div><strong>School Uniform Set</strong><small>Approved and ready for collection</small></div></div>
-              <div className="claim-details"><span>◷ <b>9:00 AM - 11:00 AM</b></span><span>⌖ <b>Student Affairs Office</b></span></div>
+              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>{upcomingClaim ? "One collection is scheduled" : "No collection scheduled"}</p></div>{claimDate && <span className="claim-day"><DashboardIcon name="calendar" /><b>{claimDate.getDate()}</b><span>{claimDate.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</span></span>}</div>
+              {upcomingClaim ? <>
+                <div className="claim-resource"><span>{(upcomingClaim.resource?.name || "R").charAt(0)}</span><div><strong>{upcomingClaim.resource?.name || "Resource"}</strong><small>{upcomingClaim.status === "Confirmed" ? "Identity verified" : "Approved and ready for collection"}</small></div></div>
+                <div className="claim-details"><span>◷ <b>{upcomingClaim.startTime} - {upcomingClaim.endTime}</b></span><span>⌖ <b>{upcomingClaim.location}</b></span></div>
+              </> : <p className="request-empty">No claim has been scheduled yet.</p>}
               <Link className="panel-action" to="/claim-schedule">View claim details <span>→</span></Link>
             </section>
           </div>

@@ -52,14 +52,7 @@ function AdminDashboard() {
     localStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
-  const [rows, setRows] = useState(() => {
-    try {
-      const savedCatalog = JSON.parse(localStorage.getItem("srmsAdminCatalog") || "null");
-      return savedCatalog ? { ...emptyRows, catalog: savedCatalog } : emptyRows;
-    } catch {
-      return emptyRows;
-    }
-  });
+  const [rows, setRows] = useState(emptyRows);
   const [overviewData, setOverviewData] = useState(null);
   const [requests, setRequests] = useState([]);
   const [workflowRows, setWorkflowRows] = useState({ allocation: [], distribution: [] });
@@ -74,6 +67,25 @@ function AdminDashboard() {
         .then((result) => setOverviewData(result?.overview || result || {}))
         .catch(() => setOverviewData({}));
     }
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== "audit") return;
+    reportsAPI.getAuditLogReport()
+      .then((result) => {
+        const logs = result?.logs || [];
+        setRows((current) => ({
+          ...current,
+          audit: logs.map((log, index) => ({
+            databaseId: log.entityId || `${log.action}-${index}`,
+            name: log.action,
+            detail: `${log.actor || "Unknown"} · ${log.entity || "System"} · ${new Date(log.timestamp).toLocaleString()}`,
+            status: log.statusChange && log.statusChange !== "N/A" ? log.statusChange : "Recorded",
+            action: "View",
+          })),
+        }));
+      })
+      .catch((error) => setNotice(error.message));
   }, [activeSection]);
 
   useEffect(() => {
@@ -173,22 +185,25 @@ function AdminDashboard() {
   };
 
   return <div className={`admin-shell ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
-    <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><button className="admin-primary" onClick={() => setNotice("New workspace action opened. Choose a record below to continue.")}>+ New action</button></div>
+    <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
-    {activeSection === "dashboard" ? <Overview setNotice={setNotice} overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
+    {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
   </main></div></div>;
 }
 
-function Overview({ setNotice, overview }) {
+function Overview({ overview }) {
   const summary = overview || {};
   const pendingRequests = Number(summary.pendingRequests || summary.pending_requests || 0);
   const availableResources = Number(summary.availableResources || summary.available_resources || 0);
   const activeUsers = Number(summary.activeUsers || summary.active_users || 0);
   const scheduledClaims = Number(summary.scheduledClaims || summary.scheduled_claims || 0);
+  const resourcesReleased = Number(summary.resourcesReleased || summary.resources_released || summary.distributions?.total || 0);
+  const fulfillmentRate = Number(summary.requests?.completionRate || 0);
+  const approvalRate = Number(summary.requests?.approvalRate || 0);
 
   return <>
   <div className="admin-stats"><AdminStat label="Pending requests" value={pendingRequests} change="Live from system" tone="orange" /><AdminStat label="Available resources" value={availableResources} change="Current inventory" tone="blue" /><AdminStat label="Active users" value={activeUsers} change="Registered accounts" tone="green" /><AdminStat label="Scheduled claims" value={scheduledClaims} change="Live schedule count" tone="navy" /></div>
-  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{Math.min(100, Math.max(0, pendingRequests ? 78 : 0))}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, pendingRequests ? 78 : 0))}%` }} /></div></div><div className="progress-block"><div><span>Inventory accuracy</span><strong>{availableResources ? 94 : 0}%</strong></div><div className="progress green"><i style={{ width: `${availableResources ? 94 : 0}%` }} /></div></div><div className="progress-block"><div><span>Claim completion</span><strong>{scheduledClaims ? 63 : 0}%</strong></div><div className="progress orange"><i style={{ width: `${scheduledClaims ? 63 : 0}%` }} /></div></div><button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>Export monthly report →</button></section></div>
+  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{fulfillmentRate}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div></div><div className="progress-block"><div><span>Approval rate</span><strong>{approvalRate}%</strong></div><div className="progress green"><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div></div><div className="progress-block"><div><span>Resources released</span><strong>{resourcesReleased}</strong></div><div className="progress orange"><i style={{ width: `${resourcesReleased ? 100 : 0}%` }} /></div></div></section></div>
   <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="resources" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="history" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
 </>; }
 function AdminStat({ label, value, change, tone }) { return <article className={`admin-stat ${tone}`}><span>{label}</span><strong>{value}</strong><small>{change}</small></article>; }

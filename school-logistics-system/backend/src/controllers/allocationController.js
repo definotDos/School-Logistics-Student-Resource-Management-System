@@ -75,6 +75,9 @@ async function processAllocation(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (allocation.status !== "Reserved") {
+			return res.status(409).json({ message: "This allocation has already been processed." });
+		}
 
 		const previousStatus = allocation.status;
 		allocation.notes = notes;
@@ -87,7 +90,7 @@ async function processAllocation(req, res) {
 
 		await createAuditLog(
 			req.user._id,
-			"allocation_processed",
+			"Allocation Processed",
 			"Allocation",
 			allocation._id,
 			previousStatus,
@@ -136,6 +139,9 @@ async function createClaimSchedule(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (req.user.role === "student" && allocation.student._id.toString() !== req.user._id.toString()) {
+			return res.status(403).json({ message: "You can only view your own allocation." });
+		}
 
 		if (allocation.status !== "Reserved" && allocation.status !== "Scheduled") {
 			return res.status(409).json({ message: "Allocation must be processed before scheduling." });
@@ -174,7 +180,7 @@ async function createClaimSchedule(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"schedule_created",
+			"Schedule Created",
 			"ClaimSchedule",
 			claimSchedule._id,
 			null,
@@ -225,7 +231,7 @@ async function assignStaff(req, res) {
 
 		allocation.assignedStaff = staff._id;
 		await allocation.save();
-		await createAuditLog(req.user, "staff_assigned", "Allocation", allocation._id, null, allocation.status, `Assigned to ${staff.name}`);
+		await createAuditLog(req.user, "Staff Assigned", "Allocation", allocation._id, null, allocation.status, `Assigned to ${staff.name}`);
 		await sendNotification(staff._id, "general", "Distribution Assignment", `You are assigned to distribute ${allocation.resource.name} to ${allocation.student.name}.`, allocation._id);
 
 		res.json({ message: "Staff member assigned successfully.", allocation: formatAllocation(allocation) });
@@ -328,7 +334,13 @@ async function getAllocationsByStatus(req, res) {
 		}
 
 		const filter = { status };
-		if (req.user.role === "staff") filter.assignedStaff = req.user._id;
+		if (req.user.role === "staff") {
+			filter.$or = [
+				{ assignedStaff: req.user._id },
+				{ assignedStaff: { $exists: false } },
+				{ assignedStaff: null },
+			];
+		}
 		const allocations = await Allocation.find(filter)
 			.populate("student", "name email campus studentId avatar")
 			.populate("resource", "name category")

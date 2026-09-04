@@ -3634,7 +3634,10 @@ main > header > div:first-child > b {
 .auth-footer button { color: var(--auth-primary-dark); font-weight: 700; }
 .signup-form { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 13px; }
 .signup-form .form-wide { grid-column: 1 / -1; }
-.signup-form .terms { margin-top: -1px; font-size: 11px; }
+.signup-form .terms { margin-top: -1px; color: #04707c; font-size: 11px; line-height: 1.45; }
+.signup-form .terms span { color:#04707c; }
+.signup-form .terms button { color: #0a2036; font-weight: 800; }
+.signup-form .terms button:hover { color: #4d3ec7; }
 .signup-form .auth-submit { margin-top: 2px; }
 .auth-page .auth-intro {
   background: linear-gradient(150deg, #090736 0%,#19043b 32%, #2d5ad8 100%);
@@ -3807,10 +3810,109 @@ main > header > div:first-child > b {
 }
 
 .verification-wrap input[inputmode="numeric"] {
+  background: #f6f8fb;
+  color: #17263a;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 6px;
   text-align: center;
+}
+
+.verification-code-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+}
+
+.verification-code-inputs input {
+  width: 43px;
+  height: 50px;
+  padding: 0;
+  border: 2px solid #c9d4df;
+  border-radius: 8px;
+  background: #f6f8fb;
+  color: #17263a;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease;
+}
+
+.verification-code-inputs input:focus {
+  border-color: #6354dc;
+  background: white;
+  box-shadow: 0 0 0 4px #6354dc24;
+  transform: translateY(-2px);
+}
+
+.verification-code-inputs input.filled {
+  border-color: #6354dc;
+  background: #f0efff;
+}
+
+.verification-code-inputs.verification-verifying input,
+.verification-code-inputs.verification-success input {
+  animation: verification-digit-check .55s ease-in-out both;
+  animation-delay: calc(var(--digit-index) * 70ms);
+}
+
+.verification-code-inputs.verification-error {
+  animation: verification-code-shake .4s ease-in-out;
+}
+
+.verification-code-inputs.verification-success input {
+  border-color: #25a67a;
+  background: #e9faf3;
+}
+
+.verification-submit.verification-verifying {
+  cursor: wait;
+  animation: verification-button-pulse 1s ease-in-out infinite;
+}
+
+.verification-submit.verification-success {
+  background: #25805b;
+}
+
+.verification-code-inputs input:nth-child(1) { --digit-index: 0; }
+.verification-code-inputs input:nth-child(2) { --digit-index: 1; }
+.verification-code-inputs input:nth-child(3) { --digit-index: 2; }
+.verification-code-inputs input:nth-child(4) { --digit-index: 3; }
+.verification-code-inputs input:nth-child(5) { --digit-index: 4; }
+.verification-code-inputs input:nth-child(6) { --digit-index: 5; }
+
+@keyframes verification-digit-check {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { border-color: #25a67a; background: #e9faf3; transform: translateY(-5px) scale(1.06); }
+}
+
+@keyframes verification-code-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-7px); }
+  75% { transform: translateX(7px); }
+}
+
+@keyframes verification-button-pulse {
+  50% { box-shadow: 0 0 0 5px #6354dc24; }
+}
+
+@media (max-width: 420px) {
+  .verification-code-inputs { gap: 5px; }
+  .verification-code-inputs input { width: 39px; height: 46px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verification-code-inputs.verification-verifying input,
+  .verification-code-inputs.verification-success input,
+  .verification-code-inputs.verification-error,
+  .verification-submit.verification-verifying { animation: none; }
+}
+
+.verification-wrap input[inputmode="numeric"]::placeholder {
+  color: #8a99aa;
+  letter-spacing: 5px;
 }
 
 .verification-dev-code {

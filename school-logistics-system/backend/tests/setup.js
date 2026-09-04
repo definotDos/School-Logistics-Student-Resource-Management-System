@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-// Use test database
-process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/slsrms_test";
+// Use the main application database for local testing
+process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/school_logistics";
 
 // Suppress console logs during tests
 global.console = {

@@ -35,6 +35,8 @@ export function AuthProvider({ children }) {
     return result.user;
   };
 
+  const resendVerificationCode = async (email) => authAPI.resendVerificationCode(email);
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("srmsToken");
@@ -55,6 +57,7 @@ export function AuthProvider({ children }) {
         login,
         signup,
         verifyEmail,
+        resendVerificationCode,
         logout,
         updateUser,
       }}

@@ -3,9 +3,11 @@ const protect = require("../middleware/authMiddleware");
 const allowRoles = require("../middleware/roleMiddleware");
 const {
 	createRequest,
+	cancelRequest,
 	verifyEligibility,
 	approveRequest,
 	rejectRequest,
+	updateRequestStatus,
 	getMyRequests,
 	getAllRequests,
 	getRequestById,
@@ -23,6 +25,7 @@ router.use(protect);
 
 // Step 1: Student creates request
 router.post("/", allowRoles("student"), createRequest);
+router.patch("/:id/cancel", allowRoles("student"), cancelRequest);
 
 // Student views their requests; staff/admin may access the endpoint but should not see any student data
 router.get("/my", allowRoles("student", "staff", "admin"), getMyRequests);
@@ -39,6 +42,9 @@ router.post("/:id/approve", allowRoles("admin", "staff"), approveRequest);
 
 // Step 3: Reject request
 router.post("/:id/reject", allowRoles("admin", "staff"), rejectRequest);
+
+// Generic status update used by staff dashboard saves
+router.post("/:id/status", allowRoles("admin", "staff"), updateRequestStatus);
 
 // Staff/Admin views all requests
 router.get("/all", allowRoles("admin", "staff"), getAllRequests);

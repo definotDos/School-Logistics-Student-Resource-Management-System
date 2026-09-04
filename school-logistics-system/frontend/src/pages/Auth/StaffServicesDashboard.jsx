@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
-import { allocationAPI, distributionAPI, reportsAPI, requestAPI } from "../../services/api";
+import { allocationAPI, distributionAPI, notificationAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 import "./StaffServicesDashboard.css";
 
@@ -81,7 +81,7 @@ function StaffServicesDashboard() {
 
   useEffect(() => {
     if (!["review_requests", "approve_reject", "verify_eligibility", "update_status"].includes(activeSection)) return;
-    requestAPI.getAll()
+      requestAPI.getAll()
       .then((result) => {
         const staffRequests = result.requests.map((req) => ({
           databaseId: req.databaseId,
@@ -99,10 +99,10 @@ function StaffServicesDashboard() {
         setRequests(staffRequests);
         setRows((current) => ({
           ...current,
-          review_requests: staffRequests,
-          approve_reject: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, action: "Approve", reason: "Pending eligibility and approval review" })),
-          update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: ["approved", "rejected", "ready_for_claim", "completed"], action: "Update" })),
-          verify_eligibility: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, name: request.student?.name || "Student", eligibility: request.eligibilityStatus === "eligible" ? "Eligible" : "Pending", action: "Verify" })),
+            review_requests: staffRequests,
+            approve_reject: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, action: "Approve", reason: "Pending eligibility and approval review" })),
+            update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: ["Approved", "Rejected", "Ready for Claim", "Claimed", "Released", "Completed"], action: "Update" })),
+            verify_eligibility: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, name: request.student?.name || "Student", eligibility: request.eligibilityStatus === "eligible" ? "Eligible" : "Pending", action: "Verify" })),
         }));
       })
       .catch((error) => setRequestError(error.message));
@@ -121,6 +121,23 @@ function StaffServicesDashboard() {
           claimed: request.status === "completed" ? `${request.quantity || 1} resource(s)` : "Not claimed",
         })),
       })))
+      .catch((error) => setRequestError(error.message));
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== "notifications") return;
+    notificationAPI.getAll()
+      .then((result) => {
+        const notifications = (result.notifications || []).map((entry) => ({
+          databaseId: entry._id,
+          user: entry.user,
+          name: entry.title || "Notification",
+          detail: entry.message,
+          type: entry.type || "general",
+          status: entry.sent ? "Sent" : "Draft",
+        }));
+        setRows((current) => ({ ...current, notifications }));
+      })
       .catch((error) => setRequestError(error.message));
   }, [activeSection]);
 
@@ -146,6 +163,7 @@ function StaffServicesDashboard() {
           const claims = (result.schedules || []).map((schedule) => ({
             databaseId: schedule._id,
             allocationId: schedule.allocation?._id || schedule.allocation,
+            quantity: schedule.allocation?.quantity || schedule.quantityClaimed || 1,
             name: schedule.resource?.name || "Resource claim",
             detail: `${schedule.student?.name || "Student"} · ${schedule.location}`,
             status: schedule.status === "Confirmed" ? "Verified" : schedule.status,
@@ -170,84 +188,120 @@ function StaffServicesDashboard() {
     }
   }, [activeSection]);
 
-  const completeAction = (collection, index, action) => {
-    setRows((current) => ({
-      ...current,
-      [collection]: current[collection].map((row, rowIndex) =>
-        rowIndex === index ? { ...row, status: "Completed", action: "View" } : row
-      ),
-    }));
-    setNotice(`${action} completed successfully.`);
-  };
-
-  const handleApproveRequest = async (index) => {
-    const request = rows.approve_reject[index];
+  const handleApproveRequest = async (databaseId) => {
+    const request = rows.approve_reject.find((row) => row.databaseId === databaseId);
     try {
       if (request.eligibilityStatus !== "eligible") await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
       await requestAPI.approve(request.databaseId, {});
-      setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
+        setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
       setNotice(`Request ${request.name} has been approved. Student will be notified.`);
     } catch (error) { setRequestError(error.message); }
   };
 
-  const handleVerifyEligibility = async (index) => {
-    const request = rows.verify_eligibility[index];
+  const handleVerifyEligibility = async (databaseId) => {
+    const request = rows.verify_eligibility.find((row) => row.databaseId === databaseId);
     try {
       await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
-      setRows((current) => ({ ...current, verify_eligibility: current.verify_eligibility.map((row, rowIndex) => rowIndex === index ? { ...row, eligibility: "Eligible", status: "Verified", action: "Verified" } : row) }));
+        setRows((current) => ({ ...current, verify_eligibility: current.verify_eligibility.map((row) => row.databaseId === databaseId ? { ...row, eligibility: "Eligible", status: "Verified", action: "Verified" } : row) }));
       setNotice(`${request.name} eligibility was verified.`);
     } catch (error) { setRequestError(error.message); }
   };
 
-  const handleRejectRequest = async (index) => {
-    const request = rows.approve_reject[index];
+  const handleRejectRequest = async (databaseId) => {
+    const request = rows.approve_reject.find((row) => row.databaseId === databaseId);
     try {
       await requestAPI.reject(request.databaseId, { requestId: request.databaseId, rejectionReason: "Request did not meet the eligibility requirements." });
-      setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
+        setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
       setNotice(`Request ${request.name} has been rejected. Student will be notified with reason.`);
     } catch (error) { setRequestError(error.message); }
   };
 
-  const handleUpdateStatus = (index, newStatus) => {
-    const request = rows.update_status[index];
+  const syncRequestStatusAcrossPanels = (databaseId, newStatus) => {
     setRows((current) => ({
       ...current,
-      update_status: current.update_status.map((row, i) =>
-        i === index ? { ...row, current_status: newStatus } : row
+      review_requests: current.review_requests.map((row) =>
+        row.databaseId === databaseId ? { ...row, status: newStatus } : row
+      ),
+      approve_reject: current.approve_reject.map((row) =>
+        row.databaseId === databaseId ? { ...row, status: newStatus } : row
+      ),
+      verify_eligibility: current.verify_eligibility.map((row) =>
+        row.databaseId === databaseId ? { ...row, status: newStatus, eligibility: newStatus === "claimed" ? "Eligible" : row.eligibility } : row
+      ),
+      update_status: current.update_status.map((row) =>
+        row.databaseId === databaseId ? { ...row, current_status: newStatus } : row
+      ),
+      student_history: current.student_history.map((row) =>
+        row.databaseId === databaseId ? { ...row, detail: row.detail.replace(/\b(approved|rejected|ready_for_claim|claimed|released|completed)\b/i, newStatus), claimed: newStatus === "claimed" ? `${row.quantity || 1} resource(s)` : row.claimed } : row
       ),
     }));
-    setNotice(`${request.name} status updated to ${newStatus}.`);
+
+    setRequests((current) =>
+      current.map((request) =>
+        request.databaseId === databaseId ? { ...request, status: newStatus } : request
+      )
+    );
   };
 
-  const handleSendNotification = (index, notificationType) => {
-    setRows((current) => ({
-      ...current,
-      notifications: current.notifications.map((row, i) =>
-        i === index ? { ...row, status: "Sent" } : row
-      ),
-    }));
-    setNotice(`${notificationType} notification sent successfully to all recipients.`);
+  const handleUpdateStatus = async (databaseId, newStatus) => {
+    const request = rows.update_status.find((row) => row.databaseId === databaseId);
+    try {
+      await requestAPI.updateStatus(request.databaseId, {
+        status: newStatus,
+        reason: `Staff updated status to ${newStatus}`,
+      });
+
+      const normalizedStatus = newStatus.toLowerCase().replaceAll(" ", "_");
+      syncRequestStatusAcrossPanels(request.databaseId, normalizedStatus);
+      setNotice(`${request.name} status updated to ${newStatus} and saved in the database.`);
+    } catch (error) {
+      setRequestError(error.message);
+    }
   };
 
-  const handleSchedule = async (index, schedule) => {
-    const allocation = rows.manage_schedules[index];
+  const handleSendNotification = async (index, notificationType) => {
+    const row = rows.notifications[index];
+    const user = JSON.parse(localStorage.getItem("srmsUser") || "{}");
+
+    try {
+      await notificationAPI.create({
+        user: row?.user || user.id || user._id,
+        title: notificationType,
+        message: row?.detail || `${notificationType} reminder sent from staff dashboard.`,
+        type: (notificationType || "general").toLowerCase(),
+        sentVia: "app",
+      });
+      setRows((current) => ({
+        ...current,
+        notifications: current.notifications.map((item, i) =>
+          i === index ? { ...item, status: "Sent" } : item
+        ),
+      }));
+      setNotice(`${notificationType} notification was saved and sent.`);
+    } catch (error) {
+      setRequestError(error.message);
+    }
+  };
+
+  const handleSchedule = async (databaseId, schedule) => {
+    const allocation = rows.manage_schedules.find((row) => row.databaseId === databaseId);
     try {
       await allocationAPI.createSchedule(allocation.databaseId, schedule);
-      setRows((current) => ({ ...current, manage_schedules: current.manage_schedules.filter((_, rowIndex) => rowIndex !== index) }));
+      setRows((current) => ({ ...current, manage_schedules: current.manage_schedules.filter((row) => row.databaseId !== databaseId) }));
       setNotice(`${allocation.name} was scheduled successfully.`);
     } catch (error) { setRequestError(error.message); }
   };
 
-  const handleClaimAction = async (index) => {
-    const claim = rows.verify_claims[index];
+  const handleClaimAction = async (databaseId) => {
+    const claim = rows.verify_claims.find((row) => row.databaseId === databaseId);
     try {
       if (claim.action === "Verify") {
-        await distributionAPI.verifyClaimIdentity(claim.databaseId, { quantityClaimed: 1, verificationDetails: "Identity verified by staff." });
-        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row, rowIndex) => rowIndex === index ? { ...row, status: "Verified", action: "Release" } : row) }));
+        await distributionAPI.verifyClaimIdentity(claim.databaseId, { quantityClaimed: claim.quantity, verificationDetails: "Identity verified by staff." });
+        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row) => row.databaseId === databaseId ? { ...row, status: "Verified", action: "Release" } : row) }));
         setNotice(`${claim.name} was verified.`);
       } else if (claim.action === "Release") {
-        await distributionAPI.release(claim.allocationId, { quantityDelivered: 1, distributionLocation: "Student Affairs Office" });
-        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row, rowIndex) => rowIndex === index ? { ...row, status: "Released", action: "View" } : row) }));
+        await distributionAPI.release(claim.allocationId, { quantityDelivered: claim.quantity, distributionLocation: "Student Affairs Office" });
+        setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row) => row.databaseId === databaseId ? { ...row, status: "Released", action: "View" } : row) }));
         setNotice(`${claim.name} was released and recorded in distribution history.`);
       }
     } catch (error) { setRequestError(error.message); }
@@ -277,9 +331,6 @@ function StaffServicesDashboard() {
               <h1>{sections[activeSection].title}</h1>
               <p>{sections[activeSection].description}</p>
             </div>
-            <button className="admin-primary" onClick={() => setNotice("Quick action menu opened.")}>
-              + Quick Action
-            </button>
           </div>
 
           {notice && (
@@ -302,7 +353,6 @@ function StaffServicesDashboard() {
               rows={rows.review_requests}
               requests={requests}
               requestError={requestError}
-              onAction={completeAction}
             />
           )}
           {activeSection === "approve_reject" && (
@@ -313,28 +363,28 @@ function StaffServicesDashboard() {
             />
           )}
           {activeSection === "manage_schedules" && (
-            <SchedulesPanel rows={rows.manage_schedules} onSchedule={handleSchedule} />
+            <SchedulesPanel rows={rows["manage_schedules"]} onSchedule={handleSchedule} />
           )}
           {activeSection === "verify_claims" && (
-            <VerifyClaimsPanel rows={rows.verify_claims} onAction={handleClaimAction} />
+            <VerifyClaimsPanel rows={rows["verify_claims"]} onAction={handleClaimAction} />
           )}
           {activeSection === "monitor_distribution" && (
-            <MonitorDistributionPanel rows={rows.monitor_distribution} />
+            <MonitorDistributionPanel rows={rows["monitor_distribution"]} />
           )}
           {activeSection === "student_history" && (
             <StudentHistoryPanel
-              rows={rows.student_history}
+              rows={rows["student_history"]}
               selectedStudent={selectedStudentHistory}
               onSelectStudent={setSelectedStudentHistory}
             />
           )}
           {activeSection === "update_status" && (
-            <UpdateStatusPanel rows={rows.update_status} onUpdateStatus={handleUpdateStatus} />
+            <UpdateStatusPanel rows={rows["update_status"]} onUpdateStatus={handleUpdateStatus} />
           )}
           {activeSection === "reports" && <ReportsPanel setNotice={setNotice} />}
           {activeSection === "notifications" && (
             <NotificationsPanel
-              rows={rows.notifications}
+              rows={rows["notifications"]}
               onSendNotification={handleSendNotification}
             />
           )}
@@ -545,7 +595,7 @@ function EligibilityPanel({ rows, onAction }) {
         />
       </div>
       <div className="record-list">
-        {filteredRows.map((row, index) => (
+        {filteredRows.map((row) => (
           <div className="record-row">
             <div className="record-icon">
               {row.name.slice(0, 2).toUpperCase()}
@@ -559,7 +609,7 @@ function EligibilityPanel({ rows, onAction }) {
             </span>
             <button
               className="row-action"
-              onClick={() => onAction(index)}
+              onClick={() => onAction(row.databaseId)}
             >
               {row.action}
             </button>
@@ -581,9 +631,9 @@ const resourceInitials = (name = "Resource") => {
   return words.map((word) => word[0]).join("").toUpperCase() || "RS";
 };
 
-function ReviewRequestsPanel({ rows, requests, requestError, onAction }) {
+function ReviewRequestsPanel({ rows, requests, requestError }) {
   const [search, setSearch] = useState("");
-  const displayRows = requests.length > 0 ? requests : rows;
+  const displayRows = (requests.length > 0 ? requests : rows).filter((row) => row.status === "pending");
   const filteredRows = displayRows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -593,7 +643,7 @@ function ReviewRequestsPanel({ rows, requests, requestError, onAction }) {
       <div className="record-toolbar">
         <div>
           <h2>Request Review Queue</h2>
-          <p>{filteredRows.length} requests to review</p>
+          <p>{filteredRows.length} pending request{filteredRows.length === 1 ? "" : "s"} awaiting review.</p>
         </div>
         <input
           value={search}
@@ -623,12 +673,7 @@ function ReviewRequestsPanel({ rows, requests, requestError, onAction }) {
               <span className={`status-pill ${row.status.toLowerCase()}`}>
                 {row.status}
               </span>
-              <button
-                className="row-action"
-                onClick={() => onAction("review_requests", index, "Review")}
-              >
-                {row.action}
-              </button>
+              <span className="row-action">View details</span>
             </div>
           );
         })}
@@ -658,8 +703,8 @@ function ApproveRejectPanel({ rows, onApprove, onReject }) {
         />
       </div>
       <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div className="record-row approval-row" key={index}>
+        {filteredRows.map((row) => (
+          <div className="record-row approval-row" key={row.databaseId}>
             <div className="record-icon">
               {row.status.includes("Approve") ? "✓" : "✗"}
             </div>
@@ -672,13 +717,13 @@ function ApproveRejectPanel({ rows, onApprove, onReject }) {
               {row.status}
             </span>
             <div className="approval-actions">
-              {row.status.includes("Approve") && (
-                <button className="action-btn approve-btn" onClick={() => onApprove(index)}>
+              {row.status === "pending" && (
+                <button className="action-btn approve-btn" onClick={() => onApprove(row.databaseId)}>
                   Approve
                 </button>
               )}
-              {row.status.includes("Reject") && (
-                <button className="action-btn reject-btn" onClick={() => onReject(index)}>
+              {row.status === "pending" && (
+                <button className="action-btn reject-btn" onClick={() => onReject(row.databaseId)}>
                   Reject
                 </button>
               )}
@@ -705,7 +750,6 @@ function SchedulesPanel({ rows, onSchedule }) {
           <h2>Manage Claim Schedules</h2>
           <p>{rows.length} claim windows scheduled</p>
         </div>
-        <button className="admin-secondary">+ Create Schedule</button>
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -726,9 +770,9 @@ function SchedulesPanel({ rows, onSchedule }) {
             <span className={`status-pill ${row.status.toLowerCase()}`}>
               {row.status}
             </span>
-            <button className="row-action" onClick={() => setScheduleIndex(scheduleIndex === index ? null : index)}>{row.action}</button>
+            <button className="row-action" onClick={() => setScheduleIndex(scheduleIndex === row.databaseId ? null : row.databaseId)}>{row.action}</button>
           </div>
-          {scheduleIndex === index && <form className="resource-form" onSubmit={(event) => { event.preventDefault(); onSchedule(index, schedule); setScheduleIndex(null); }}>
+          {scheduleIndex === row.databaseId && <form className="resource-form" onSubmit={(event) => { event.preventDefault(); onSchedule(row.databaseId, schedule); setScheduleIndex(null); }}>
             <label>Date<input type="date" value={schedule.pickupDate} onChange={(event) => setSchedule((current) => ({ ...current, pickupDate: event.target.value }))} required /></label>
             <label>Start time<input type="time" value={schedule.startTime} onChange={(event) => setSchedule((current) => ({ ...current, startTime: event.target.value }))} required /></label>
             <label>End time<input type="time" value={schedule.endTime} onChange={(event) => setSchedule((current) => ({ ...current, endTime: event.target.value }))} required /></label>
@@ -763,8 +807,8 @@ function VerifyClaimsPanel({ rows, onAction }) {
         />
       </div>
       <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div className="record-row" key={index}>
+        {filteredRows.map((row) => (
+          <div className="record-row" key={row.databaseId}>
             <div className={`record-icon ${row.status.toLowerCase()}`}>
               {row.status === "Verified" ? "✓" : row.status === "Pending" ? "?" : "✗"}
             </div>
@@ -776,7 +820,7 @@ function VerifyClaimsPanel({ rows, onAction }) {
             <span className={`status-pill ${row.status.toLowerCase()}`}>
               {row.status}
             </span>
-            <button className="row-action" onClick={() => onAction("verify_claims", index, row.action)}>
+            <button className="row-action" onClick={() => onAction(row.databaseId)}>
               {row.action}
             </button>
           </div>
@@ -844,11 +888,11 @@ function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
         />
       </div>
       <div className="record-list">
-        {filteredRows.map((row, index) => (
+        {filteredRows.map((row) => (
           <div
-            className={`record-row ${selectedStudent === index ? "selected" : ""}`}
-            key={index}
-            onClick={() => onSelectStudent(selectedStudent === index ? null : index)}
+            className={`record-row ${selectedStudent === row.databaseId ? "selected" : ""}`}
+            key={row.databaseId}
+            onClick={() => onSelectStudent(selectedStudent === row.databaseId ? null : row.databaseId)}
           >
             <div className="record-icon">
               {row.name.slice(0, 2).toUpperCase()}
@@ -866,8 +910,7 @@ function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
       {selectedStudent !== null && (
         <div className="history-detail">
           <h3>Request History</h3>
-          <p>Detailed history for {rows[selectedStudent].name}</p>
-          {/* Detailed history view would go here */}
+          <p>{rows.find((row) => row.databaseId === selectedStudent)?.detail || "No matching request history."}</p>
         </div>
       )}
     </section>
@@ -876,6 +919,7 @@ function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
 
 function UpdateStatusPanel({ rows, onUpdateStatus }) {
   const [search, setSearch] = useState("");
+  const [draftStatuses, setDraftStatuses] = useState({});
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -895,8 +939,10 @@ function UpdateStatusPanel({ rows, onUpdateStatus }) {
         />
       </div>
       <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div className="record-row status-update-row" key={index}>
+        {filteredRows.map((row) => {
+          const selectedStatus = draftStatuses[row.databaseId] || row.current_status;
+          return (
+          <div className="record-row status-update-row" key={row.databaseId}>
             <div className="record-icon">⟳</div>
             <div className="record-copy">
               <strong>{row.name}</strong>
@@ -905,11 +951,11 @@ function UpdateStatusPanel({ rows, onUpdateStatus }) {
             <div className="status-controls">
               <span className="current-status">{row.current_status}</span>
               <select
-                value={row.current_status}
-                onChange={(e) => onUpdateStatus(index, e.target.value)}
+                value={selectedStatus}
+                onChange={(e) => setDraftStatuses((current) => ({ ...current, [row.databaseId]: e.target.value }))}
                 className="status-select"
               >
-                <option>{row.current_status}</option>
+                <option value={row.current_status}>{row.current_status}</option>
                 {row.possible_statuses.map((status) => (
                   <option key={status} value={status}>
                     {status}
@@ -917,9 +963,10 @@ function UpdateStatusPanel({ rows, onUpdateStatus }) {
                 ))}
               </select>
             </div>
-            <button className="row-action">Save</button>
+            <button className="row-action" type="button" disabled={selectedStatus === row.current_status} onClick={() => onUpdateStatus(row.databaseId, selectedStatus)}>Save</button>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -996,7 +1043,6 @@ function NotificationsPanel({ rows, onSendNotification }) {
           <h2>Send Notifications</h2>
           <p>{filteredRows.length} notifications to manage</p>
         </div>
-        <button className="admin-secondary">+ Compose Notification</button>
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}

@@ -138,6 +138,8 @@ export const requestAPI = {
       body: JSON.stringify(request),
     }),
 
+  cancel: (requestId) => apiRequest(`/requests/${requestId}/cancel`, { method: "PATCH" }),
+
   /**
    * Step 2: Get my requests (student view)
    */
@@ -186,6 +188,15 @@ export const requestAPI = {
    */
   reject: (requestId, details) =>
     apiRequest(`/requests/${requestId}/reject`, {
+      method: "POST",
+      body: JSON.stringify(details),
+    }),
+
+  /**
+   * Generic staff/admin request status update stored to the database
+   */
+  updateStatus: (requestId, details) =>
+    apiRequest(`/requests/${requestId}/status`, {
       method: "POST",
       body: JSON.stringify(details),
     }),
@@ -345,6 +356,15 @@ export const inventoryAPI = {
 // ============================================
 // REPORTS API (Step 9 - Monitoring)
 // ============================================
+
+export const notificationAPI = {
+  getAll: () => apiRequest("/notifications"),
+  create: (notification) =>
+    apiRequest("/notifications", {
+      method: "POST",
+      body: JSON.stringify(notification),
+    }),
+};
 
 export const reportsAPI = {
   /**

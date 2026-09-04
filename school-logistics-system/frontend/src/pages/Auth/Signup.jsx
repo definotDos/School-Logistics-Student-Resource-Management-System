@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { campuses } from '../../data/campuses'
 
 export function SignupPage({
@@ -7,6 +7,8 @@ export function SignupPage({
   onChangeMode,
   error,
   isSubmitting = false,
+  onVerifyEmail,
+  onResendVerificationCode,
 }) {
   const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -23,6 +25,13 @@ export function SignupPage({
   const [newCampusName, setNewCampusName] = useState('')
   const [campusError, setCampusError] = useState('')
   const [validationErrors, setValidationErrors] = useState({})
+  const [verificationEmail, setVerificationEmail] = useState('')
+  const [verificationCode, setVerificationCode] = useState('')
+  const [verificationMessage, setVerificationMessage] = useState('')
+  const [verificationError, setVerificationError] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState('idle')
+  const verificationInputs = useRef([])
   const availableCampuses = [...campuses, ...customCampuses]
   const selectedCampus = availableCampuses.find(campus => campus.name === form.campus)
   const update = key => event => {
@@ -42,11 +51,100 @@ export function SignupPage({
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
     try {
-      await onSignup(form)
+      const result = await onSignup(form)
+      if (result?.requiresVerification) setVerificationEmail(result.email || form.email.trim().toLowerCase())
     } catch {
       // handled upstream
     }
   }
+
+  const submitVerification = async event => {
+    event.preventDefault()
+    if (!verificationEmail || verificationCode.trim().length !== 6 || isVerifying) return
+    setIsVerifying(true)
+    setVerificationStatus('verifying')
+    setVerificationError('')
+    setVerificationMessage('')
+    try {
+      await onVerifyEmail(verificationEmail, verificationCode)
+      setVerificationStatus('success')
+      await new Promise(resolve => setTimeout(resolve, 750))
+      onChangeMode('login')
+    } catch (verificationSubmitError) {
+      setVerificationStatus('error')
+      setVerificationError(verificationSubmitError.message)
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  const updateVerificationDigit = (index, value) => {
+    const digits = verificationCode.split('')
+    digits[index] = value.slice(-1)
+    const nextCode = digits.join('').slice(0, 6)
+    setVerificationCode(nextCode)
+    if (value && index < 5) verificationInputs.current[index + 1]?.focus()
+  }
+
+  const handleVerificationKeyDown = (index, event) => {
+    if (event.key === 'Backspace' && !verificationCode[index] && index > 0) verificationInputs.current[index - 1]?.focus()
+    if (event.key === 'ArrowLeft' && index > 0) verificationInputs.current[index - 1]?.focus()
+    if (event.key === 'ArrowRight' && index < 5) verificationInputs.current[index + 1]?.focus()
+  }
+
+  const handleVerificationPaste = event => {
+    event.preventDefault()
+    const pastedCode = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    setVerificationCode(pastedCode)
+    verificationInputs.current[Math.min(pastedCode.length, 5)]?.focus()
+  }
+
+  const resendCode = async () => {
+    setVerificationError('')
+    setVerificationMessage('')
+    try {
+      const result = await onResendVerificationCode(verificationEmail)
+      setVerificationMessage(result.message)
+    } catch (resendError) {
+      setVerificationError(resendError.message)
+    }
+  }
+
+  if (verificationEmail) return (
+    <div className="auth-form-wrap verification-wrap">
+      <div className="auth-heading">
+        <h2>Check your email</h2>
+        <p>We sent a 6-digit verification code to {verificationEmail}.</p>
+      </div>
+      <form className="auth-form" onSubmit={submitVerification}>
+        <label className="auth-field form-wide">
+          <span>Verification code</span>
+          <div className={`verification-code-inputs verification-${verificationStatus}`} role="group" aria-label="6-digit verification code" onPaste={handleVerificationPaste}>
+            {Array.from({ length: 6 }, (_, index) => (
+              <input
+                key={index}
+                ref={element => { verificationInputs.current[index] = element }}
+                className={verificationCode[index] ? 'filled' : ''}
+                value={verificationCode[index] || ''}
+                onChange={event => updateVerificationDigit(index, event.target.value.replace(/\D/g, ''))}
+                onKeyDown={event => handleVerificationKeyDown(index, event)}
+                disabled={isVerifying}
+                inputMode="numeric"
+                autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                maxLength={1}
+                aria-label={`Verification digit ${index + 1}`}
+                required
+              />
+            ))}
+          </div>
+        </label>
+        <button className={`auth-submit form-wide verification-submit verification-${verificationStatus}`} type="submit" disabled={isVerifying}>{verificationStatus === 'success' ? 'Email verified' : isVerifying ? 'Checking code...' : 'Verify email'}</button>
+        {verificationError && <p className="auth-error form-wide" role="alert">{verificationError}</p>}
+        {verificationMessage && <p className="auth-success form-wide" role="status">{verificationMessage}</p>}
+      </form>
+      <p className="auth-footer">Didn&apos;t receive it? <button type="button" onClick={resendCode}>Resend code</button></p>
+    </div>
+  )
 
   const addCampus = event => {
     event.preventDefault()

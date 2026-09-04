@@ -3,7 +3,7 @@ const Inventory = require("../models/Inventory");
 
 async function listResources(req, res) {
 	try {
-		const resources = await Resource.find().sort({ name: 1 }).lean();
+		const resources = await Resource.find(req.query.campus ? { campus: req.query.campus } : {}).sort({ name: 1 }).lean();
 		const inventory = await Inventory.find({ resource: { $in: resources.map((item) => item._id) } }).lean();
 		const stockByResource = new Map(inventory.map((item) => [item.resource.toString(), item]));
 		res.json({ resources: resources.map((resource) => ({ ...resource, stock: stockByResource.get(resource._id.toString()) || { available: 0, reserved: 0, issued: 0 } })) });
@@ -39,4 +39,18 @@ async function receiveStock(req, res) {
 	}
 }
 
-module.exports = { listResources, createResource, receiveStock };
+async function updateResource(req, res) {
+	try {
+		const allowed = ["name", "category", "description", "campus", "sizingRule", "maxQuantityPerStudent", "status"];
+		const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+		if (!Object.keys(updates).length) return res.status(400).json({ message: "At least one resource field is required." });
+		if (updates.name !== undefined && !String(updates.name).trim()) return res.status(400).json({ message: "Resource name cannot be empty." });
+		const resource = await Resource.findByIdAndUpdate(req.params.resourceId, updates, { new: true, runValidators: true });
+		if (!resource) return res.status(404).json({ message: "Resource not found." });
+		res.json({ resource });
+	} catch (error) {
+		res.status(400).json({ message: error.message || "Unable to update resource." });
+	}
+}
+
+module.exports = { listResources, createResource, receiveStock, updateResource };

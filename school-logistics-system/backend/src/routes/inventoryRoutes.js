@@ -12,7 +12,7 @@ router.use(protect);
 // ============================================
 
 // Get all inventory
-router.get("/", async (req, res) => {
+router.get("/", allowRoles("admin", "staff"), async (req, res) => {
 	try {
 		const { campus } = req.query;
 		const filter = {};
@@ -46,7 +46,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get inventory by resource
-router.get("/:resourceId", async (req, res) => {
+router.get("/:resourceId", allowRoles("admin", "staff"), async (req, res) => {
 	try {
 		const inventory = await Inventory.findOne({ resource: req.params.resourceId })
 			.populate("resource", "name category campus status");

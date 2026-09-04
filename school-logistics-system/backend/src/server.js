@@ -11,6 +11,7 @@ const inventoryRoutes = require("./routes/inventoryRoutes");
 const distributionRoutes = require("./routes/distributionRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
 const reportsRoutes = require("./routes/reportsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const Resource = require("./models/Resource");
 const Inventory = require("./models/Inventory");
 
@@ -32,6 +33,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/distribution", distributionRoutes);
 app.use("/api/allocations", allocationRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.json({

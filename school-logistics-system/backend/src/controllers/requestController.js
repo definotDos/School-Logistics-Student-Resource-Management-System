@@ -1,9 +1,39 @@
+const mongoose = require("mongoose");
 const Request = require("../models/Request");
 const Allocation = require("../models/Allocation");
 const Notification = require("../models/Notification");
 const AuditLog = require("../models/AuditLog");
 const Resource = require("../models/Resource");
 const Inventory = require("../models/Inventory");
+
+const requestTransitions = {
+	pending: ["approved", "rejected"],
+	approved: ["ready_for_claim"],
+	ready_for_claim: ["claimed"],
+	claimed: ["completed"],
+	released: ["completed"],
+	completed: [],
+	rejected: [],
+};
+
+const statusAliases = {
+	Pending: "pending",
+	Approved: "approved",
+	Rejected: "rejected",
+	"Ready for Claim": "ready_for_claim",
+	Claimed: "claimed",
+	Released: "released",
+	Completed: "completed",
+};
+
+const getLegacyResourceIds = (requests) => [...new Set(
+	requests
+		.map((request) => request.resource?.toString())
+		.filter((resourceId) => resourceId && mongoose.Types.ObjectId.isValid(resourceId))
+)];
+
+const getRequestResourceId = (request) => request.resourceRef?._id?.toString()
+	|| (request.resource && mongoose.Types.ObjectId.isValid(request.resource.toString()) ? request.resource.toString() : "");
 
 // ============================================
 // HELPER FUNCTIONS
@@ -13,7 +43,7 @@ const formatRequest = (request) => ({
 	...request.toObject ? request.toObject() : request,
 	id: `REQ-${request._id.toString().slice(-8).toUpperCase()}`,
 	databaseId: request._id.toString(),
-	resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+	resourceId: getRequestResourceId(request),
 	resource: request.resourceRef?.name || request.resource || "Resource",
 	resourceName: request.resourceRef?.name || request.resource || "Resource",
 	quantity: request.quantity,
@@ -94,12 +124,12 @@ async function createRequest(req, res) {
 		}
 
 		// Check for duplicate active requests
-		const duplicate = await Request.findOne({ 
-			student: req.user._id, 
-			resource: resourceId, 
-			status: { $in: ["pending", "approved", "ready_for_claim"] } 
+		const duplicate = await Request.findOne({
+			student: req.user._id,
+			$or: [{ resourceRef: resourceExists._id }, { resource: resourceExists.name }],
+			status: { $in: ["pending", "approved", "ready_for_claim"] }
 		});
-		
+
 		if (duplicate) {
 			return res.status(400).json({ message: "You already have an active request for this resource." });
 		}
@@ -107,12 +137,13 @@ async function createRequest(req, res) {
 		// Create request with initial status
 		const request = await Request.create({
 			student: req.user._id,
-			resource: resourceId,
+			resource: resourceExists.name,
+			resourceRef: resourceExists._id,
 			quantity: Number(quantity),
 			category: category?.trim() || "Other",
 			campus: req.user.campus,
-			status: "pending",
-			eligibilityStatus: "pending",
+			status: "Pending",
+			eligibilityStatus: "Pending",
 			notes: notes?.trim() || reason?.trim() || "",
 			priority: "medium"
 		});
@@ -124,7 +155,7 @@ async function createRequest(req, res) {
 			"Request",
 			request._id,
 			null,
-			"pending",
+			"Pending",
 			`Student ${req.user.name} submitted request for ${resource}`
 		);
 
@@ -173,7 +204,7 @@ async function verifyEligibility(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"eligibility_verified",
+			"Eligibility Verified",
 			"Request",
 			request._id,
 			previousEligibility,
@@ -214,29 +245,27 @@ async function approveRequest(req, res) {
 			return res.status(409).json({ message: "Only eligible students can be approved." });
 		}
 
-		// Get resource
-		const resource = await Resource.findById(request.resource) || await Resource.findOne({ name: request.resource });
+		// Resolve the canonical resource reference first. Legacy requests may only
+		// contain the resource name in the old `resource` field.
+		const resource = request.resourceRef
+			? await Resource.findById(request.resourceRef)
+			: (mongoose.Types.ObjectId.isValid(request.resource)
+				? await Resource.findById(request.resource)
+				: await Resource.findOne({ name: request.resource }));
 		if (!resource) {
 			return res.status(409).json({ message: "This resource is no longer in the catalog." });
 		}
+		const existingAllocation = await Allocation.findOne({ request: request._id });
+		if (existingAllocation) return res.status(409).json({ message: "This request already has an allocation." });
 
-		// Check inventory
-		const inventory = await Inventory.findOne({ resource: resource._id });
-		if (!inventory || inventory.available < request.quantity) {
-			return res.status(409).json({ message: "Insufficient available stock for this request." });
-		}
-
-		// Reserve inventory
-		await Inventory.findByIdAndUpdate(
-			inventory._id,
-			{ 
-				$inc: { 
-					available: -request.quantity, 
-					reserved: request.quantity 
-				} 
-			},
+		// Reserve only while the requested stock is still available. The predicate
+		// makes concurrent approvals fail instead of allowing negative stock.
+		const inventory = await Inventory.findOneAndUpdate(
+			{ resource: resource._id, available: { $gte: request.quantity } },
+			{ $inc: { available: -request.quantity, reserved: request.quantity } },
 			{ new: true }
 		);
+		if (!inventory) return res.status(409).json({ message: "Insufficient available stock for this request." });
 
 		// Update request
 		const previousStatus = request.status;
@@ -262,11 +291,11 @@ async function approveRequest(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"request_approved",
+			"Request Approved",
 			"Request",
 			request._id,
 			previousStatus,
-			"approved",
+			"Approved",
 			`Approved by ${req.user.name}. Allocation created: ${allocation._id}`
 		);
 
@@ -302,7 +331,8 @@ async function approveRequest(req, res) {
 
 async function rejectRequest(req, res) {
 	try {
-		const { requestId, rejectionReason } = req.body;
+		const requestId = req.params.id || req.body.requestId || req.body.id;
+		const rejectionReason = req.body.rejectionReason || req.body.reason;
 
 		if (!rejectionReason?.trim()) {
 			return res.status(400).json({ message: "Rejection reason is required." });
@@ -329,11 +359,11 @@ async function rejectRequest(req, res) {
 		// Audit log
 		await createAuditLog(
 			req.user._id,
-			"request_rejected",
+			"Request Rejected",
 			"Request",
 			request._id,
 			previousStatus,
-			"rejected",
+			"Rejected",
 			`Rejected by ${req.user.name}. Reason: ${rejectionReason}`
 		);
 
@@ -357,6 +387,96 @@ async function rejectRequest(req, res) {
 	}
 }
 
+async function updateRequestStatus(req, res) {
+	try {
+		const requestId = req.params.id || req.body.requestId || req.body.id;
+		const { status: requestedStatus, reason } = req.body;
+		const status = statusAliases[requestedStatus] || requestedStatus;
+		const validStatuses = Object.values(statusAliases);
+
+		if (!requestId) {
+			return res.status(400).json({ message: "Request ID is required." });
+		}
+
+		if (!status || !validStatuses.includes(status)) {
+			return res.status(400).json({ message: "A valid request status is required." });
+		}
+
+		const request = await Request.findById(requestId);
+		if (!request) {
+			return res.status(404).json({ message: "Request not found." });
+		}
+		if (request.status !== status && !requestTransitions[request.status]?.includes(status)) {
+			return res.status(409).json({ message: `Cannot change a ${request.status} request to ${status}.` });
+		}
+
+		const previousStatus = request.status;
+		request.status = status;
+		if (reason?.trim()) {
+			request.reason = reason.trim();
+		}
+		if (status === "rejected" && reason?.trim()) {
+			request.rejectionReason = reason.trim();
+			request.rejectedBy = req.user._id;
+			request.rejectedAt = new Date();
+		}
+		if (status === "approved") {
+			request.approvedBy = req.user._id;
+			request.approvedAt = request.approvedAt || new Date();
+			request.eligibilityStatus = request.eligibilityStatus || "eligible";
+		}
+		if (status === "claimed") {
+			request.claimedAt = request.claimedAt || new Date();
+			request.claimedBy = request.claimedBy || (req.user?.name || "Student");
+		}
+		if (status === "released") {
+			request.releasedAt = request.releasedAt || new Date();
+			request.releasedBy = request.releasedBy || req.user._id;
+		}
+		if (status === "completed") {
+			request.releasedAt = request.releasedAt || new Date();
+			request.releasedBy = request.releasedBy || req.user._id;
+			request.claimedAt = request.claimedAt || new Date();
+			request.claimedBy = request.claimedBy || (req.user?.name || "Student");
+		}
+
+		await request.save();
+		await createAuditLog(
+			req.user._id,
+			"Request Status Updated",
+			"Request",
+			request._id,
+			previousStatus,
+			status,
+			`Status updated by ${req.user.name}${reason ? `: ${reason}` : ""}`
+		);
+
+		await request.populate("student", "name email studentId avatar");
+		res.json({
+			message: "Request status updated successfully.",
+			request: formatRequest(request),
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Unable to update request status.", error: error.message });
+	}
+}
+
+async function cancelRequest(req, res) {
+	try {
+		const request = await Request.findOne({ _id: req.params.id, student: req.user._id });
+		if (!request) return res.status(404).json({ message: "Request not found." });
+		if (request.status !== "Pending") return res.status(409).json({ message: "Only pending requests can be cancelled." });
+		request.status = "Cancelled";
+		request.cancelledBy = req.user._id;
+		request.cancelledAt = new Date();
+		await request.save();
+		await createAuditLog(req.user._id, "Request Cancelled", "Request", request._id, "Pending", "Cancelled", "Cancelled by student.");
+		res.json({ message: "Request cancelled.", request: formatRequest(request) });
+	} catch (error) {
+		res.status(500).json({ message: "Unable to cancel request.", error: error.message });
+	}
+}
+
 // ============================================
 // RETRIEVAL FUNCTIONS
 // ============================================
@@ -372,7 +492,7 @@ async function getMyRequests(req, res) {
 			.populate("student", "name email campus grade studentId avatar")
 			.sort({ createdAt: -1 });
 
-		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resourceIds = getLegacyResourceIds(requests);
 		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
 		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
 
@@ -381,7 +501,7 @@ async function getMyRequests(req, res) {
 				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
 				return {
 					...formatRequest(request),
-					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
 				};
@@ -406,7 +526,7 @@ async function getAllRequests(req, res) {
 			.populate("student", "name email campus grade studentId avatar")
 			.sort({ priority: -1, createdAt: -1 });
 
-		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resourceIds = getLegacyResourceIds(requests);
 		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
 		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
 
@@ -415,7 +535,7 @@ async function getAllRequests(req, res) {
 				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
 				return {
 					...formatRequest(request),
-					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
 				};
@@ -438,12 +558,17 @@ async function getRequestById(req, res) {
 		if (!request) {
 			return res.status(404).json({ message: "Request not found." });
 		}
+		if (req.user.role === "student" && request.student._id.toString() !== req.user._id.toString()) {
+			return res.status(403).json({ message: "You can only view your own requests." });
+		}
 
-		const resource = request.resourceRef || (request.resource ? await Resource.findById(request.resource).lean() : null);
+		const resource = request.resourceRef || (request.resource && mongoose.Types.ObjectId.isValid(request.resource.toString())
+			? await Resource.findById(request.resource).lean()
+			: null);
 		res.json({
 			request: {
 				...formatRequest(request),
-				resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+				resourceId: getRequestResourceId(request),
 				resource: resource?.name || request.resource || "Resource",
 				resourceName: resource?.name || request.resource || "Resource",
 			}
@@ -457,7 +582,7 @@ async function getRequestsByStatus(req, res) {
 	try {
 		const { status } = req.params;
 		
-		const validStatuses = ["pending", "approved", "rejected", "ready_for_claim", "claimed", "released", "completed"];
+		const validStatuses = ["Pending", "Approved", "Rejected", "Ready for Claim", "Claimed", "Released", "Completed"];
 		if (!validStatuses.includes(status)) {
 			return res.status(400).json({ message: "Invalid status." });
 		}
@@ -467,7 +592,7 @@ async function getRequestsByStatus(req, res) {
 			.populate("student", "name email campus studentId avatar")
 			.sort({ createdAt: -1 });
 
-		const resourceIds = [...new Set(requests.map((request) => request.resource?.toString()).filter(Boolean))];
+		const resourceIds = getLegacyResourceIds(requests);
 		const resources = await Resource.find({ _id: { $in: resourceIds } }).lean();
 		const resourceMap = new Map(resources.map((resource) => [resource._id.toString(), resource]));
 
@@ -478,7 +603,7 @@ async function getRequestsByStatus(req, res) {
 				const resource = request.resourceRef || resourceMap.get(request.resource?.toString()) || null;
 				return {
 					...formatRequest(request),
-					resourceId: request.resource?.toString ? request.resource.toString() : request.resource,
+					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
 				};
@@ -492,9 +617,11 @@ async function getRequestsByStatus(req, res) {
 module.exports = {
 	// Create
 	createRequest,
+	cancelRequest,
 	verifyEligibility,
 	approveRequest,
 	rejectRequest,
+	updateRequestStatus,
 	
 	// Retrieve
 	getMyRequests,
