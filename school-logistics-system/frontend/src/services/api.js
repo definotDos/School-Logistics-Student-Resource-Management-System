@@ -9,12 +9,12 @@ export async function apiRequest(endpoint, options = {}) {
   let response;
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
-      ...options,
     });
   } catch {
     throw new Error("Unable to connect to the server. Start the backend with npm run dev in the backend folder.");
@@ -23,7 +23,9 @@ export async function apiRequest(endpoint, options = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || `Request failed with status ${response.status}.`);
+    const error = new Error(data.message || `Request failed with status ${response.status}.`);
+    error.status = response.status;
+    throw error;
   }
 
   return data;
@@ -359,6 +361,8 @@ export const inventoryAPI = {
 
 export const notificationAPI = {
   getAll: () => apiRequest("/notifications"),
+  getManaged: () => apiRequest("/notifications?manage=true"),
+  markRead: (id) => apiRequest(`/notifications/${id}/read`, { method: "PATCH" }),
   create: (notification) =>
     apiRequest("/notifications", {
       method: "POST",
@@ -436,6 +440,8 @@ export const reportsAPI = {
 // ============================================
 
 export const userAPI = {
+  create: (body) => apiRequest("/users", { method: "POST", body: JSON.stringify(body) }),
+  getRecipients: () => apiRequest("/users"),
   /**
    * Get all users (admin only)
    */
@@ -538,3 +544,11 @@ export const workflowHelper = {
     return { overview, inventory, approvalAnalytics };
   },
 };
+export const campusAPI = {
+  getAll: () => apiRequest("/campuses"),
+  getPublic: () => apiRequest("/campuses/public"),
+  create: (body) => apiRequest("/campuses", { method: "POST", body: JSON.stringify(body) }),
+  update: (id, body) => apiRequest(`/campuses/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: (id) => apiRequest(`/campuses/${id}`, { method: "DELETE" }),
+};
+export const searchAPI = { search: (query, signal) => apiRequest(`/search?q=${encodeURIComponent(query)}`, { signal }) };

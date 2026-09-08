@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { campuses } from "../data/campuses";
+import { campusAPI } from "../services/api";
 import DashboardIcon from "./DashboardIcon";
+import { campuses as campusDirectory } from "../data/campuses";
 
 const studentLinks = [
   { name: "Dashboard", path: "/student", icon: "home" },
   { name: "Browse Resources", path: "/resources", icon: "resources" },
-  { name: "My Requests", path: "/requests", icon: "requests", count: 2 },
+  { name: "My Requests", path: "/requests", icon: "requests" },
   { name: "Claim Schedule", path: "/claim-schedule", icon: "calendar" },
   {
     name: "Distribution History",
@@ -21,7 +22,7 @@ const adminLinks = [
   { name: "Users", path: "/admin/users", icon: "users" },
   { name: "Resource Catalog", path: "/admin/catalog", icon: "catalog" },
   { name: "Inventory", path: "/admin/inventory", icon: "resources" },
-  { name: "Requests", path: "/admin/requests", icon: "requests", count: 12 },
+  { name: "Requests", path: "/admin/requests", icon: "requests" },
   { name: "Allocation", path: "/admin/allocation", icon: "requests" },
   { name: "Distribution", path: "/admin/distribution", icon: "calendar" },
   { name: "Campuses", path: "/admin/campuses", icon: "school" },
@@ -34,7 +35,7 @@ const adminLinks = [
 const staffLinks = [
   { name: "Dashboard", path: "/staff", icon: "home" },
   { name: "Verify Eligibility", path: "/staff/verify_eligibility", icon: "users" },
-  { name: "Review Requests", path: "/staff/review_requests", icon: "requests", count: 12 },
+  { name: "Review Requests", path: "/staff/review_requests", icon: "requests" },
   { name: "Approve/Reject", path: "/staff/approve_reject", icon: "requests" },
   { name: "Claim Schedules", path: "/staff/manage_schedules", icon: "calendar" },
   { name: "Verify Claims", path: "/staff/verify_claims", icon: "resources" },
@@ -45,65 +46,28 @@ const staffLinks = [
   { name: "Notifications", path: "/staff/notifications", icon: "notification" },
 ];
 
-function CampusMark({ campus, menu = false }) {
-  if (!campus.logo) return <span className={menu ? "campus-mark menu-mark" : "campus-mark"}>{campus.code}</span>;
-
-  return <img className={menu ? "campus-logo menu-logo" : "campus-logo"} src={campus.logo} alt={`${campus.name} logo`} />;
-}
-
 function Sidebar({ type = "student" }) {
-  const { user, logout } = useAuth();
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const links = type === "admin" ? adminLinks : type === "staff" ? staffLinks : studentLinks;
-  const [customCampuses, setCustomCampuses] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("srmsCustomCampuses") || "[]");
-      const cleaned = saved.filter((campus) => campus.name !== "West Campus");
-      localStorage.setItem("srmsCustomCampuses", JSON.stringify(cleaned));
-      return cleaned;
-    } catch {
-      return [];
-    }
-  });
-  const availableCampuses = [...campuses, ...customCampuses];
-  const [selectedCampus] = useState(() => {
-    const savedCampus = localStorage.getItem("srmsCampus");
-    return availableCampuses.find((campus) => campus.name === (user?.campus || savedCampus)) || availableCampuses[0];
-  });
-  const [campusMenuOpen] = useState(false);
-  const [addCampusOpen, setAddCampusOpen] = useState(false);
-  const [newCampusName, setNewCampusName] = useState("");
-  const [newCampusLogo, setNewCampusLogo] = useState("");
+  const [availableCampuses, setAvailableCampuses] = useState([]);
   const [campusError, setCampusError] = useState("");
+  const [campusBusy, setCampusBusy] = useState(false);
+  useEffect(() => {
+    const load = () => campusAPI.getAll().then(r => setAvailableCampuses(r.campuses)).catch(e => setCampusError(e.message));
+    load(); window.addEventListener("campuses-updated", load);
+    return () => window.removeEventListener("campuses-updated", load);
+  }, []);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const displayName = user?.name || "Juan Dela Cruz";
+  const displayName = user?.name || "User";
   const initials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  const assignedCampus = campusDirectory.find((campus) => campus.name === user?.campus);
 
-  const handleCampusChange = () => {};
-
-  const addCampus = (event) => {
-    event.preventDefault();
-    const name = newCampusName.trim();
-    if (!name) return setCampusError("Enter a campus name.");
-    if (availableCampuses.some((campus) => campus.name.toLowerCase() === name.toLowerCase())) return setCampusError("This campus is already listed.");
-    const campus = { name, shortName: name, code: name.split(/\s+/).map((word) => word[0]).join("").slice(0, 3).toUpperCase(), logo: newCampusLogo };
-    const updatedCampuses = [...customCampuses, campus];
-    setCustomCampuses(updatedCampuses);
-    localStorage.setItem("srmsCustomCampuses", JSON.stringify(updatedCampuses));
-    handleCampusChange(campus);
-    setNewCampusName("");
-    setNewCampusLogo("");
-    setCampusError("");
-  };
-
-  const chooseCampusLogo = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return setCampusError("Choose an image file.");
-    if (file.size > 1024 * 1024) return setCampusError("Campus logos must be 1 MB or smaller.");
-    const reader = new FileReader();
-    reader.onload = () => { setNewCampusLogo(reader.result); setCampusError(""); };
-    reader.readAsDataURL(file);
+  const handleCampusChange = async (event) => {
+    setCampusBusy(true); setCampusError("");
+    try { await updateUser({ activeCampus: event.target.value }); }
+    catch (e) { setCampusError(e.message); } finally { setCampusBusy(false); }
   };
 
   const handleLogout = () => {
@@ -114,18 +78,19 @@ function Sidebar({ type = "student" }) {
   };
 
   return (
-    <aside className="app-sidebar">
+    <aside className={`app-sidebar ${navigationOpen ? "navigation-open" : ""}`}>
+      <button type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
+        <DashboardIcon name="home" /><span>{navigationOpen ? "Close navigation" : "Menu"}</span>
+      </button>
       <div className="sidebar-brand">
         <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
         <div><strong>SRMS</strong><small>Student Resource Management</small></div>
       </div>
-      <div className={`campus-switch ${campusMenuOpen ? "is-open" : ""}`}>
-        <button className="campus-current" type="button" disabled aria-label={`Assigned campus: ${selectedCampus.name}`}>
-          <CampusMark campus={selectedCampus} /><span className="campus-info"><b>{selectedCampus.shortName}</b><small>Student Campus</small></span><span className="campus-chevron" aria-hidden="true">⌄</span>
-        </button>
-        {campusMenuOpen && <div className="campus-menu" role="listbox" aria-label="Choose campus">{availableCampuses.map((campus) => <button className={campus.name === selectedCampus.name ? "selected" : ""} type="button" role="option" aria-selected={campus.name === selectedCampus.name} key={campus.name} onClick={() => handleCampusChange(campus)}><CampusMark campus={campus} menu /><b>{campus.name}</b>{campus.name === selectedCampus.name && <i aria-hidden="true">✓</i>}</button>)}<div className="campus-add-divider" />{addCampusOpen ? <form className="campus-add-form" onSubmit={addCampus}><label htmlFor="new-campus">Add campus</label><input id="new-campus" value={newCampusName} onChange={(event) => { setNewCampusName(event.target.value); setCampusError(""); }} placeholder="Campus name" autoFocus /><label className="campus-logo-upload">Campus logo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseCampusLogo} /></label>{newCampusLogo && <img className="campus-logo-preview" src={newCampusLogo} alt="New campus logo preview" />}{campusError && <small>{campusError}</small>}<div><button type="button" onClick={() => setAddCampusOpen(false)}>Cancel</button><button type="submit">Add campus</button></div></form> : <button className="campus-add-button" type="button" onClick={() => setAddCampusOpen(true)}><span aria-hidden="true">+</span><b>Add another campus</b></button>}</div>}
+      <div className="campus-switch">
+        {user?.role === "admin" ? <label>Active campus<select aria-label="Active campus" value={user.activeCampus || ""} disabled={campusBusy} onChange={handleCampusChange}><option value="">All campuses</option>{availableCampuses.map(c => <option key={c._id} value={c.name}>{c.name}{c.status === "inactive" ? " (inactive)" : ""}</option>)}</select></label> : <div className="campus-current">{assignedCampus?.logo ? <img src={assignedCampus.logo} alt={`${assignedCampus.shortName} logo`} className="campus-logo campus-current-logo" /> : <span className="campus-mark">{user?.campus?.slice(0, 2).toUpperCase()}</span>}<span className="campus-info"><b>{user?.campus}</b><small>Assigned campus</small></span></div>}
+        {campusError && <small role="alert">{campusError}</small>}
       </div>
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" id="workspace-navigation" aria-label={`${type} navigation`}>
         <p>
           {type === "admin" ? "Administration" : type === "staff" ? "Staff Services" : "Student Portal"}
         </p>
@@ -134,7 +99,8 @@ function Sidebar({ type = "student" }) {
             <NavLink
               key={link.path}
               to={link.path}
-              end={link.path === "/student" || link.path === "/admin"}
+              end={link.path === "/student" || link.path === "/admin" || link.path === "/staff"}
+              onClick={() => setNavigationOpen(false)}
               className={({ isActive }) =>
                 `sidebar-link ${
                   isActive

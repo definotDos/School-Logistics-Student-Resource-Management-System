@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { USER_STATUSES, normalizeStatus } = require("../utils/status");
 
 const userSchema = new mongoose.Schema(
 	{
@@ -10,11 +11,12 @@ const userSchema = new mongoose.Schema(
 		studentId: { type: String, trim: true },
 		password: { type: String, required: true, select: false },
 		role: { type: String, enum: ["student", "admin", "staff"], default: "student" },
-		status: { type: String, enum: ["active", "suspended"], default: "active" },
-		grade: { type: String, default: "Grade 11" },
-		strand: { type: String, default: "STEM" },
+		status: { type: String, enum: USER_STATUSES, set: normalizeStatus, default: "active" },
+		grade: { type: String, default: "Please Select Your Program" },
+		strand: { type: String, default: "Please Select Your Course Or Strand" },
 		avatar: { type: String, default: "" },
 		campus: { type: String, required: true, trim: true },
+		activeCampus: { type: String, trim: true, default: "" },
 	},
 	{ timestamps: true }
 );

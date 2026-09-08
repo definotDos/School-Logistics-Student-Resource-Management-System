@@ -1,70 +1,21 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-
+const app = require("./app");
 const connectDB = require("./config/database");
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const requestRoutes = require("./routes/requestRoutes");
-const resourceRoutes = require("./routes/resourceRoutes");
-const inventoryRoutes = require("./routes/inventoryRoutes");
-const distributionRoutes = require("./routes/distributionRoutes");
-const allocationRoutes = require("./routes/allocationRoutes");
-const reportsRoutes = require("./routes/reportsRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
 const Resource = require("./models/Resource");
-const Inventory = require("./models/Inventory");
-
-// Load environment variables
-dotenv.config();
-
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: "5mb" }));
-
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/requests", requestRoutes);
-app.use("/api/resources", resourceRoutes);
-app.use("/api/inventory", inventoryRoutes);
-app.use("/api/distribution", distributionRoutes);
-app.use("/api/allocations", allocationRoutes);
-app.use("/api/reports", reportsRoutes);
-app.use("/api/notifications", notificationRoutes);
-
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "School Logistics API is running",
-  });
-});
 
 // Server
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   await connectDB();
-  await ensureDefaultCatalog();
+  // Campus records are imported from existing database locations, never a mock catalog.
+  const Campus = require("./models/Campus");
+  const names = new Set([...(await require("./models/User").distinct("campus")), ...(await Resource.distinct("campus"))]);
+  for (const name of names) {
+    if (name?.trim()) await Campus.updateOne({ name }, { $setOnInsert: { name } }, { upsert: true });
+  }
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-async function ensureDefaultCatalog() {
-  const defaults = [
-    ["School Uniform", "Uniform", "Uniform set", 45, "Sizing required"],
-    ["School Shoes", "Footwear", "Black leather school shoes", 28, "Size required"],
-    ["Mathematics Book", "Books", "Mathematics learning book", 120, ""],
-    ["Learning Modules", "Modules", "Learning module pack", 85, ""],
-    ["Student ID", "Identification", "Official school identification card", 60, ""],
-  ];
-  for (const [name, category, description, quantity, sizingRule] of defaults) {
-    const resource = await Resource.findOneAndUpdate({ name }, { $setOnInsert: { name, category, description, campus: "PHINMA University of Pangasinan", sizingRule, status: "Available" } }, { upsert: true, new: true });
-    await Inventory.findOneAndUpdate({ resource: resource._id }, { $setOnInsert: { resource: resource._id, available: quantity } }, { upsert: true });
-  }
-}
-
-startServer();
+startServer().catch((error) => { console.error("Server startup failed:", error.message); process.exitCode = 1; });

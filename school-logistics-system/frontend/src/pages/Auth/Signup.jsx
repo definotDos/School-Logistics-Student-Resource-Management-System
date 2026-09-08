@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react'
-import { campuses } from '../../data/campuses'
+import { useEffect, useRef, useState } from 'react'
+import { campusAPI } from '../../services/api'
+import { campuses as campusDirectory } from '../../data/campuses'
 
 export function SignupPage({
   onSignup,
-  onCampusChange,
   onChangeMode,
   error,
   isSubmitting = false,
@@ -13,17 +13,9 @@ export function SignupPage({
   const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [campusMenuOpen, setCampusMenuOpen] = useState(false)
-  const [customCampuses, setCustomCampuses] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('srmsCustomCampuses') || '[]')
-      const cleaned = saved.filter(campus => campus.name.toLowerCase() !== 'psu bayambang')
-      localStorage.setItem('srmsCustomCampuses', JSON.stringify(cleaned))
-      return cleaned
-    } catch { return [] }
-  })
-  const [addCampusOpen, setAddCampusOpen] = useState(false)
-  const [newCampusName, setNewCampusName] = useState('')
+  const [availableCampuses, setAvailableCampuses] = useState([])
   const [campusError, setCampusError] = useState('')
+  useEffect(() => { campusAPI.getPublic().then(r => setAvailableCampuses(r.campuses)).catch(e => setCampusError(e.message)) }, [])
   const [validationErrors, setValidationErrors] = useState({})
   const [verificationEmail, setVerificationEmail] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
@@ -32,8 +24,11 @@ export function SignupPage({
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState('idle')
   const verificationInputs = useRef([])
-  const availableCampuses = [...campuses, ...customCampuses]
-  const selectedCampus = availableCampuses.find(campus => campus.name === form.campus)
+  const selectedCampusRecord = availableCampuses.find(campus => campus.name === form.campus)
+  const selectedCampus = selectedCampusRecord && {
+    ...campusDirectory.find(campus => campus.name === selectedCampusRecord.name),
+    ...selectedCampusRecord,
+  }
   const update = key => event => {
     setForm({ ...form, [key]: event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
@@ -45,7 +40,7 @@ export function SignupPage({
     if (isSubmitting || !form.campus) return
     const errors = {}
     if (form.name.trim().length < 2) errors.name = 'Enter your full name.'
-    if (form.studentId.trim().length < 2) errors.studentId = `Enter your ${identityLabel.toLowerCase()}.`
+    if (form.role === 'student' && form.studentId.trim().length < 2) errors.studentId = `Enter your ${identityLabel.toLowerCase()}.`
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = 'Enter a valid school email address.'
     if (form.password.length < 8) errors.password = 'Password must be at least 8 characters.'
     if (Object.keys(errors).length) return setValidationErrors(errors)
@@ -146,44 +141,26 @@ export function SignupPage({
     </div>
   )
 
-  const addCampus = event => {
-    event.preventDefault()
-    const name = newCampusName.trim()
-    if (!name) return setCampusError('Enter a campus name.')
-    if (availableCampuses.some(campus => campus.name.toLowerCase() === name.toLowerCase())) return setCampusError('This campus is already listed.')
-    const campus = { name, shortName: name, code: name.split(/\s+/).map(word => word[0]).join('').slice(0, 3).toUpperCase() }
-    const updatedCampuses = [...customCampuses, campus]
-    setCustomCampuses(updatedCampuses)
-    localStorage.setItem('srmsCustomCampuses', JSON.stringify(updatedCampuses))
-    setForm(current => ({ ...current, campus: name }))
-    onCampusChange(campus)
-    setNewCampusName('')
-    setCampusError('')
-    setAddCampusOpen(false)
-    setCampusMenuOpen(false)
-  }
-
   return (
     <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
       <div className="auth-heading">
+        {campusError && <p role="alert">{campusError}</p>}
         <h2>Create account</h2>
       </div>
       <form className="auth-form signup-form" onSubmit={submit}>
         <fieldset className="account-type form-wide">
           <legend>Choose account type</legend>
           <div className="account-type-options">
-            <label className={form.role === 'student' ? 'selected' : ''}>
-              <input type="radio" name="role" value="student" checked={form.role === 'student'} onChange={update('role')} />
-              <span className="account-type-icon">♙</span><span>Student<small>Request school resources</small></span>
-            </label>
-            <label className={form.role === 'admin' ? 'selected' : ''}>
-              <input type="radio" name="role" value="admin" checked={form.role === 'admin'} onChange={update('role')} />
-              <span className="account-type-icon">♙</span><span>Admin<small>Manage the system</small></span>
-            </label>
-            <label className={form.role === 'staff' ? 'selected' : ''}>
-              <input type="radio" name="role" value="staff" checked={form.role === 'staff'} onChange={update('role')} />
-              <span className="account-type-icon">◎</span><span>Staff/Services<small>Support operations</small><small>And Manage Distribution</small></span>
-            </label>
+            {[
+              ['student', '♙', 'Student', 'Request school resources'],
+              ['staff', '♧', 'Staff', 'Manage requests/distribution'],
+              ['admin', '⚙', 'Admin', 'Manage the whole system'],
+            ].map(([role, icon, label, description]) => (
+              <label key={role} className={form.role === role ? 'selected' : ''}>
+                <input type="radio" name="role" value={role} checked={form.role === role} onChange={update('role')} />
+                <span className="account-type-icon">{icon}</span><span>{label}<small>{description}</small></span>
+              </label>
+            ))}
           </div>
         </fieldset>
         <label className="auth-field compact-field form-wide signup-campus-field">
@@ -192,9 +169,8 @@ export function SignupPage({
             {selectedCampus && (selectedCampus.logo ? <img src={selectedCampus.logo} alt="" /> : <i>{selectedCampus.code}</i>)}
             <span>{selectedCampus ? selectedCampus.name : 'Please Select Your Campus'}</span><b aria-hidden="true">⌄</b>
           </button>
-          {campusMenuOpen && <div className="signup-campus-menu" role="listbox" aria-label="Choose campus">{availableCampuses.map(campus => <button className={campus.name === form.campus ? 'selected' : ''} type="button" role="option" aria-selected={campus.name === form.campus} key={campus.name} onClick={() => { setForm(current => ({ ...current, campus: campus.name })); localStorage.setItem('srmsCampus', campus.name); onCampusChange(campus); setCampusMenuOpen(false) }}>{campus.logo ? <img src={campus.logo} alt="" /> : <i>{campus.code}</i>}<span><b>{campus.name}</b><small>{campus.name === form.campus ? 'Selected campus' : 'Campus'}</small></span>{campus.name === form.campus && <strong aria-hidden="true">✓</strong>}</button>)}<button className="signup-other-campus" type="button" onClick={() => { setAddCampusOpen(true); setCampusError('') }}><i>+</i><span><b>Add other campus</b><small>Create a campus option</small></span></button></div>}
         </label>
-        {addCampusOpen && <form className="signup-add-campus form-wide" onSubmit={addCampus}><div className="signup-add-campus-heading"><b>Add other campus</b><button type="button" onClick={() => { setAddCampusOpen(false); setCampusError('') }}>Cancel</button></div><div className="signup-add-campus-fields"><input value={newCampusName} onChange={event => { setNewCampusName(event.target.value); setCampusError('') }} placeholder="Campus name" aria-label="New campus name" autoFocus /><button type="submit" className="signup-add-submit">Add campus</button></div>{campusError && <small className="signup-campus-error">{campusError}</small>}</form>}
+        {campusMenuOpen && <div className="signup-campus-menu form-wide" role="listbox" aria-label="Available campuses">{availableCampuses.map(campus => { const campusDetails = { ...campusDirectory.find(entry => entry.name === campus.name), ...campus }; return <button key={campus._id} type="button" role="option" aria-selected={form.campus === campus.name} onClick={() => { setForm({ ...form, campus: campus.name }); setCampusMenuOpen(false); }}>{campusDetails.logo ? <img src={campusDetails.logo} alt="" /> : <i>{campusDetails.code || campus.name.slice(0, 2).toUpperCase()}</i>}<span>{campus.name}</span></button> })}{!availableCampuses.length && <p>No active campuses. Contact an administrator.</p>}</div>}
         <label className="auth-field compact-field">
           <span>Full name</span>
           <input className={validationErrors.name ? 'input-invalid' : ''} placeholder="FullName" value={form.name} onChange={update('name')} autoComplete="name" required aria-invalid={Boolean(validationErrors.name)} />
@@ -202,7 +178,7 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors.studentId ? 'input-invalid' : ''} placeholder={identityLabel} value={form.studentId} onChange={update('studentId')} required aria-invalid={Boolean(validationErrors.studentId)} />
+          <input className={validationErrors.studentId ? 'input-invalid' : ''} placeholder={form.role === 'student' ? identityLabel : `${identityLabel} (optional)`} value={form.studentId} onChange={update('studentId')} required={form.role === 'student'} aria-invalid={Boolean(validationErrors.studentId)} />
           {validationErrors.studentId && <small className="field-error">{validationErrors.studentId}</small>}
         </label>
         <label className="auth-field compact-field form-wide">

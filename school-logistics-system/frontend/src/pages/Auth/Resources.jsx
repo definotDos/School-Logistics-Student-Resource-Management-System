@@ -94,11 +94,7 @@ function Resources() {
 
             <select value={category} onChange={(event) => setCategory(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-600 outline-none">
               <option>All Categories</option>
-              <option>Books</option>
-              <option>Uniform</option>
-              <option>Footwear</option>
-              <option>Modules</option>
-              <option>Identification</option>
+              {[...new Set(resources.map(resource => resource.category))].sort().map(value => <option key={value}>{value}</option>)}
             </select>
           </div>
 
@@ -106,7 +102,7 @@ function Resources() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredResources.map((resource) => (
               <ResourceCard
-                key={resource.name}
+                key={resource._id}
                 resource={resource}
                 onRequest={handleRequest}
               />

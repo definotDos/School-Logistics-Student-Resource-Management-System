@@ -20,7 +20,7 @@ function ResourceCard({ resource, onRequest }) {
           </div>
 
           <span className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-            Available
+            {resource.status === "Discontinued" ? "Discontinued" : resource.quantity > 0 ? "Available" : "Out of stock"}
           </span>
         </div>
 
@@ -32,6 +32,7 @@ function ResourceCard({ resource, onRequest }) {
         </p>
 
         <button
+          disabled={resource.quantity < 1 || resource.status === "Discontinued"}
           onClick={() => onRequest(resource)}
           className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
         >

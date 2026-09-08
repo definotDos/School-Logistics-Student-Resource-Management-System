@@ -12,8 +12,8 @@ function Requests() {
 
   const cancelRequest = async (requestId) => {
     try {
-      await requestAPI.cancel(requestId);
-      setRequests((current) => current.map((request) => request.databaseId === requestId ? { ...request, status: "cancelled" } : request));
+      const result = await requestAPI.cancel(requestId);
+      setRequests((current) => current.map((request) => request.databaseId === requestId ? result.request : request));
       setNotice("Request cancelled and saved to the database.");
     } catch (requestError) {
       setError(requestError.message);

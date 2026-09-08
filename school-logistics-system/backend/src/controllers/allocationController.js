@@ -1,3 +1,4 @@
+const { campusFilter, canAccessCampus } = require("../middleware/campusScope");
 const Allocation = require("../models/Allocation");
 const ClaimSchedule = require("../models/ClaimSchedule");
 const Request = require("../models/Request");
@@ -75,6 +76,7 @@ async function processAllocation(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (allocation.status !== "Reserved") {
 			return res.status(409).json({ message: "This allocation has already been processed." });
 		}
@@ -89,7 +91,7 @@ async function processAllocation(req, res) {
 		}
 
 		await createAuditLog(
-			req.user._id,
+			req.user,
 			"Allocation Processed",
 			"Allocation",
 			allocation._id,
@@ -113,7 +115,7 @@ async function processAllocation(req, res) {
 			allocation: formatAllocation(allocation)
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to process allocation.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to process allocation.", error: error.message });
 	}
 }
 
@@ -122,6 +124,8 @@ async function processAllocation(req, res) {
 // ============================================
 
 async function createClaimSchedule(req, res) {
+	const rollback = [];
+	let committed = false;
 	try {
 		const allocationId = req.params.id || req.body.allocationId || req.body.id;
 		const { pickupDate, startTime, endTime, location } = req.body;
@@ -139,6 +143,7 @@ async function createClaimSchedule(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (req.user.role === "student" && allocation.student._id.toString() !== req.user._id.toString()) {
 			return res.status(403).json({ message: "You can only view your own allocation." });
 		}
@@ -147,11 +152,15 @@ async function createClaimSchedule(req, res) {
 			return res.status(409).json({ message: "Allocation must be processed before scheduling." });
 		}
 
+		if (Number.isNaN(Date.parse(pickupDate)) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(endTime) || startTime >= endTime) return res.status(400).json({ message: "Provide a valid date and an end time after the start time." });
+
 		// Check if schedule already exists
 		const existingSchedule = await ClaimSchedule.findOne({ allocation: allocationId });
 		if (existingSchedule) {
 			return res.status(409).json({ message: "Claim schedule already exists for this allocation." });
 		}
+
+		const allocationBefore = allocation.toObject({ depopulate: true });
 
 		// Create claim schedule
 		const claimSchedule = await ClaimSchedule.create({
@@ -167,19 +176,24 @@ async function createClaimSchedule(req, res) {
 			status: "Scheduled"
 		});
 
+		rollback.push(() => ClaimSchedule.deleteOne({ _id: claimSchedule._id }));
+
 		// Update allocation
 		allocation.scheduledDate = new Date(pickupDate);
 		allocation.status = "Scheduled"; // Keep as Scheduled
 		await allocation.save();
+		rollback.push(() => Allocation.replaceOne({ _id: allocation._id, __v: allocation.__v }, { ...allocationBefore, __v: allocation.__v + 1 }));
 
 		// Update request status to ready_for_claim
 		const request = allocation.request;
 		request.status = "ready_for_claim";
 		await request.save();
 
+		committed = true;
+
 		// Audit log
 		await createAuditLog(
-			req.user._id,
+			req.user,
 			"Schedule Created",
 			"ClaimSchedule",
 			claimSchedule._id,
@@ -202,7 +216,7 @@ async function createClaimSchedule(req, res) {
 			"Claim Schedule Assigned! 📅",
 			`Your claim schedule for ${allocation.resource.name} is set for ${pickupDateTime} from ${startTime} to ${endTime} at ${location}. Please arrive on time!`,
 			claimSchedule._id,
-			"/student/schedule"
+			"/claim-schedule"
 		);
 
 		res.status(201).json({ 
@@ -211,7 +225,8 @@ async function createClaimSchedule(req, res) {
 			schedule: claimSchedule
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to create claim schedule.", error: error.message });
+		if (!committed) for (const undo of rollback.reverse()) await undo();
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to create claim schedule.", error: error.message });
 	}
 }
 
@@ -227,8 +242,10 @@ async function assignStaff(req, res) {
 			.populate("student", "name email studentId avatar")
 			.populate("resource", "name category");
 		if (!allocation) return res.status(404).json({ message: "Allocation not found." });
+		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (!["Reserved", "Scheduled"].includes(allocation.status)) return res.status(409).json({ message: "Only reserved or scheduled allocations can be assigned." });
 
+		if (staff.campus !== allocation.campus) return res.status(409).json({ message: "Assign staff from the allocation campus." });
 		allocation.assignedStaff = staff._id;
 		await allocation.save();
 		await createAuditLog(req.user, "Staff Assigned", "Allocation", allocation._id, null, allocation.status, `Assigned to ${staff.name}`);
@@ -236,7 +253,7 @@ async function assignStaff(req, res) {
 
 		res.json({ message: "Staff member assigned successfully.", allocation: formatAllocation(allocation) });
 	} catch (error) {
-		res.status(500).json({ message: "Unable to assign staff member.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to assign staff member.", error: error.message });
 	}
 }
 
@@ -246,16 +263,16 @@ async function assignStaff(req, res) {
 
 async function listAllocations(req, res) {
 	try {
-		const filter = {};
+		const filter = campusFilter(req);
 		if (req.user.role === "student") {
 			filter.student = req.user._id;
 		} else if (req.user.role === "staff") {
-			filter.assignedStaff = req.user._id;
+			filter.$or = [{ assignedStaff: req.user._id }, { assignedStaff: null }];
 		}
 
 		const { status, campus } = req.query;
 		if (status) filter.status = status;
-		if (campus) filter.campus = campus;
+		Object.assign(filter, campusFilter(req));
 
 		const allocations = await Allocation.find(filter)
 			.populate("student", "name email campus grade studentId avatar")
@@ -269,7 +286,7 @@ async function listAllocations(req, res) {
 			allocations: allocations.map(formatAllocation) 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load allocations.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load allocations.", error: error.message });
 	}
 }
 
@@ -284,6 +301,9 @@ async function getAllocationById(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
+
+		if (req.user.role === "student" && allocation.student?._id.toString() !== req.user._id.toString()) return res.status(403).json({ message: "You can only view your own allocation." });
 
 		// Also get the claim schedule if it exists
 		const claimSchedule = await ClaimSchedule.findOne({ allocation: allocation._id });
@@ -293,7 +313,7 @@ async function getAllocationById(req, res) {
 			claimSchedule: claimSchedule || null
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load allocation.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load allocation.", error: error.message });
 	}
 }
 
@@ -320,7 +340,7 @@ async function getStudentAllocations(req, res) {
 			allocations: allocationsWithSchedules 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load your allocations.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load your allocations.", error: error.message });
 	}
 }
 
@@ -333,7 +353,7 @@ async function getAllocationsByStatus(req, res) {
 			return res.status(400).json({ message: "Invalid status." });
 		}
 
-		const filter = { status };
+		const filter = { ...campusFilter(req), status };
 		if (req.user.role === "staff") {
 			filter.$or = [
 				{ assignedStaff: req.user._id },
@@ -353,7 +373,7 @@ async function getAllocationsByStatus(req, res) {
 			allocations: allocations.map(formatAllocation) 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load allocations.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load allocations.", error: error.message });
 	}
 }
 

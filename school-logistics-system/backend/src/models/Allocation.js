@@ -27,7 +27,7 @@ const allocationSchema = new mongoose.Schema(
 		// Additional Notes
 		notes: { type: String, trim: true, default: "" },
 	},
-	{ timestamps: true }
+	{ timestamps: true, optimisticConcurrency: true }
 );
 
 module.exports = mongoose.model("Allocation", allocationSchema);

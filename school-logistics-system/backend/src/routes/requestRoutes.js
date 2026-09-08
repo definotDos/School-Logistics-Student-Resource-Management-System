@@ -18,6 +18,10 @@ const router = express.Router();
 
 // Protect all routes
 router.use(protect);
+for (const param of ["id", "resourceId", "allocationId"]) router.param(param, (req, res, next, value) => {
+	if (!/^[a-f0-9]{24}$/i.test(value)) return res.status(400).json({ message: "Invalid record ID." });
+	next();
+});
 
 // ============================================
 // STUDENT ROUTES

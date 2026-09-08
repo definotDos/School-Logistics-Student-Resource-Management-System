@@ -1,3 +1,4 @@
+import { NotificationsPanel, ReportsPanel } from "../../components/ManagementPanels";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -5,19 +6,6 @@ import Navbar from "../../components/Navbar";
 import { allocationAPI, distributionAPI, notificationAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 import "./StaffServicesDashboard.css";
-
-const staffNavItems = [
-  { label: "Overview", path: "/staff", section: "dashboard" },
-  { label: "Eligibility", path: "/staff/verify_eligibility", section: "verify_eligibility" },
-  { label: "Requests", path: "/staff/review_requests", section: "review_requests" },
-  { label: "Approval", path: "/staff/approve_reject", section: "approve_reject" },
-  { label: "Schedules", path: "/staff/manage_schedules", section: "manage_schedules" },
-  { label: "Claims", path: "/staff/verify_claims", section: "verify_claims" },
-  { label: "Distribution", path: "/staff/monitor_distribution", section: "monitor_distribution" },
-  { label: "History", path: "/staff/student_history", section: "student_history" },
-  { label: "Reports", path: "/staff/reports", section: "reports" },
-  { label: "Notifications", path: "/staff/notifications", section: "notifications" },
-];
 
 const sections = {
   dashboard: { label: "Overview", title: "Staff & Services Dashboard", description: "Manage student requests, eligibility, and resource distribution." },
@@ -76,7 +64,7 @@ function StaffServicesDashboard() {
           resources_released: Number(overview.resourcesReleased || overview.resources_released || 0),
         });
       })
-      .catch(() => setDashboardStats({ pending_requests: 0, eligible_students: 0, scheduled_claims: 0, resources_released: 0 }));
+      .catch((error) => setRequestError(error.message));
   }, [activeSection]);
 
   useEffect(() => {
@@ -87,7 +75,7 @@ function StaffServicesDashboard() {
           databaseId: req.databaseId,
           name: req.id || "Request",
           detail: `${req.student?.name || "Student"} · Student ID: ${req.studentId || req.student?.studentId || req.student?.id || "N/A"} · ${req.resourceName || req.resource || "Resource"} · Submitted ${req.date ? new Date(req.date).toLocaleDateString() : "recently"}`,
-          status: req.status || "Pending",
+          status: req.status || "pending",
           action: "Review",
           priority: "medium",
           eligibilityStatus: req.eligibilityStatus,
@@ -101,7 +89,7 @@ function StaffServicesDashboard() {
           ...current,
             review_requests: staffRequests,
             approve_reject: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, action: "Approve", reason: "Pending eligibility and approval review" })),
-            update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: ["Approved", "Rejected", "Ready for Claim", "Claimed", "Released", "Completed"], action: "Update" })),
+            update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: request.status === "pending" ? ["approved", "rejected"] : request.status === "claimed" ? ["completed"] : [], action: "Update" })),
             verify_eligibility: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, name: request.student?.name || "Student", eligibility: request.eligibilityStatus === "eligible" ? "Eligible" : "Pending", action: "Verify" })),
         }));
       })
@@ -246,38 +234,14 @@ function StaffServicesDashboard() {
   const handleUpdateStatus = async (databaseId, newStatus) => {
     const request = rows.update_status.find((row) => row.databaseId === databaseId);
     try {
-      await requestAPI.updateStatus(request.databaseId, {
+      const result = await requestAPI.updateStatus(request.databaseId, {
         status: newStatus,
         reason: `Staff updated status to ${newStatus}`,
       });
 
-      const normalizedStatus = newStatus.toLowerCase().replaceAll(" ", "_");
+      const normalizedStatus = result.request?.status || newStatus.toLowerCase().replaceAll(" ", "_");
       syncRequestStatusAcrossPanels(request.databaseId, normalizedStatus);
       setNotice(`${request.name} status updated to ${newStatus} and saved in the database.`);
-    } catch (error) {
-      setRequestError(error.message);
-    }
-  };
-
-  const handleSendNotification = async (index, notificationType) => {
-    const row = rows.notifications[index];
-    const user = JSON.parse(localStorage.getItem("srmsUser") || "{}");
-
-    try {
-      await notificationAPI.create({
-        user: row?.user || user.id || user._id,
-        title: notificationType,
-        message: row?.detail || `${notificationType} reminder sent from staff dashboard.`,
-        type: (notificationType || "general").toLowerCase(),
-        sentVia: "app",
-      });
-      setRows((current) => ({
-        ...current,
-        notifications: current.notifications.map((item, i) =>
-          i === index ? { ...item, status: "Sent" } : item
-        ),
-      }));
-      setNotice(`${notificationType} notification was saved and sent.`);
     } catch (error) {
       setRequestError(error.message);
     }
@@ -308,22 +272,12 @@ function StaffServicesDashboard() {
   };
 
   return (
-    <div className={`admin-shell ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-shell organized-workspace ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
         <main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""}`}>
-          <nav className="staff-service-nav" aria-label="Staff services navigation">
-            {staffNavItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={item.section === activeSection ? "active" : ""}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+
 
           <div className="admin-topline">
             <div>
@@ -384,8 +338,6 @@ function StaffServicesDashboard() {
           {activeSection === "reports" && <ReportsPanel setNotice={setNotice} />}
           {activeSection === "notifications" && (
             <NotificationsPanel
-              rows={rows["notifications"]}
-              onSendNotification={handleSendNotification}
             />
           )}
         </main>
@@ -902,7 +854,7 @@ function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
               <small>{row.detail}</small>
             </div>
             <span className="info-badge">{row.claimed}</span>
-            <button className="row-action">{row.action}</button>
+            <button className="row-action" onClick={() => onSelectStudent(row.databaseId)}>{row.action}</button>
           </div>
         ))}
       </div>
@@ -967,118 +919,6 @@ function UpdateStatusPanel({ rows, onUpdateStatus }) {
           </div>
           );
         })}
-      </div>
-    </section>
-  );
-}
-
-function ReportsPanel({ setNotice }) {
-  const generateReport = async (type, loader) => {
-    try {
-      const report = await loader();
-      const summary = report.summary || {};
-      const total = summary.totalRequests ?? summary.totalDistributed ?? summary.totalApproved ?? 0;
-      setNotice(`${type} generated successfully. ${total} records found.`);
-    } catch (error) {
-      setNotice(error.message);
-    }
-  };
-
-  return (
-    <section className="admin-panel reports-panel">
-      <PanelHeading
-        title="Reports & Analytics"
-        description="Generate and view operational reports"
-      />
-      <div className="reports-grid">
-        <ReportCard
-          title="Request Summary Report"
-          description="Total requests, approvals, rejections, and fulfillment rates"
-          action="Generate"
-          onClick={() => generateReport("Request summary report", reportsAPI.getRequestReport)}
-        />
-        <ReportCard
-          title="Approval Analytics"
-          description="Track approval patterns and staff performance metrics"
-          action="Generate"
-          onClick={() => generateReport("Approval analytics", reportsAPI.getApprovalAnalytics)}
-        />
-        <ReportCard
-          title="Distribution Report"
-          description="Monitor resource distribution and claim completion"
-          action="Generate"
-          onClick={() => generateReport("Distribution report", reportsAPI.getDistributionReport)}
-        />
-        <ReportCard
-          title="Student Eligibility Report"
-          description="Analysis of student eligibility and qualification trends"
-          action="Generate"
-          onClick={() => generateReport("Eligibility report", reportsAPI.getRequestReport)}
-        />
-      </div>
-    </section>
-  );
-}
-
-function ReportCard({ title, description, action, onClick }) {
-  return (
-    <div className="report-card">
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <button onClick={onClick}>{action}</button>
-    </div>
-  );
-}
-
-function NotificationsPanel({ rows, onSendNotification }) {
-  const [search, setSearch] = useState("");
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.type}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Send Notifications</h2>
-          <p>{filteredRows.length} notifications to manage</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search notifications..."
-          aria-label="Search notifications"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div className="record-row notification-row" key={index}>
-            <div className={`record-icon ${row.type.toLowerCase()}`}>
-              {row.type === "Approval" ? "✓" : row.type === "Schedule" ? "◷" : "📢"}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-              <span className="notification-type">{row.type}</span>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-            {row.status === "Draft" && (
-              <button
-                className="row-action send-btn"
-                onClick={() => onSendNotification(index, row.type)}
-              >
-                Send
-              </button>
-            )}
-            {row.status === "Sent" && (
-              <button className="row-action" disabled>
-                Sent
-              </button>
-            )}
-          </div>
-        ))}
       </div>
     </section>
   );

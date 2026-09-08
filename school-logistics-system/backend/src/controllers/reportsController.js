@@ -1,3 +1,5 @@
+const { campusFilter } = require("../middleware/campusScope");
+const { REQUEST_STATUSES, normalizeStatus } = require("../utils/status");
 const Request = require("../models/Request");
 const Allocation = require("../models/Allocation");
 const Distribution = require("../models/Distribution");
@@ -16,9 +18,8 @@ const AuditLog = require("../models/AuditLog");
 
 async function getInventoryReport(req, res) {
 	try {
-		const { campus } = req.query;
-		const filter = campus ? { campus } : {};
-
+		const { campus } = campusFilter(req);
+		
 		const inventory = await Inventory.find()
 			.populate({
 				path: "resource",
@@ -51,7 +52,7 @@ async function getInventoryReport(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate inventory report.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate inventory report.", error: error.message });
 	}
 }
 
@@ -61,18 +62,23 @@ async function getInventoryReport(req, res) {
 
 async function getRequestReport(req, res) {
 	try {
-		const { startDate, endDate, campus, status } = req.query;
-		const filter = {};
+		const { startDate, endDate, status } = req.query;
+		const { campus } = campusFilter(req);
+		const filter = campusFilter(req);
 
-		if (startDate && endDate) {
-			filter.createdAt = {
-				$gte: new Date(startDate),
-				$lte: new Date(endDate),
-			};
+		if (startDate || endDate) {
+			const start = startDate ? new Date(startDate) : null;
+			const end = endDate ? new Date(endDate) : null;
+			if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime())) || (start && end && start > end)) return res.status(400).json({ message: "Invalid report date range." });
+			if (end && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setUTCHours(23, 59, 59, 999);
+			filter.createdAt = { ...(start ? { $gte: start } : {}), ...(end ? { $lte: end } : {}) };
 		}
 
-		if (campus) filter.campus = campus;
-		if (status) filter.status = status;
+		Object.assign(filter, campusFilter(req));
+		if (status) {
+			filter.status = normalizeStatus(status);
+			if (!REQUEST_STATUSES.includes(filter.status)) return res.status(400).json({ message: "Invalid status." });
+		}
 
 		const requests = await Request.find(filter)
 			.populate("student", "name email campus")
@@ -86,26 +92,27 @@ async function getRequestReport(req, res) {
 			},
 			filters: {
 				campus: campus || "All",
-				status: status || "All",
+				status: filter.status || "All",
 			},
 			summary: {
 				totalRequests: requests.length,
-				pending: requests.filter(r => r.status === "Pending").length,
-				approved: requests.filter(r => r.status === "Approved").length,
-				rejected: requests.filter(r => r.status === "Rejected").length,
-				readyForClaim: requests.filter(r => r.status === "Ready For Claim").length,
-				claimed: requests.filter(r => r.status === "Claimed").length,
-				released: requests.filter(r => r.status === "Released" || r.status === "Completed").length,
-				completed: requests.filter(r => r.status === "Completed").length,
+				cancelled: requests.filter(r => r.status === "cancelled").length,
+				pending: requests.filter(r => r.status === "pending").length,
+				approved: requests.filter(r => r.status === "approved").length,
+				rejected: requests.filter(r => r.status === "rejected").length,
+				readyForClaim: requests.filter(r => r.status === "ready_for_claim").length,
+				claimed: requests.filter(r => r.status === "claimed").length,
+				released: requests.filter(r => r.status === "released").length,
+				completed: requests.filter(r => r.status === "completed").length,
 			},
 			approvalRate: requests.length > 0 
-				? Math.round((requests.filter(r => r.status === "Approved").length / requests.length) * 100) 
+				? Math.round((requests.filter(r => ["approved", "ready_for_claim", "claimed", "released", "completed"].includes(r.status)).length / requests.length) * 100)
 				: 0,
 			rejectionRate: requests.length > 0
-				? Math.round((requests.filter(r => r.status === "Rejected").length / requests.length) * 100)
+				? Math.round((requests.filter(r => r.status === "rejected").length / requests.length) * 100)
 				: 0,
 			completionRate: requests.length > 0
-				? Math.round((requests.filter(r => r.status === "Completed").length / requests.length) * 100)
+				? Math.round((requests.filter(r => r.status === "completed").length / requests.length) * 100)
 				: 0,
 			details: requests.map(req => ({
 				requestId: req._id,
@@ -123,7 +130,7 @@ async function getRequestReport(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate request report.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate request report.", error: error.message });
 	}
 }
 
@@ -133,17 +140,19 @@ async function getRequestReport(req, res) {
 
 async function getApprovalAnalytics(req, res) {
 	try {
-		const { startDate, endDate, campus } = req.query;
-		const filter = {};
+		const { startDate, endDate } = req.query;
+		const { campus } = campusFilter(req);
+		const filter = campusFilter(req);
 
-		if (startDate && endDate) {
-			filter.createdAt = {
-				$gte: new Date(startDate),
-				$lte: new Date(endDate),
-			};
+		if (startDate || endDate) {
+			const start = startDate ? new Date(startDate) : null;
+			const end = endDate ? new Date(endDate) : null;
+			if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime())) || (start && end && start > end)) return res.status(400).json({ message: "Invalid report date range." });
+			if (end && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setUTCHours(23, 59, 59, 999);
+			filter.createdAt = { ...(start ? { $gte: start } : {}), ...(end ? { $lte: end } : {}) };
 		}
 
-		if (campus) filter.campus = campus;
+		Object.assign(filter, campusFilter(req));
 
 		const requests = await Request.find(filter)
 			.populate("approvedBy", "name email")
@@ -165,7 +174,7 @@ async function getApprovalAnalytics(req, res) {
 			}
 		});
 
-		const approvedStatuses = ["Approved", "Ready For Claim", "Claimed", "Released", "Completed"];
+		const approvedStatuses = ["approved", "ready_for_claim", "claimed", "released", "completed"];
 		const totalApproved = requests.filter(r => approvedStatuses.includes(r.status)).length;
 
 		const report = {
@@ -177,7 +186,7 @@ async function getApprovalAnalytics(req, res) {
 			campus: campus || "All",
 			summary: {
 				totalApproved,
-				totalRejected: requests.filter(r => r.status === "Rejected").length,
+				totalRejected: requests.filter(r => r.status === "rejected").length,
 				approvalRate: requests.length > 0
 					? Math.round((totalApproved / requests.length) * 100)
 					: 0,
@@ -189,14 +198,14 @@ async function getApprovalAnalytics(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate approval analytics.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate approval analytics.", error: error.message });
 	}
 }
 
 function getTopRejectionReasons(requests) {
 	const reasons = {};
 	requests
-		.filter(r => r.status === "Rejected" && r.rejectionReason)
+		.filter(r => r.status === "rejected" && r.rejectionReason)
 		.forEach(r => {
 			const reason = r.rejectionReason;
 			reasons[reason] = (reasons[reason] || 0) + 1;
@@ -214,19 +223,22 @@ function getTopRejectionReasons(requests) {
 
 async function getDistributionReport(req, res) {
 	try {
-		const { startDate, endDate, campus } = req.query;
-		const filter = {};
+		const { startDate, endDate } = req.query;
+		const { campus } = campusFilter(req);
+		const filter = campusFilter(req);
 
-		if (startDate && endDate) {
-			filter.createdAt = {
-				$gte: new Date(startDate),
-				$lte: new Date(endDate),
-			};
+		if (startDate || endDate) {
+			const start = startDate ? new Date(startDate) : null;
+			const end = endDate ? new Date(endDate) : null;
+			if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime())) || (start && end && start > end)) return res.status(400).json({ message: "Invalid report date range." });
+			if (end && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setUTCHours(23, 59, 59, 999);
+			filter.createdAt = { ...(start ? { $gte: start } : {}), ...(end ? { $lte: end } : {}) };
 		}
 
-		if (campus) filter.campus = campus;
+		Object.assign(filter, campusFilter(req));
 
 		const distributions = await Distribution.find(filter)
+			.populate("request", "createdAt")
 			.populate("resource", "name category")
 			.populate("student", "name email campus")
 			.populate("releasedBy", "name")
@@ -264,18 +276,18 @@ async function getDistributionReport(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate distribution report.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate distribution report.", error: error.message });
 	}
 }
 
 function calculateAverageTimeToDistribute(distributions) {
 	if (distributions.length === 0) return 0;
 	const totalTime = distributions.reduce((sum, d) => {
-		const time = new Date(d.releasedAt) - new Date(d.createdAt);
+		const time = Math.max(0, new Date(d.releasedAt) - new Date(d.request?.createdAt || d.createdAt));
 		return sum + time;
 	}, 0);
 	const avgMs = totalTime / distributions.length;
-	const avgDays = Math.round(avgMs / (1000 * 60 * 60 * 24));
+	const avgDays = Math.round(avgMs / (1000 * 60 * 60 * 24) * 100) / 100;
 	return avgDays;
 }
 
@@ -308,8 +320,8 @@ function getDistributionsByStaff(distributions) {
 
 async function getResourceDemandReport(req, res) {
 	try {
-		const { campus } = req.query;
-		const filter = campus ? { campus } : {};
+		const { campus } = campusFilter(req);
+		const filter = campusFilter(req);
 
 		const requests = await Request.find(filter)
 			.populate("resourceRef", "name category")
@@ -328,19 +340,22 @@ async function getResourceDemandReport(req, res) {
 					approved: 0,
 					rejected: 0,
 					pending: 0,
+					cancelled: 0,
 					completed: 0,
 				};
 			}
 
 			demandMap[key].total += req.quantity;
 
-			if (["Approved", "Ready For Claim", "Claimed", "Released"].includes(req.status)) {
+			if (["approved", "ready_for_claim", "claimed", "released"].includes(req.status)) {
 				demandMap[key].approved += req.quantity;
-			} else if (req.status === "Rejected") {
+			} else if (req.status === "rejected") {
 				demandMap[key].rejected += req.quantity;
-			} else if (req.status === "Pending") {
+			} else if (req.status === "pending") {
 				demandMap[key].pending += req.quantity;
-			} else if (req.status === "Completed" || req.status === "Claimed") {
+			} else if (req.status === "cancelled") {
+				demandMap[key].cancelled += req.quantity;
+			} else if (req.status === "completed") {
 				demandMap[key].completed += req.quantity;
 			}
 		});
@@ -360,7 +375,7 @@ async function getResourceDemandReport(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate resource demand report.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate resource demand report.", error: error.message });
 	}
 }
 
@@ -372,17 +387,23 @@ async function getAuditLogReport(req, res) {
 	try {
 		const { startDate, endDate, action, entity, actor } = req.query;
 		const filter = {};
+		const scope = campusFilter(req);
+		if (scope.campus) {
+			const actors = await require("../models/User").find(scope).select("_id");
+			filter.actor = { $in: actors.map(user => user._id) };
+		}
 
-		if (startDate && endDate) {
-			filter.createdAt = {
-				$gte: new Date(startDate),
-				$lte: new Date(endDate),
-			};
+		if (startDate || endDate) {
+			const start = startDate ? new Date(startDate) : null;
+			const end = endDate ? new Date(endDate) : null;
+			if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime())) || (start && end && start > end)) return res.status(400).json({ message: "Invalid report date range." });
+			if (end && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setUTCHours(23, 59, 59, 999);
+			filter.createdAt = { ...(start ? { $gte: start } : {}), ...(end ? { $lte: end } : {}) };
 		}
 
 		if (action) filter.action = action;
 		if (entity) filter.entity = entity;
-		if (actor) filter.actor = actor;
+		if (actor) filter.$and = [{ actor }];
 
 		const logs = await AuditLog.find(filter)
 			.populate("actor", "name email role")
@@ -400,7 +421,7 @@ async function getAuditLogReport(req, res) {
 			},
 			summary: {
 				totalLogs: logs.length,
-				uniqueActors: new Set(logs.map(l => l.actor?._id)).size,
+				uniqueActors: new Set(logs.map(l => l.actor?._id?.toString()).filter(Boolean)).size,
 				uniqueActions: new Set(logs.map(l => l.action)).size,
 			},
 			logs: logs.map(log => ({
@@ -417,7 +438,7 @@ async function getAuditLogReport(req, res) {
 
 		res.json(report);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate audit log report.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate audit log report.", error: error.message });
 	}
 }
 
@@ -427,8 +448,8 @@ async function getAuditLogReport(req, res) {
 
 async function getDashboardOverview(req, res) {
 	try {
-		const { campus } = req.query;
-		const filter = campus ? { campus } : {};
+		const { campus } = campusFilter(req);
+		const filter = campusFilter(req);
 		const User = require("../models/User");
 
 		const [
@@ -444,14 +465,17 @@ async function getDashboardOverview(req, res) {
 			activeUsers,
 		] = await Promise.all([
 			Request.countDocuments(filter),
-			Request.countDocuments({ ...filter, status: "Pending" }),
-			Request.countDocuments({ ...filter, status: { $in: ["Approved", "Ready For Claim", "Claimed", "Released", "Completed"] } }),
-			Request.countDocuments({ ...filter, status: "Rejected" }),
-			Request.countDocuments({ ...filter, status: "Completed" }),
+			Request.countDocuments({ ...filter, status: "pending" }),
+			Request.countDocuments({ ...filter, status: { $in: ["approved", "ready_for_claim", "claimed", "released", "completed"] } }),
+			Request.countDocuments({ ...filter, status: "rejected" }),
+			Request.countDocuments({ ...filter, status: "completed" }),
 			Allocation.countDocuments(campus ? { campus } : {}),
 			Distribution.countDocuments(campus ? { campus } : {}),
 			ClaimSchedule.countDocuments(campus ? { campus, status: { $in: ["Scheduled", "Confirmed"] } } : { status: { $in: ["Scheduled", "Confirmed"] } }),
 			Inventory.aggregate([
+				{ $lookup: { from: "resources", localField: "resource", foreignField: "_id", as: "resource" } },
+				{ $unwind: "$resource" },
+				...(campus ? [{ $match: { "resource.campus": campus } }] : []),
 				{
 					$group: {
 						_id: null,
@@ -461,7 +485,7 @@ async function getDashboardOverview(req, res) {
 					},
 				},
 			]),
-			User.countDocuments(campus ? { campus, status: { $ne: "suspended" } } : { status: { $ne: "suspended" } }),
+			User.countDocuments(campus ? { campus, status: "active" } : { status: "active" }),
 		]);
 
 		const inventorySummary = inventory[0] || {
@@ -470,10 +494,13 @@ async function getDashboardOverview(req, res) {
 			totalIssued: 0,
 		};
 
+		const counts = await Request.aggregate([{ $match: filter }, { $group: { _id: "$status", count: { $sum: 1 } } }]);
+		const statusCounts = Object.fromEntries(REQUEST_STATUSES.map(status => [status, counts.find(row => row._id === status)?.count || 0]));
 		const overview = {
 			generatedAt: new Date(),
 			campus: campus || "All Campuses",
 			pendingRequests: pending,
+			eligibleStudents: (await Request.distinct("student", { ...filter, eligibilityStatus: "eligible", status: "pending" })).length,
 			availableResources: inventorySummary.totalAvailable,
 			activeUsers,
 			scheduledClaims,
@@ -484,6 +511,7 @@ async function getDashboardOverview(req, res) {
 				approved,
 				rejected,
 				completed,
+				...statusCounts,
 				completionRate: totalRequests > 0 ? Math.round((completed / totalRequests) * 100) : 0,
 				approvalRate: totalRequests > 0 ? Math.round((approved / totalRequests) * 100) : 0,
 			},
@@ -502,7 +530,7 @@ async function getDashboardOverview(req, res) {
 
 		res.json(overview);
 	} catch (error) {
-		res.status(500).json({ message: "Unable to generate dashboard overview.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to generate dashboard overview.", error: error.message });
 	}
 }
 

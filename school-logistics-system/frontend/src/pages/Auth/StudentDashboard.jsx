@@ -23,8 +23,8 @@ function StudentDashboard() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [draftProfile, setDraftProfile] = useState(() => ({
-    name: user?.name || "Ramos, Markbrexsphere O.",
-    email: user?.email || "maol.ramos.up@phinmaed.com",
+    name: user?.name || "User",
+    email: user?.email || "",
     grade: user?.grade || "3rd Year",
     strand: user?.strand || "Batchelor of Science in Information Technology",
     avatar: user?.avatar || "",
@@ -48,8 +48,8 @@ function StudentDashboard() {
   };
   const upcomingClaim = schedules.find((schedule) => ["Scheduled", "Confirmed"].includes(schedule.status));
   const claimDate = upcomingClaim?.pickupDate ? new Date(upcomingClaim.pickupDate) : null;
-  const firstName = user?.name?.split(" ")[0] || "Markbrexsphere";
-  const profileName = user?.name || "Ramos, Markbrexsphere O.";
+  const firstName = user?.name?.split(" ")[0] || "Student";
+  const profileName = user?.name || "User";
   const profileInitials = profileName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   const updateDraft = (field, value) => {
@@ -79,8 +79,8 @@ function StudentDashboard() {
 
   const openProfile = () => {
     setDraftProfile({
-      name: user?.name || "Ramos, Markbrexsphere O.",
-      email: user?.email || "maol.ramos.up@phinmaed.com",
+      name: user?.name || "User",
+      email: user?.email || "",
       grade: user?.grade || "3rd Year",
       strand: user?.strand || "Batchelor of Science in Information Technology",
       avatar: user?.avatar || "",
@@ -103,11 +103,11 @@ function StudentDashboard() {
   };
 
   return (
-    <div className={`dashboard-shell ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={`dashboard-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}>
 
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="dashboard-content flex flex-1 flex-col">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
 
         <main className={`student-dashboard flex-1 p-6 lg:p-8 ${isDarkMode ? 'dark-mode' : ''}`}>
@@ -127,6 +127,8 @@ function StudentDashboard() {
             </div>
           </div>
 
+          {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
+
           <div className="dashboard-stats">
             <StatCard label="Total Requests" value={counts.total} tone="navy" />
             <StatCard label="Pending Review" value={counts.pending} tone="gold" />
@@ -138,7 +140,7 @@ function StudentDashboard() {
             <section className="dashboard-panel requests-panel">
               <div className="panel-heading"><div><span className="dashboard-kicker">Activity</span><h2>Recent Requests</h2><p>{counts.total} requests in your account</p></div><Link to="/requests">View all <span aria-hidden="true">→</span></Link></div>
               <div className="request-list">
-                {requests.length ? requests.map((request, index) => (
+                {requests.length ? requests.slice(0, 5).map((request, index) => (
                   <div className="request-row" key={request.databaseId || `${request.resourceId || request.resource}-${index}`}>
                     <span className="request-symbol">{(request.resourceName || request.resource || "R").charAt(0).toUpperCase()}</span>
                     <div>
@@ -151,7 +153,7 @@ function StudentDashboard() {
               </div>
             </section>
 
-            {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
+
             <section className="dashboard-panel claim-panel">
               <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>{upcomingClaim ? "One collection is scheduled" : "No collection scheduled"}</p></div>{claimDate && <span className="claim-day"><DashboardIcon name="calendar" /><b>{claimDate.getDate()}</b><span>{claimDate.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</span></span>}</div>
               {upcomingClaim ? <>

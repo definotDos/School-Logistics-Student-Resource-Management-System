@@ -15,6 +15,7 @@ const publicUser = (user) => ({
 	strand: user.strand,
 	avatar: user.avatar,
 	campus: user.campus,
+	activeCampus: user.role === "admin" ? user.activeCampus : user.campus,
 });
 
 const createToken = (user) => jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || "development_secret", { expiresIn: "7d" });
@@ -26,11 +27,13 @@ async function signup(req, res) {
 		const { name, email, password, campus, role = "student" } = req.body;
 		const studentId = req.body.studentId || req.body.matricule || req.body.student_id;
 		if (!name || !email || !password || !campus) return res.status(400).json({ message: "Name, email, password, and campus are required." });
-		if (!["student", "admin", "staff"].includes(role)) return res.status(400).json({ message: "Choose a valid account type." });
+		if (!["student", "staff", "admin"].includes(role)) return res.status(400).json({ message: "Choose a valid account type." });
 		const normalizedName = name.trim();
 		const normalizedEmail = email.toLowerCase().trim();
 		const normalizedStudentId = studentId ? String(studentId).trim() : "";
 		const normalizedCampus = campus.trim();
+		if (!await require("../models/Campus").exists({ name: normalizedCampus, status: "active" })) return res.status(400).json({ message: "Choose an active campus." });
+		if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || typeof password !== "string" || password.length < 8) return res.status(400).json({ message: "Enter a valid email and a password of at least 8 characters." });
 		if (!normalizedName || !normalizedCampus) return res.status(400).json({ message: "Name and campus cannot be empty." });
 		if (role === "student" && !normalizedStudentId) return res.status(400).json({ message: "Student ID is required for student accounts." });
 		if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });

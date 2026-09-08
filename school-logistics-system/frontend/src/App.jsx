@@ -9,8 +9,6 @@ import ClaimSchedule from "./pages/Auth/ClaimSchedule";
 import DistributionHistory from "./pages/Auth/DistributionHistory";
 import AdminDashboard from "./pages/Auth/AdminDashboard";
 import StaffServicesDashboard from "./pages/Auth/StaffServicesDashboard";
-import Inventory from "./pages/Auth/Inventory";
-import Reports from "./pages/Auth/Reports";
 import { useAuth } from "./context/useAuth";
 
 function ProtectedRoute({ children, role }) {
@@ -27,8 +25,9 @@ function ProtectedRoute({ children, role }) {
 }
 
 function App() {
+  const { user } = useAuth();
   return (
-    <Routes>
+    <Routes key={`${user?.id || "guest"}:${user?.activeCampus || "all"}`}>
 
       {/* Landing page */}
       <Route path="/" element={<LandingPage />} />
@@ -50,8 +49,8 @@ function App() {
       {/* Administrator */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/:section" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/inventory" element={<ProtectedRoute role="admin"><Inventory /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute role="admin"><Reports /></ProtectedRoute>} />
+      <Route path="/inventory" element={<ProtectedRoute role="admin"><Navigate to="/admin/inventory" replace /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute role="admin"><Navigate to="/admin/reports" replace /></ProtectedRoute>} />
 
       {/* Staff & Services */}
       <Route path="/staff" element={<ProtectedRoute role="staff"><StaffServicesDashboard /></ProtectedRoute>} />

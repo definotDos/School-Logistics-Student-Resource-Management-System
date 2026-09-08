@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { REQUEST_STATUSES, normalizeStatus } = require("../utils/status");
 
 const requestSchema = new mongoose.Schema(
 	{
@@ -13,7 +14,8 @@ const requestSchema = new mongoose.Schema(
 		// Workflow Status
 		status: { 
 			type: String, 
-			enum: ["pending", "approved", "rejected", "cancelled", "ready_for_claim", "claimed", "released", "completed"],
+			enum: REQUEST_STATUSES,
+			set: normalizeStatus,
 			default: "pending" 
 		},
 		
@@ -43,7 +45,7 @@ const requestSchema = new mongoose.Schema(
 		notes: { type: String, trim: true, default: "" },
 		priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
 	},
-	{ timestamps: true }
+	{ timestamps: true, optimisticConcurrency: true }
 );
 
 module.exports = mongoose.model("Request", requestSchema);

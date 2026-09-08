@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 
-// Use the main application database for local testing
-process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/school_logistics";
+// Database suites require an explicitly configured disposable database.
+if (process.env.MONGODB_URI && !new URL(process.env.MONGODB_URI).pathname.endsWith("_test")) {
+  throw new Error("Integration tests require a disposable database ending in _test.");
+}
 
 // Suppress console logs during tests
 global.console = {

@@ -28,7 +28,7 @@ export function AuthPage() {
     setAuthError('')
     try {
       const user = await login(email, password)
-      navigate(user.role === 'admin' ? '/admin' : '/student')
+      navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student')
     } catch (error) {
       setAuthError(error.message)
     }

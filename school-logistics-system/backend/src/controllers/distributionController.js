@@ -1,3 +1,4 @@
+const { campusFilter, canAccessCampus } = require("../middleware/campusScope");
 const Allocation = require("../models/Allocation");
 const ClaimSchedule = require("../models/ClaimSchedule");
 const Inventory = require("../models/Inventory");
@@ -42,6 +43,8 @@ const sendNotification = async (userId, type, title, message, relatedEntityId = 
 // ============================================
 
 async function verifyClaimIdentity(req, res) {
+	const rollback = [];
+	let committed = false;
 	try {
 		const scheduleId = req.params.id || req.body.scheduleId || req.body.id;
 		const quantityClaimed = req.body.quantityClaimed ?? req.body.quantity;
@@ -59,6 +62,7 @@ async function verifyClaimIdentity(req, res) {
 		if (!schedule) {
 			return res.status(404).json({ message: "Claim schedule not found." });
 		}
+		if (!canAccessCampus(req, schedule)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (req.user.role === "student" && schedule.student._id.toString() !== req.user._id.toString()) {
 			return res.status(403).json({ message: "You can only view your own claim schedule." });
 		}
@@ -66,6 +70,11 @@ async function verifyClaimIdentity(req, res) {
 		if (schedule.status !== "Scheduled" && schedule.status !== "Confirmed") {
 			return res.status(409).json({ message: "Only scheduled claims can be verified." });
 		}
+
+		if (!Number.isInteger(Number(quantityClaimed)) || Number(quantityClaimed) !== schedule.allocation.quantity) return res.status(400).json({ message: "Verify the full allocated quantity." });
+
+		const scheduleBefore = schedule.toObject({ depopulate: true });
+		const allocationBefore = schedule.allocation.toObject({ depopulate: true });
 
 		// Update schedule
 		const previousStatus = schedule.status;
@@ -75,12 +84,14 @@ async function verifyClaimIdentity(req, res) {
 		schedule.verificationDetails = verificationNotes;
 		schedule.quantityClaimed = quantityClaimed;
 		await schedule.save();
+		rollback.push(() => ClaimSchedule.replaceOne({ _id: schedule._id, __v: schedule.__v }, { ...scheduleBefore, __v: schedule.__v + 1 }));
 
 		// Update allocation
 		const allocation = schedule.allocation;
 		allocation.status = "Verified";
 		allocation.verifiedDate = new Date();
 		await allocation.save();
+		rollback.push(() => Allocation.replaceOne({ _id: allocation._id, __v: allocation.__v }, { ...allocationBefore, __v: allocation.__v + 1 }));
 
 		const request = await Request.findById(allocation.request);
 		if (request) {
@@ -90,9 +101,11 @@ async function verifyClaimIdentity(req, res) {
 			await request.save();
 		}
 
+		committed = true;
+
 		// Audit log
 		await createAuditLog(
-			req.user._id,
+			req.user,
 			"Claim Verified",
 			"ClaimSchedule",
 			schedule._id,
@@ -116,7 +129,8 @@ async function verifyClaimIdentity(req, res) {
 			schedule
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to verify claim.", error: error.message });
+		if (!committed) for (const undo of rollback.reverse()) await undo();
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to verify claim.", error: error.message });
 	}
 }
 
@@ -125,6 +139,8 @@ async function verifyClaimIdentity(req, res) {
 // ============================================
 
 async function releaseAllocation(req, res) {
+	const rollback = [];
+	let committed = false;
 	try {
 		const allocationId = req.params.allocationId || req.params.id || req.body.allocationId || req.body.id;
 		const quantityDelivered = req.body.quantityDelivered ?? req.body.quantity ?? null;
@@ -139,33 +155,41 @@ async function releaseAllocation(req, res) {
 		if (!allocation) {
 			return res.status(404).json({ message: "Allocation not found." });
 		}
+		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
 
 		if (allocation.status !== "Verified") {
 			return res.status(409).json({ message: "Only verified allocations can be released." });
 		}
-		if (quantityDelivered !== null && (!Number.isInteger(Number(quantityDelivered)) || Number(quantityDelivered) < 1 || Number(quantityDelivered) > allocation.quantity)) {
+		if (quantityDelivered !== null && (!Number.isInteger(Number(quantityDelivered)) || Number(quantityDelivered) < 1 || Number(quantityDelivered) !== allocation.quantity)) {
 			return res.status(400).json({ message: `Delivered quantity must be between 1 and ${allocation.quantity}.` });
 		}
 		const existingDistribution = await Distribution.findOne({ allocation: allocation._id });
 		if (existingDistribution) return res.status(409).json({ message: "This allocation has already been released." });
 
-		const inventory = await Inventory.findOneAndUpdate(
-			{ resource: allocation.resource._id, reserved: { $gte: allocation.quantity } },
-			{ $inc: { reserved: -allocation.quantity, issued: allocation.quantity } },
-			{ new: true }
-		);
-		if (!inventory) return res.status(409).json({ message: "Reserved stock is unavailable." });
-
 		const request = allocation.request;
-
-		// Get claim schedule for more info
 		const schedule = await ClaimSchedule.findOne({ allocation: allocationId });
-
-		// Update allocation
+		if (!request || !schedule || schedule.status !== "Confirmed") return res.status(409).json({ message: "Verify the claim schedule before release." });
 		const previousAllocStatus = allocation.status;
+		const allocationBefore = allocation.toObject({ depopulate: true });
+		const scheduleBefore = schedule.toObject({ depopulate: true });
+		const requestBefore = request.toObject({ depopulate: true });
 		allocation.status = "Released";
 		allocation.releasedDate = new Date();
 		await allocation.save();
+		rollback.push(() => Allocation.replaceOne({ _id: allocation._id, __v: allocation.__v }, { ...allocationBefore, __v: allocation.__v + 1 }));
+		const inventory = await Inventory.findOneAndUpdate(
+			{ resource: allocation.resource._id, reserved: { $gte: allocation.quantity } },
+			{ $inc: { reserved: -allocation.quantity, issued: allocation.quantity } },
+			{ returnDocument: "after" }
+		);
+		if (!inventory) {
+			await rollback.pop()();
+			return res.status(409).json({ message: "Reserved stock is unavailable." });
+		}
+		rollback.push(() => Inventory.updateOne({ _id: inventory._id }, { $inc: { reserved: allocation.quantity, issued: -allocation.quantity } }));
+		schedule.status = "Completed";
+		await schedule.save();
+		rollback.push(() => ClaimSchedule.replaceOne({ _id: schedule._id, __v: schedule.__v }, { ...scheduleBefore, __v: schedule.__v + 1 }));
 
 		// Update request
 		const previousReqStatus = request.status;
@@ -175,13 +199,17 @@ async function releaseAllocation(req, res) {
 		request.releasedAt = new Date();
 		request.releasedBy = req.user._id;
 		await request.save();
+		rollback.push(() => Request.replaceOne({ _id: request._id, __v: request.__v }, { ...requestBefore, __v: request.__v + 1 }));
 
+		const resourceBefore = await Resource.findById(allocation.resource._id).lean();
 		// Update resource status
-		const updatedResource = await Resource.findByIdAndUpdate(
+		await Resource.findByIdAndUpdate(
 			allocation.resource._id,
 			{ status: inventory.available > 0 ? "Available" : "Issued" },
-			{ new: true }
+			{ returnDocument: "after" }
 		);
+
+		rollback.push(() => Resource.updateOne({ _id: allocation.resource._id }, { status: resourceBefore.status }));
 
 		// Create distribution record
 		const distribution = await Distribution.create({
@@ -204,9 +232,11 @@ async function releaseAllocation(req, res) {
 			referenceId: `DIST-${Date.now()}-${Math.random().toString(36).substr(2, 9).toLowerCase()}`
 		});
 
+		committed = true;
+
 		// Audit log
 		await createAuditLog(
-			req.user._id,
+			req.user,
 			"Allocation Released",
 			"Allocation",
 			allocation._id,
@@ -217,7 +247,7 @@ async function releaseAllocation(req, res) {
 
 		// Audit log for request completion
 		await createAuditLog(
-			req.user._id,
+			req.user,
 			"Request Completed",
 			"Request",
 			request._id,
@@ -233,7 +263,7 @@ async function releaseAllocation(req, res) {
 			"Resource Released! 🎉",
 			`Your request for ${allocation.resource.name} has been completed and the resource has been delivered.`,
 			distribution._id,
-			"/student/history"
+			"/distribution-history"
 		);
 
 		res.status(201).json({ 
@@ -243,7 +273,8 @@ async function releaseAllocation(req, res) {
 			distributionRecord: distribution
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to release allocation.", error: error.message });
+		if (!committed) for (const undo of rollback.reverse()) await undo();
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to release allocation.", error: error.message });
 	}
 }
 
@@ -254,6 +285,7 @@ async function releaseAllocation(req, res) {
 async function getMySchedules(req, res) {
 	try {
 		const schedules = await ClaimSchedule.find({ student: req.user._id })
+			.populate("resource", "name category")
 			.populate({
 				path: "allocation",
 				populate: {
@@ -272,17 +304,17 @@ async function getMySchedules(req, res) {
 			}))
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load claim schedules.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load claim schedules.", error: error.message });
 	}
 }
 
 async function getAllSchedules(req, res) {
 	try {
 		const { status, campus, studentId } = req.query;
-		const filter = {};
+		const filter = campusFilter(req);
 
 		if (status) filter.status = status;
-		if (campus) filter.campus = campus;
+		Object.assign(filter, campusFilter(req));
 		if (studentId) filter.student = studentId;
 		if (req.user.role === "staff") {
 			const authorizedAllocations = await Allocation.find({
@@ -306,20 +338,20 @@ async function getAllSchedules(req, res) {
 			schedules 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load schedules.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load schedules.", error: error.message });
 	}
 }
 
 async function getDistributions(req, res) {
 	try {
-		const filter = {};
+		const filter = campusFilter(req);
 		if (req.user.role === "student") {
 			filter.student = req.user._id;
 		}
 
 		const { status, campus } = req.query;
 		if (status) filter.status = status;
-		if (campus) filter.campus = campus;
+		Object.assign(filter, campusFilter(req));
 
 		const distributions = await Distribution.find(filter)
 			.populate("student", "name email")
@@ -332,7 +364,7 @@ async function getDistributions(req, res) {
 			distributions 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load distributions.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load distributions.", error: error.message });
 	}
 }
 
@@ -347,13 +379,14 @@ async function getDistributionById(req, res) {
 		if (!distribution) {
 			return res.status(404).json({ message: "Distribution not found." });
 		}
+		if (!canAccessCampus(req, distribution)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (req.user.role === "student" && distribution.student._id.toString() !== req.user._id.toString()) {
 			return res.status(403).json({ message: "You can only view your own distribution history." });
 		}
 
 		res.json({ distribution });
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load distribution.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load distribution.", error: error.message });
 	}
 }
 
@@ -366,7 +399,7 @@ async function getDistributionsByStatus(req, res) {
 			return res.status(400).json({ message: "Invalid status." });
 		}
 
-		const distributions = await Distribution.find({ status })
+		const distributions = await Distribution.find({ ...campusFilter(req), status })
 			.populate("student", "name email")
 			.populate("resource", "name")
 			.sort({ createdAt: -1 });
@@ -377,7 +410,7 @@ async function getDistributionsByStatus(req, res) {
 			distributions 
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load distributions.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load distributions.", error: error.message });
 	}
 }
 
@@ -387,16 +420,18 @@ async function getDistributionsByStatus(req, res) {
 
 async function getDistributionProgress(req, res) {
 	try {
-		const { campusFilter } = req.query;
-		const filter = campusFilter ? { campus: campusFilter } : {};
+		
+		const filter = campusFilter(req);
 
+		const claimed = await Request.countDocuments({ ...filter, status: "claimed" });
+		const cancelled = await Request.countDocuments({ ...filter, status: "cancelled" });
 		const totalRequests = await Request.countDocuments(filter);
-		const pending = await Request.countDocuments({ ...filter, status: "Pending" });
-		const approved = await Request.countDocuments({ ...filter, status: "Approved" });
-		const readyForClaim = await Request.countDocuments({ ...filter, status: "Ready For Claim" });
-		const released = await Request.countDocuments({ ...filter, status: "Released" });
-		const completed = await Request.countDocuments({ ...filter, status: "Completed" });
-		const rejected = await Request.countDocuments({ ...filter, status: "Rejected" });
+		const pending = await Request.countDocuments({ ...filter, status: "pending" });
+		const approved = await Request.countDocuments({ ...filter, status: "approved" });
+		const readyForClaim = await Request.countDocuments({ ...filter, status: "ready_for_claim" });
+		const released = await Request.countDocuments({ ...filter, status: "released" });
+		const completed = await Request.countDocuments({ ...filter, status: "completed" });
+		const rejected = await Request.countDocuments({ ...filter, status: "rejected" });
 
 		res.json({
 			summary: {
@@ -404,6 +439,8 @@ async function getDistributionProgress(req, res) {
 				pending,
 				approved,
 				readyForClaim,
+				claimed,
+				cancelled,
 				released,
 				completed,
 				rejected,
@@ -411,7 +448,7 @@ async function getDistributionProgress(req, res) {
 			}
 		});
 	} catch (error) {
-		res.status(500).json({ message: "Unable to load distribution progress.", error: error.message });
+		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to load distribution progress.", error: error.message });
 	}
 }
 

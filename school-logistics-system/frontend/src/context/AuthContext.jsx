@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { authAPI, userAPI } from "../services/api";
 
 const AuthContext = createContext(null);
@@ -13,6 +13,16 @@ function readStoredUser() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser);
+
+  useEffect(() => {
+    if (!localStorage.getItem("srmsToken")) return;
+    userAPI.getMe().then(result => {
+      setUser(result.user);
+      localStorage.setItem("srmsUser", JSON.stringify(result.user));
+    }).catch(error => {
+      if ([401, 403].includes(error.status)) { setUser(null); localStorage.removeItem("srmsUser"); localStorage.removeItem("srmsToken"); }
+    });
+  }, []);
 
   const login = async (email, password) => {
     const result = await authAPI.login({ email, password });

@@ -29,7 +29,7 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
   const submitForgotPassword = event => {
     event.preventDefault()
     if (!/^\S+@\S+\.\S+$/.test(forgotEmail.trim())) return setForgotMessage('Enter a valid email address.')
-    setForgotMessage('Your request was recorded. Please contact an administrator to complete the password reset.')
+    setForgotMessage('Contact your campus administrator to reset your password.')
   }
 
   return (
