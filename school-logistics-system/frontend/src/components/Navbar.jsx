@@ -8,6 +8,8 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [notificationError, setNotificationError] = useState("");
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searchError, setSearchError] = useState("");
@@ -19,8 +21,9 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
   useEffect(() => {
     if (!user) return;
     const load = () => notificationAPI.getAll()
-      .then((result) => setNotifications(result.notifications || []))
-      .catch((error) => setSearchError(error.message));
+      .then((result) => { setNotifications(result.notifications); setNotificationError(""); })
+      .catch((error) => setNotificationError(error.message))
+      .finally(() => setNotificationsLoading(false));
     load();
     const timer = window.setInterval(load, 30000);
     window.addEventListener("notifications-updated", load);
@@ -30,18 +33,18 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
   useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      if (query.trim().length < 2) { setResults([]); return; }
+      if (query.trim().length < 2) { setResults([]); setSearching(false); setSearchError(""); return; }
       setSearching(true); setSearchError("");
       searchAPI.search(query, controller.signal).then(r => { if (!controller.signal.aborted) setResults(r.results); }).catch(e => { if (!controller.signal.aborted) setSearchError(e.message); }).finally(() => { if (!controller.signal.aborted) setSearching(false); });
     }, 250);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [query]);
+  }, [query, user?.activeCampus, user?.campus]);
 
   const markRead = async (notification) => {
     try {
       await notificationAPI.markRead(notification._id);
       setNotifications(current => current.map(n => n._id === notification._id ? { ...n, read: true } : n));
-    } catch (error) { setSearchError(error.message); }
+    } catch (error) { setNotificationError(error.message); }
   };
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
@@ -58,7 +61,7 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
             {isDarkMode ? 'Light mode' : 'Dark mode'}
           </button>
         )}
-        <div className="notification-wrap"><button className="header-icon" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((visible) => !visible)}><DashboardIcon name="notification" />{unreadCount > 0 && <i>{unreadCount > 9 ? "9+" : unreadCount}</i>}</button>{showNotifications && <div className="notification-menu"><strong>Notifications</strong>{notifications.length ? notifications.slice(0, 5).map((notification) => <div key={notification._id}><p>{notification.title}: {notification.message}</p>{!notification.read && <button onClick={() => markRead(notification)}>Mark read</button>}</div>) : <p>No notifications yet.</p>}<Link to={user?.role === "admin" ? "/admin/distribution" : user?.role === "staff" ? "/staff/manage_schedules" : "/claim-schedule"} onClick={() => setShowNotifications(false)}>View schedule <span aria-hidden="true">→</span></Link></div>}</div>
+        <div className="notification-wrap"><button className="header-icon" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((visible) => !visible)}><DashboardIcon name="notification" />{unreadCount > 0 && <i>{unreadCount > 9 ? "9+" : unreadCount}</i>}</button>{showNotifications && <div className="notification-menu"><strong>Notifications</strong>{notificationError ? <p role="alert">{notificationError}</p> : notificationsLoading ? <p role="status">Loading notifications...</p> : notifications.length ? notifications.slice(0, 5).map((notification) => <div key={notification._id}><p>{notification.title}: {notification.message}</p>{!notification.read && <button onClick={() => markRead(notification)}>Mark read</button>}</div>) : <p>No notifications yet.</p>}<Link to={user?.role === "admin" ? "/admin/distribution" : user?.role === "staff" ? "/staff/manage_schedules" : "/claim-schedule"} onClick={() => setShowNotifications(false)}>View schedule <span aria-hidden="true">→</span></Link></div>}</div>
         <div className="header-profile">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{user?.role || "Student"}</small></span></div>
       </div>
     </header>

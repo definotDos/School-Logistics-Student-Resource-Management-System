@@ -23,7 +23,7 @@ async function getAllUsers(req, res) {
 async function updateUserStatus(req, res) {
 	try {
 		if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: "You cannot suspend your own administrator account." });
-		const status = normalizeStatus(req.body.status);
+		const status = normalizeStatus(req.body?.status);
 		if (!USER_STATUSES.includes(status)) return res.status(400).json({ message: "Invalid account status." });
 		const target = await User.findById(req.params.id);
 		if (target && !require("../middleware/campusScope").canAccessCampus(req, target)) return res.status(403).json({ message: "User belongs to another campus." });
@@ -59,6 +59,7 @@ async function updateMe(req, res) {
 		const allowedFields = ["name", "email", "grade", "strand", "avatar"];
 		if (req.body.activeCampus !== undefined) {
 			if (req.user.role !== "admin") return res.status(403).json({ message: "Your account is locked to its assigned campus." });
+			if (typeof req.body.activeCampus !== "string") return res.status(400).json({ message: "Active campus must be a campus name or an empty string for all campuses." });
 			if (req.body.activeCampus && !await require("../models/Campus").exists({ name: req.body.activeCampus })) return res.status(400).json({ message: "Campus not found." });
 			allowedFields.push("activeCampus");
 		}

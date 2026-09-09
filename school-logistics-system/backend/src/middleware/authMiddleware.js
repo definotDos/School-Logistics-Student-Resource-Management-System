@@ -11,8 +11,11 @@ async function protect(req, res, next) {
 		if (String(req.user.status).toLowerCase() === "suspended") return res.status(403).json({ message: "This account has been suspended. Contact an administrator." });
 		if (req.user.emailVerified === false) return res.status(403).json({ message: "Please verify your email." });
 		next();
-	} catch {
-		res.status(401).json({ message: "Invalid or expired authentication token." });
+	} catch (error) {
+		if (["JsonWebTokenError", "TokenExpiredError", "NotBeforeError", "CastError"].includes(error.name)) {
+			return res.status(401).json({ message: "Invalid or expired authentication token." });
+		}
+		res.status(503).json({ message: "Unable to verify your session. Please try again shortly." });
 	}
 }
 

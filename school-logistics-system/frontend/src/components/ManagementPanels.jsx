@@ -57,8 +57,15 @@ export function CampusPanel() {
   const [form, setForm] = useState({ name: "", code: "", address: "", contact: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const load = () => campusAPI.getAll().then(r => setCampuses(r.campuses)).catch(e => setError(e.message));
-  useEffect(() => { load(); }, []);
+  const [loading, setLoading] = useState(true);
+  const load = () => campusAPI.getAll().then(r => { setCampuses(r.campuses); setError(""); });
+  useEffect(() => {
+    let cancelled = false;
+    campusAPI.getAll().then(r => { if (!cancelled) setCampuses(r.campuses); })
+      .catch(e => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
   const save = async (event) => {
     event.preventDefault(); setBusy(true); setError("");
     try {
@@ -69,7 +76,8 @@ export function CampusPanel() {
   };
   const remove = async (campus) => {
     if (!window.confirm(`Delete ${campus.name}? Campuses with linked records cannot be deleted.`)) return;
-    try { await campusAPI.delete(campus._id); await load(); window.dispatchEvent(new Event("campuses-updated")); } catch (e) { setError(e.message); }
+    setBusy(true); setError("");
+    try { await campusAPI.delete(campus._id); await load(); window.dispatchEvent(new Event("campuses-updated")); } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   return <section className="admin-panel record-panel"><h2>Campuses</h2>
     <form className="resource-form" onSubmit={save}>{["name", "code", "address", "contact"].map(key => <label key={key}>{key}<input required={key === "name"} disabled={key === "name" && !!form._id} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
@@ -78,7 +86,7 @@ export function CampusPanel() {
       {form._id && <button type="button" onClick={() => setForm({ name: "", code: "", address: "", contact: "" })}>Cancel edit</button>}
     </form>{error && <p role="alert" className="auth-error">{error}</p>}
     {campuses.map(c => <div className="record-row" key={c._id}><div className="record-copy"><strong>{c.name}</strong><small>{c.address} · {c.contact}</small></div><span>{c.status}</span><button onClick={() => setForm(c)}>Edit</button><button onClick={() => remove(c)}>Delete</button></div>)}
-    {!campuses.length && <p>No campuses have been registered.</p>}
+    {loading ? <p role="status">Loading campuses...</p> : !error && !campuses.length && <p>No campuses have been registered.</p>}
   </section>;
 }
 
@@ -89,9 +97,15 @@ export function NotificationsPanel() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const load = () => notificationAPI.getManaged().then(r => setRecords(r.notifications));
   useEffect(() => {
-    Promise.all([notificationAPI.getManaged(), userAPI.getRecipients()]).then(([n, u]) => { setRecords(n.notifications); setUsers(u.users.filter(user => user.status === "active")); }).catch(e => setError(e.message));
+    let cancelled = false;
+    Promise.all([notificationAPI.getManaged(), userAPI.getRecipients()])
+      .then(([n, u]) => { if (!cancelled) { setRecords(n.notifications); setUsers(u.users.filter(user => user.status === "active")); } })
+      .catch(e => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
   const send = async event => {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
@@ -106,7 +120,10 @@ export function NotificationsPanel() {
     <button className="admin-primary" disabled={busy}>{busy ? "Sending…" : "Send notification"}</button>
   </form>{error && <p role="alert" className="auth-error">{error}</p>}{notice && <p role="status">{notice}</p>}
   {records.map(n => <div className="record-row" key={n._id}><div className="record-copy"><strong>{n.title}</strong><p>{n.message}</p><small>To {n.user?.name || "Recipient"} · {new Date(n.createdAt).toLocaleString()}</small></div><span>{n.read ? "Read" : "Unread"}</span></div>)}
-  {!records.length && <p>No notifications yet. Use the form to send the first one.</p>}</section>;
+  {loading ? <p role="status">Loading notifications and recipients...</p> : !error && <>
+    {!records.length && <p>No notifications yet.</p>}
+    {!users.length && <p>No active recipients are available in this campus.</p>}
+  </>}</section>;
 }
 
 export function ReportsPanel() {
