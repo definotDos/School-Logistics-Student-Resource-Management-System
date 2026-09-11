@@ -6,6 +6,7 @@ import StatusBadge from "../../components/StatusBadge";
 import { useAuth } from "../../context/useAuth";
 import { distributionAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
+import "./StudentDashboard.css";
 
 const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year"];
 const strandOptions = ["STEM", "ABM", "HUMSS", "GAS", "TVL", "Arts and Design", "Sports", "BS Information Technology", "BS Business Administration", "Other Course"];
@@ -103,7 +104,7 @@ function StudentDashboard() {
   };
 
   return (
-    <div className={`dashboard-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={`dashboard-shell student-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}>
 
       <Sidebar />
 
@@ -142,7 +143,7 @@ function StudentDashboard() {
               <div className="request-list">
                 {requests.length ? requests.slice(0, 5).map((request, index) => (
                   <div className="request-row" key={request.databaseId || `${request.resourceId || request.resource}-${index}`}>
-                    <span className="request-symbol">{(request.resourceName || request.resource || "R").charAt(0).toUpperCase()}</span>
+                    <RequestPicture request={request} />
                     <div>
                       <strong>{request.resourceName || request.resource || "Resource"}</strong>
                       <small>Requested {new Date(request.date).toLocaleDateString()}</small>
@@ -192,6 +193,24 @@ function StudentDashboard() {
       </div>
     </div>
   );
+}
+
+function RequestPicture({ request }) {
+  const name = request.resourceName || request.resource || "Resource";
+  const label = `${name} ${request.category || ""}`.toLowerCase();
+  const picture = label.includes("shoe") || label.includes("footwear") ? "/Shoes.jpg"
+    : label.includes("mathematics") ? "/mathematics-book.svg"
+    : label.includes("uniform") ? "/school-uniform.svg"
+    : label.includes("module") || label.includes("book") ? "/learning-modules.svg"
+    : label.includes("student id") || label.includes("identification") ? "/student-id.svg" : "";
+  const src = request.resourceImage || picture;
+  const [failedSrc, setFailedSrc] = useState(null);
+
+  return <span className="request-symbol request-picture">
+    {src && failedSrc !== src
+      ? <img src={src} alt="" loading="lazy" onError={() => setFailedSrc(src)} />
+      : name.charAt(0).toUpperCase()}
+  </span>;
 }
 
 function StatCard({ label, value, tone }) {

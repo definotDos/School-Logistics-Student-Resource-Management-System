@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import DashboardIcon from "./DashboardIcon";
@@ -7,6 +7,9 @@ import { notificationAPI, searchAPI } from "../services/api";
 function Navbar({ isDarkMode = false, onToggleTheme }) {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
+  const notificationButtonRef = useRef(null);
+  const isStudent = user?.role === "student";
   const [notifications, setNotifications] = useState([]);
   const [notificationError, setNotificationError] = useState("");
   const [notificationsLoading, setNotificationsLoading] = useState(true);
@@ -49,6 +52,25 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
+  useEffect(() => {
+    if (!showNotifications || !isStudent) return;
+    const dismiss = (event) => {
+      if (!notificationRef.current?.contains(event.target)) setShowNotifications(false);
+    };
+    const escape = (event) => {
+      if (event.key === "Escape") {
+        setShowNotifications(false);
+        notificationButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [showNotifications, isStudent]);
+
   return (
     <header className="app-header">
       <div className="header-context"><div className="mobile-brand"><b>SL</b> SRMS</div><span>{workspaceLabel}</span></div>
@@ -61,7 +83,43 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
             {isDarkMode ? 'Light mode' : 'Dark mode'}
           </button>
         )}
-        <div className="notification-wrap"><button className="header-icon" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((visible) => !visible)}><DashboardIcon name="notification" />{unreadCount > 0 && <i>{unreadCount > 9 ? "9+" : unreadCount}</i>}</button>{showNotifications && <div className="notification-menu"><strong>Notifications</strong>{notificationError ? <p role="alert">{notificationError}</p> : notificationsLoading ? <p role="status">Loading notifications...</p> : notifications.length ? notifications.slice(0, 5).map((notification) => <div key={notification._id}><p>{notification.title}: {notification.message}</p>{!notification.read && <button onClick={() => markRead(notification)}>Mark read</button>}</div>) : <p>No notifications yet.</p>}<Link to={user?.role === "admin" ? "/admin/distribution" : user?.role === "staff" ? "/staff/manage_schedules" : "/claim-schedule"} onClick={() => setShowNotifications(false)}>View schedule <span aria-hidden="true">→</span></Link></div>}</div>
+        <div className="notification-wrap" ref={notificationRef}>
+          <button ref={notificationButtonRef} type="button" className="header-icon" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`} aria-expanded={showNotifications} aria-controls={showNotifications ? "header-notifications" : undefined} onClick={() => setShowNotifications((visible) => !visible)}>
+            <DashboardIcon name="notification" />
+            {unreadCount > 0 && <i aria-hidden="true">{unreadCount > 9 ? "9+" : unreadCount}</i>}
+          </button>
+          {showNotifications && (isStudent ? (
+            <section id="header-notifications" className="notification-menu student-notifications" aria-labelledby="student-notifications-title">
+              <div className="student-notifications-heading">
+                <div><h2 id="student-notifications-title">Notifications</h2><p>Your latest resource updates</p></div>
+                <span className="student-unread-count">{unreadCount} unread</span>
+              </div>
+              <div className="student-notifications-list" tabIndex={0} aria-label="Recent notifications">
+                {notificationError && <p className="student-notification-error" role="alert">{notificationError}</p>}
+                {notificationsLoading ? <p className="student-notification-empty" role="status">Loading notifications...</p> : notifications.length ? (
+                  <ul>
+                    {notifications.slice(0, 5).map((notification) => (
+                      <li key={notification._id} className={`student-notification-item ${notification.read ? "" : "is-unread"}`}>
+                        <span className="student-notification-icon"><DashboardIcon name="notification" /></span>
+                        <div className="student-notification-copy">
+                          <h3>{notification.title}</h3>
+                          <p>{notification.message}</p>
+                          <div className="student-notification-meta">
+                            <span>{notification.read ? "Read" : "Unread"}</span>
+                            {!notification.read && <button type="button" onClick={() => markRead(notification)} aria-label={`Mark ${notification.title} as read`}>Mark as read</button>}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : !notificationError && <p className="student-notification-empty">You're all caught up. New resource updates will appear here.</p>}
+              </div>
+              <Link className="student-notifications-footer" to="/claim-schedule" onClick={() => setShowNotifications(false)}>View claim schedule <span aria-hidden="true">→</span></Link>
+            </section>
+          ) : (
+            <div id="header-notifications" className="notification-menu"><strong>Notifications</strong>{notificationError ? <p role="alert">{notificationError}</p> : notificationsLoading ? <p role="status">Loading notifications...</p> : notifications.length ? notifications.slice(0, 5).map((notification) => <div key={notification._id}><p>{notification.title}: {notification.message}</p>{!notification.read && <button onClick={() => markRead(notification)}>Mark read</button>}</div>) : <p>No notifications yet.</p>}<Link to={user?.role === "admin" ? "/admin/distribution" : "/staff/manage_schedules"} onClick={() => setShowNotifications(false)}>View schedule <span aria-hidden="true">→</span></Link></div>
+          ))}
+        </div>
         <div className="header-profile">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{user?.role || "Student"}</small></span></div>
       </div>
     </header>

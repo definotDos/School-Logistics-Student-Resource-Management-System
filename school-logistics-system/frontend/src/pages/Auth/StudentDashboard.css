@@ -1,0 +1,289 @@
+.student-shell .request-picture {
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+}
+
+.student-shell .request-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #f1f5f9;
+}
+
+/* Student notification popover: fixed heading/footer, scrollable updates. */
+.dashboard-shell .notification-menu.student-notifications {
+  --notice-surface: #ffffff;
+  --notice-soft: #eef5fc;
+  --notice-border: #d5e1ee;
+  --notice-text: #173452;
+  --notice-muted: #526780;
+  --notice-accent: #185b8b;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(580px, calc(100dvh - 110px));
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--notice-border);
+  border-radius: 14px;
+  background: var(--notice-surface);
+  box-shadow: 0 18px 48px #07142633;
+  color: var(--notice-text);
+}
+
+.dashboard-shell.dark-mode .notification-menu.student-notifications {
+  --notice-surface: #17263b;
+  --notice-soft: #22354d;
+  --notice-border: #435873;
+  --notice-text: #f1f5fb;
+  --notice-muted: #b8c7db;
+  --notice-accent: #9bd8ff;
+}
+
+.dashboard-shell .student-notifications .student-notifications-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid var(--notice-border);
+}
+
+.dashboard-shell .student-notifications h2 {
+  margin: 0;
+  color: var(--notice-text);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.dashboard-shell .student-notifications p {
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--notice-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-shell .student-notifications .student-unread-count {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: var(--notice-soft);
+  color: var(--notice-accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dashboard-shell .student-notifications-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--notice-border) var(--notice-surface);
+}
+
+.dashboard-shell .student-notifications-list ul { margin: 0; padding: 0; list-style: none; }
+.dashboard-shell .student-notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--notice-border);
+}
+.dashboard-shell .student-notification-item:last-child { border-bottom: 0; }
+.dashboard-shell .student-notification-item.is-unread { background: var(--notice-soft); box-shadow: inset 3px 0 var(--notice-accent); }
+.dashboard-shell .student-notification-icon { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border: 1px solid var(--notice-border); border-radius: 9px; color: var(--notice-accent); }
+.dashboard-shell .student-notification-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.dashboard-shell .student-notification-copy { flex: 1; min-width: 0; }
+.dashboard-shell .student-notification-copy h3 { margin: 0; color: var(--notice-text); font-size: 13px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+.dashboard-shell .student-notification-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 10px; color: var(--notice-muted); font-size: 11px; }
+.dashboard-shell .student-notifications .student-notification-meta button { padding: 4px 8px; border: 1px solid var(--notice-border); border-radius: 5px; background: var(--notice-surface); color: var(--notice-accent); font-size: 11px; font-weight: 700; cursor: pointer; }
+.dashboard-shell .student-notifications .student-notification-meta button:hover { text-decoration: underline; }
+.dashboard-shell .student-notifications .student-notification-empty,
+.dashboard-shell .student-notifications .student-notification-error { margin: 0; padding: 24px 20px; }
+.dashboard-shell .student-notifications .student-notification-error { color: #b42340; background: #fff0f3; }
+.dashboard-shell.dark-mode .student-notifications .student-notification-error { color: #ffd2da; background: #4b2934; }
+.dashboard-shell .student-notifications a.student-notifications-footer { display: flex; justify-content: space-between; flex-shrink: 0; margin: 0; padding: 16px 20px; border-top: 1px solid var(--notice-border); background: var(--notice-surface); color: var(--notice-accent); font-size: 12px; }
+.dashboard-shell .student-notifications a.student-notifications-footer:hover { background: var(--notice-soft); }
+.student-shell .notification-wrap .header-icon i { display: grid; place-items: center; top: -5px; right: -7px; width: auto; min-width: 19px; height: 19px; padding: 0 4px; border: 2px solid #17263b; border-radius: 12px; background: #9bd8ff; color: #10243a; font-size: 10px; line-height: 1; font-style: normal; font-weight: 800; }
+@media (max-width: 760px) {
+  .dashboard-shell .notification-menu.student-notifications { top: 110px; right: 16px; max-height: calc(100dvh - 126px); }
+}
+
+/* Student-only theme tokens keep shared dashboard styles predictable. */
+.student-shell.organized-workspace.dark-mode {
+  --student-bg: #0f1729;
+  --student-surface: #17263b;
+  --student-raised: #22354d;
+  --student-border: #435873;
+  --student-text: #f1f5fb;
+  --student-muted: #b8c7db;
+  --student-accent: #9bd8ff;
+  --workspace-surface: var(--student-surface);
+  --workspace-border: var(--student-border);
+  --workspace-muted: var(--student-muted);
+  color-scheme: dark;
+  background: var(--student-bg);
+  color: var(--student-text);
+}
+
+/* Main surfaces and readable text hierarchy. */
+.student-shell.organized-workspace.dark-mode .student-dashboard {
+  background: transparent;
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.app-header, .dashboard-panel, .dashboard-stat, .profile-modal, .notification-menu, .search-results) {
+  background: var(--student-surface);
+  border-color: var(--student-border);
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode :is(h1, h2, .dashboard-stat strong, .request-row strong, .claim-resource strong, .dashboard-profile-trigger strong, .header-profile strong, .profile-section-title, .profile-photo-copy strong, .search-results strong, .notification-menu strong) {
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.dashboard-kicker, .dashboard-welcome p, .dashboard-stat span, .dashboard-stat small, .panel-heading p, .request-row small, .request-empty, .claim-resource small, .claim-details, .claim-details b, .dashboard-profile-trigger small, .header-context, .header-profile small, .profile-modal-copy, .profile-photo-copy small, .profile-form-grid label, .search-results small, .search-results p, .notification-menu p, .sidebar-nav p, .sidebar-brand small, .sidebar-user small, .campus-switch small) {
+  color: var(--student-muted);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.panel-heading, .request-row, .panel-action, .profile-section, .profile-modal-actions, .search-results a, .notification-menu > div) {
+  border-color: var(--student-border);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.panel-heading a, .panel-action, .notification-menu a, .notification-menu button) {
+  color: var(--student-accent);
+}
+
+/* Header account card: pair light text with a dark surface in every state. */
+.student-shell.organized-workspace.dark-mode .header-profile {
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--student-raised);
+  border-color: var(--student-border);
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode .header-profile:hover {
+  background: #2b415c;
+  border-color: #7997b8;
+}
+
+.student-shell.organized-workspace.dark-mode .header-profile strong {
+  color: var(--student-text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.student-shell.organized-workspace.dark-mode .app-header .header-profile > span small {
+  margin-top: 2px;
+  color: var(--student-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Controls, icons, and their interactive states. */
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger, .header-search, .header-theme-toggle, .header-icon, .request-symbol, .claim-resource > span, .profile-account-chip, .profile-cancel, .profile-photo-picker b) {
+  background: var(--student-raised);
+  border-color: var(--student-border);
+  color: var(--student-accent);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger > span:first-child, .header-profile > b, .profile-photo-picker > span:first-child) {
+  background: #2d4865;
+  border-color: var(--student-border);
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode :is(.request-row:hover, .search-results a:hover, .dashboard-profile-trigger:hover, .profile-cancel:hover, .profile-photo-picker:hover b, .header-theme-toggle:hover, .header-icon:hover) {
+  background: #2b415c;
+}
+
+.student-shell.organized-workspace.dark-mode :is(.dashboard-primary-action, .profile-save) {
+  background: #9bd8ff;
+  color: #10243a;
+}
+
+.student-shell.organized-workspace.dark-mode :is(.dashboard-primary-action:hover, .profile-save:hover) {
+  background: #c4e8ff;
+}
+
+.student-shell.organized-workspace.dark-mode .profile-save.saved {
+  background: #a5e8c7;
+  color: #123526;
+}
+
+.student-shell.organized-workspace.dark-mode .claim-day {
+  background: #493626;
+  color: #ffcf98;
+}
+
+.student-shell.organized-workspace.dark-mode .dashboard-stat.navy {
+  border-top-color: var(--student-accent);
+}
+
+/* Preserve the meaning of request statuses on dark surfaces. */
+.student-shell.organized-workspace.dark-mode .request-row > span:last-child {
+  flex-shrink: 0;
+  background: #334155;
+  color: #e2e8f0;
+}
+
+.student-shell.organized-workspace.dark-mode .request-row > :is(.text-green-700, .text-emerald-700) { background: #1e463a; color: #a5e8c7; }
+.student-shell.organized-workspace.dark-mode .request-row > .text-yellow-700 { background: #493d22; color: #ffe099; }
+.student-shell.organized-workspace.dark-mode .request-row > .text-red-700 { background: #4b2934; color: #ffb7c2; }
+.student-shell.organized-workspace.dark-mode .request-row > .text-purple-700 { background: #3d3155; color: #decbff; }
+.student-shell.organized-workspace.dark-mode .request-row > .text-blue-700 { background: #243f5b; color: #b8ddff; }
+
+/* Profile editor: labels, native fields, photo area, and mobile footer. */
+.student-shell.organized-workspace.dark-mode .profile-photo-section {
+  background: var(--student-raised);
+  border-color: var(--student-border);
+}
+
+.student-shell .profile-photo-picker > .profile-photo-copy {
+  display: block;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.student-shell.organized-workspace.dark-mode :is(.profile-form-grid input, .profile-form-grid select, .profile-form-grid option, .header-search input) {
+  background: var(--student-bg);
+  border-color: var(--student-border);
+  color: var(--student-text);
+}
+
+.student-shell.organized-workspace.dark-mode input::placeholder {
+  color: var(--student-muted);
+  opacity: 1;
+}
+
+.student-shell.organized-workspace.dark-mode .profile-modal-actions {
+  background: var(--student-surface);
+}
+
+.student-shell.organized-workspace.dark-mode .profile-modal-close {
+  color: var(--student-muted);
+}
+
+.student-shell.organized-workspace.dark-mode .profile-error {
+  margin-bottom: 18px;
+  background: #4b2934;
+  border-color: #986173;
+  color: #ffd2da;
+}
+
+.student-shell.organized-workspace.dark-mode :is(a, button, input, select):focus-visible,
+.student-shell.organized-workspace.dark-mode .profile-photo-picker:focus-within {
+  outline: 3px solid var(--student-accent);
+  outline-offset: 3px;
+  box-shadow: none;
+}

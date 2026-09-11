@@ -163,6 +163,14 @@
 }
 
 /* Headings, values, supporting text, and navigation */
+.admin-shell.organized-workspace.dark-mode .header-profile {
+  background: var(--admin-soft);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+.admin-shell.organized-workspace.dark-mode .header-profile:hover {
+  border-color: var(--admin-accent);
+}
 .admin-shell.organized-workspace.dark-mode .admin-main :is(h1, h2, h3, .admin-stat strong, .allocation-summary strong, .allocation-table td, .inventory-row strong, .quick-action-grid a span) {
   color: var(--admin-text);
 }
