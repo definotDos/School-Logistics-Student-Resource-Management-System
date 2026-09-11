@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import DashboardIcon from "./DashboardIcon";
 import { allocationAPI, distributionAPI, campusAPI, notificationAPI, reportsAPI, userAPI } from "../services/api";
 
 export function CreateUserForm({ onCreated }) {
@@ -28,30 +29,60 @@ export function DistributionPanel() {
   const [form, setForm] = useState({ allocation: "", pickupDate: "", startTime: "", endTime: "", location: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("All");
   const load = async () => {
     const [a, s] = await Promise.all([allocationAPI.getAll(), distributionAPI.getAllSchedules()]);
     setAllocations(a.allocations); setSchedules(s.schedules);
   };
   useEffect(() => {
-    Promise.all([allocationAPI.getAll(), distributionAPI.getAllSchedules()]).then(([a, s]) => { setAllocations(a.allocations); setSchedules(s.schedules); }).catch(e => setError(e.message));
+    Promise.all([allocationAPI.getAll(), distributionAPI.getAllSchedules()])
+      .then(([a, s]) => { setAllocations(a.allocations); setSchedules(s.schedules); })
+      .catch(e => setError(e.message)).finally(() => setLoading(false));
   }, []);
   const run = async (action) => {
     setBusy(true); setError("");
     try { await action(); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
-  return <section className="admin-panel record-panel"><h2>Schedule and release resources</h2>
-    <form className="resource-form" onSubmit={e => { e.preventDefault(); run(() => allocationAPI.createSchedule(form.allocation, form)); }}>
-      <label>Allocation<select required value={form.allocation} onChange={e => setForm({ ...form, allocation: e.target.value })}><option value="">Choose approved allocation</option>{allocations.filter(a => a.status === "Reserved").map(a => <option key={a._id} value={a._id}>{a.student?.name} · {a.resource?.name} · {a.quantity}</option>)}</select></label>
-      {[['pickupDate', 'date'], ['startTime', 'time'], ['endTime', 'time'], ['location', 'text']].map(([key, type]) => <label key={key}>{key.replace(/([A-Z])/g, ' $1')}<input required type={type} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
-      <button className="admin-primary" disabled={busy}>Create schedule</button>
-    </form>{error && <p role="alert" className="auth-error">{error}</p>}
-    {schedules.map(s => <div className="record-row" key={s._id}><div className="record-copy"><strong>{s.resource?.name} · {s.student?.name}</strong><small>{new Date(s.pickupDate).toLocaleDateString()} · {s.startTime}–{s.endTime} · {s.location}</small></div><span>{s.status}</span>
-      {s.status === "Scheduled" && <button disabled={busy} onClick={() => run(() => distributionAPI.verifyClaimIdentity(s._id, { quantityClaimed: s.allocation.quantity }))}>Verify identity</button>}
-      {s.status === "Confirmed" && <button disabled={busy} onClick={() => run(() => distributionAPI.release(s.allocation._id, { quantityDelivered: s.allocation.quantity }))}>Release resources</button>}
-    </div>)}{!schedules.length && <p>No claim schedules yet.</p>}
-  </section>;
+  const available = allocations.filter(a => a.status === "Reserved");
+  const visible = schedules.filter(s => filter === "All" || s.status === filter);
+  const submit = e => {
+    e.preventDefault();
+    if (form.endTime <= form.startTime) { setError("End time must be after start time."); return; }
+    run(async () => {
+      await allocationAPI.createSchedule(form.allocation, form);
+      setForm({ allocation: "", pickupDate: "", startTime: "", endTime: "", location: "" });
+    });
+  };
+  return <div className="distribution-center">
+    <section className="admin-panel distribution-compose" aria-labelledby="distribution-create-title">
+      <header className="distribution-heading"><span className="distribution-icon"><DashboardIcon name="calendar" /></span><div><h2 id="distribution-create-title">Create a pickup schedule</h2><p>Select an allocation and set the collection details.</p></div></header>
+      <form className="distribution-form" onSubmit={submit}>
+        <label className="distribution-wide">Approved allocation<select required disabled={loading || busy || !available.length} value={form.allocation} onChange={e => setForm({ ...form, allocation: e.target.value })}><option value="">{loading ? "Loading allocations..." : "Choose an approved allocation"}</option>{available.map(a => <option key={a._id} value={a._id}>{a.student?.name} · {a.resource?.name} · Qty: {a.quantity}</option>)}</select></label>
+        <label className="distribution-wide">Pickup location<input required disabled={busy} placeholder="e.g. Student Affairs Office" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></label>
+        <div className="distribution-time-fields">
+          <label>Pickup date<input required disabled={busy} type="date" value={form.pickupDate} onChange={e => setForm({ ...form, pickupDate: e.target.value })} /></label>
+          <label>Start time<input required disabled={busy} type="time" value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} /></label>
+          <label>End time<input required disabled={busy} type="time" value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} /></label>
+        </div>
+        <footer className="distribution-form-footer"><p>{!loading && !error && !available.length ? "No reserved allocations available to schedule." : "Set a collection window for the student."}</p><button className="admin-primary" disabled={busy || loading || !available.length}>{busy ? "Saving..." : "Create schedule"}</button></footer>
+      </form>
+      {error && <p role="alert" className="auth-error">{error}</p>}
+    </section>
+    <section className="admin-panel distribution-records" aria-labelledby="distribution-list-title">
+      <header className="distribution-heading"><span className="distribution-icon"><DashboardIcon name="history" /></span><div><h2 id="distribution-list-title">Pickup schedules</h2><p>Track collections, verify students, and release resources.</p></div><span className="distribution-total">{schedules.length} total</span></header>
+      <div className="distribution-filters" role="group" aria-label="Filter schedules by status">{["All", "Scheduled", "Confirmed", "Completed"].map(status => <button key={status} type="button" aria-pressed={filter === status} className={filter === status ? "is-active" : ""} onClick={() => setFilter(status)}>{status}<span>{schedules.filter(s => status === "All" || s.status === status).length}</span></button>)}</div>
+      <div className="distribution-list">
+        {loading ? <p className="distribution-empty" role="status">Loading pickup schedules...</p> : visible.map(s => <article className="distribution-record" key={s._id}>
+          <div className="distribution-record-top"><div><h3>{s.resource?.name || "Resource claim"}</h3><p>{s.student?.name || "Student"}{s.allocation?.quantity != null && <span> · {s.allocation.quantity} units</span>}</p></div><span className={`distribution-status distribution-status-${(s.status || "").toLowerCase()}`}>{s.status}</span></div>
+          <dl className="distribution-details"><div><dt>Pickup date</dt><dd>{s.pickupDate ? new Date(s.pickupDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Not set"}</dd></div><div><dt>Collection window</dt><dd>{s.startTime} – {s.endTime}</dd></div><div><dt>Location</dt><dd>{s.location || "Not set"}</dd></div></dl>
+          {(s.status === "Scheduled" || s.status === "Confirmed") && <footer className="distribution-record-footer"><span>{s.status === "Scheduled" ? "Awaiting student identity verification" : "Identity verified · Ready for release"}</span>{s.status === "Scheduled" ? <button className="admin-primary" disabled={busy} onClick={() => run(() => distributionAPI.verifyClaimIdentity(s._id, { quantityClaimed: s.allocation.quantity }))}>Verify identity</button> : <button className="admin-primary" disabled={busy} onClick={() => run(() => distributionAPI.release(s.allocation._id, { quantityDelivered: s.allocation.quantity }))}>Release resources</button>}</footer>}
+        </article>)}
+        {!loading && !error && !visible.length && <div className="distribution-empty"><DashboardIcon name="calendar" /><h3>{filter === "All" ? "No pickup schedules yet" : `No ${filter.toLowerCase()} schedules`}</h3><p>{filter === "All" ? "Create a schedule above to arrange a resource collection." : "Choose another status to view more schedules."}</p></div>}
+      </div>
+    </section>
+  </div>;
 }
-
 export function CampusPanel() {
   const [campuses, setCampuses] = useState([]);
   const [form, setForm] = useState({ name: "", code: "", address: "", contact: "" });
@@ -91,6 +122,10 @@ export function CampusPanel() {
 }
 
 export function NotificationsPanel() {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const [records, setRecords] = useState([]);
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ user: "", title: "", message: "", type: "general" });
@@ -112,18 +147,56 @@ export function NotificationsPanel() {
     try { await notificationAPI.create(form); setForm({ user: "", title: "", message: "", type: "general" }); await load(); setNotice("Notification sent."); window.dispatchEvent(new Event("notifications-updated")); }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   };
-  return <section className="admin-panel record-panel"><h2>Notifications</h2><form className="resource-form" onSubmit={send}>
-    <label>Recipient<select required value={form.user} onChange={e => setForm({ ...form, user: e.target.value })}><option value="">Choose recipient</option>{users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}</select></label>
-    <label>Type<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>{["general", "approval", "rejection", "schedule", "reminder", "release"].map(type => <option key={type}>{type}</option>)}</select></label>
-    <label>Title<input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></label>
-    <label>Message<textarea required value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} /></label>
-    <button className="admin-primary" disabled={busy}>{busy ? "Sending…" : "Send notification"}</button>
-  </form>{error && <p role="alert" className="auth-error">{error}</p>}{notice && <p role="status">{notice}</p>}
-  {records.map(n => <div className="record-row" key={n._id}><div className="record-copy"><strong>{n.title}</strong><p>{n.message}</p><small>To {n.user?.name || "Recipient"} · {new Date(n.createdAt).toLocaleString()}</small></div><span>{n.read ? "Read" : "Unread"}</span></div>)}
-  {loading ? <p role="status">Loading notifications and recipients...</p> : !error && <>
-    {!records.length && <p>No notifications yet.</p>}
-    {!users.length && <p>No active recipients are available in this campus.</p>}
-  </>}</section>;
+  const unread = records.filter(record => !record.read).length;
+  const visibleRecords = records.filter(record => {
+    const matchesStatus = status === "all" || (status === "read" ? record.read : !record.read);
+    return matchesStatus && (typeFilter === "all" || (record.type || "general") === typeFilter) && [record.title, record.message, record.user?.name].some(value => (value || "").toLowerCase().includes(search.trim().toLowerCase()));
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const pageSize = 8;
+  const pageCount = Math.max(1, Math.ceil(visibleRecords.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageStart = (currentPage - 1) * pageSize;
+  const dateGroups = new Map();
+  visibleRecords.slice(pageStart, pageStart + pageSize).forEach(record => {
+    const date = new Date(record.createdAt).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    if (!dateGroups.has(date)) dateGroups.set(date, []);
+    dateGroups.get(date).push(record);
+  });
+  const resetFilters = () => { setSearch(""); setStatus("all"); setTypeFilter("all"); setPage(1); };
+  return <div className="notification-center">
+    <section className="admin-panel notification-compose" aria-labelledby="notification-compose-title">
+      <header className="notification-section-heading"><span className="notification-section-icon"><DashboardIcon name="notification" /></span><div><h2 id="notification-compose-title">Compose notification</h2><p>Send an update to a student or team member.</p></div></header>
+      <form className="notification-compose-form" onSubmit={send}>
+        <label>Recipient<select required disabled={loading || busy || !users.length} value={form.user} onChange={e => setForm({ ...form, user: e.target.value })}><option value="">{loading ? "Loading recipients…" : "Choose a recipient"}</option>{users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}</select></label>
+        <label>Notification type<select disabled={busy} value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>{["general", "approval", "rejection", "schedule", "reminder", "release"].map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select></label>
+        <label className="notification-full-width">Title<input required disabled={busy} placeholder="Enter a short, descriptive title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></label>
+        <label className="notification-full-width">Message<textarea required disabled={busy} rows={5} placeholder="Write your update and include any important next steps…" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} /></label>
+        <footer className="notification-compose-footer"><span>Review your message before sending.</span><button className="admin-primary" disabled={busy || loading || !users.length}>{busy ? "Sending…" : "Send notification"}</button></footer>
+      </form>
+      {error && <p role="alert" className="auth-error">{error}</p>}
+      {notice && <p className="notification-success" role="status">{notice}</p>}
+      {!loading && !error && !users.length && <p className="notification-empty">No active recipients are available in this campus.</p>}
+    </section>
+    <section className="admin-panel notification-history" aria-labelledby="notification-history-title">
+      <header className="notification-section-heading"><span className="notification-section-icon"><DashboardIcon name="history" /></span><div><h2 id="notification-history-title">Notification history</h2><p>Track sent updates and recipient read status.</p></div><span className="notification-total">{loading ? "Loading…" : `${records.length} total`}</span></header>
+      <div className="notification-history-tools">
+        <div className="notification-status-filters" role="group" aria-label="Filter by read status">{[["all", "All", records.length], ["unread", "Unread", unread], ["read", "Read", records.length - unread]].map(([value, label, count]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => { setStatus(value); setPage(1); }}>{label}<span>{count}</span></button>)}</div>
+        <div className="notification-search-tools"><input type="search" aria-label="Search notification history" placeholder="Search notifications…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /><select aria-label="Filter by notification type" value={typeFilter} onChange={e => { setTypeFilter(e.target.value); setPage(1); }}><option value="all">All types</option>{["general", "approval", "rejection", "schedule", "reminder", "release"].map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select></div>
+      </div>
+      {loading ? <p className="notification-empty" role="status">Loading notification history…</p> : <>
+        <div className="notification-history-caption"><span role="status">{visibleRecords.length ? `${pageStart + 1}–${Math.min(pageStart + pageSize, visibleRecords.length)} of ${visibleRecords.length} notifications` : "0 notifications"}</span><span>Newest first{(search || status !== "all" || typeFilter !== "all") && <button type="button" className="notification-clear" onClick={resetFilters}>Clear filters</button>}</span></div>
+        {[...dateGroups].map(([date, items]) => <section className="notification-date-group" key={date} aria-label={date}>
+          <h3 className="notification-date-heading"><DashboardIcon name="calendar" />{date}<span>{items.length} on this page</span></h3>
+          <ul className="notification-history-list">{items.map(n => <li className={`notification-history-item${n.read ? "" : " is-unread"}`} key={n._id}>
+            <span className={`notification-item-icon notification-tone-${n.type || "general"}`}><DashboardIcon name={({ schedule: "calendar", release: "resources", approval: "requests", rejection: "requests", reminder: "history" })[n.type] || "notification"} /></span>
+            <div className="notification-item-content"><div className="notification-item-heading"><h4>{n.title}</h4><time dateTime={n.createdAt} title={new Date(n.createdAt).toLocaleString()}>{new Date(n.createdAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</time></div><p>{n.message}</p><div className="notification-item-meta"><span className="notification-recipient"><DashboardIcon name="profile" /><span>To <strong>{n.user?.name || "Recipient"}</strong></span></span><span className={`notification-type notification-tone-${n.type || "general"}`}>{n.type || "general"}</span><span className={`notification-read-status${n.read ? " is-read" : ""}`}>{n.read ? "Read" : "Unread"}</span></div></div>
+          </li>)}</ul>
+        </section>)}
+        {!visibleRecords.length && !error && <div className="notification-empty"><DashboardIcon name="notification" /><h3>{records.length ? "No matching notifications" : "No notifications yet"}</h3><p>{records.length ? "Try another search or filter." : "Sent notifications will appear here."}</p></div>}
+        {pageCount > 1 && <nav className="notification-pagination" aria-label="Notification history pages"><span>Page {currentPage} of {pageCount}</span><div><button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button><button type="button" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button></div></nav>}
+      </>}
+    </section>
+  </div>;
 }
 
 export function ReportsPanel() {
@@ -147,6 +220,36 @@ export function ReportsPanel() {
     {error ? <p role="alert" className="auth-error">{error}</p> : !report ? <p>Loading reports…</p> : <><div className="admin-stats">{Object.entries(report.summary).map(([label, count]) => <article className="admin-stat" key={label}><span>{label.replace(/([A-Z])/g, " $1")}</span><strong>{count}</strong></article>)}</div>
     <p>Completion: {report.completionRate}% · Approval: {report.approvalRate}%</p>
     <p>Inventory: {inventory.summary.totalAvailable} available · {inventory.summary.totalReserved} reserved · {inventory.summary.totalIssued} issued</p>
-    <div className="record-list">{report.details.map(r => <div className="record-row" key={r.requestId}><div className="record-copy"><strong>{r.ref} · {r.resource}</strong><small>{r.student} · {r.quantity} unit(s)</small></div><span>{r.status}</span></div>)}</div></>}
+    <RequestStatusChart requests={report.details} /></>}
   </section>;
+}
+
+function RequestStatusChart({ requests = [] }) {
+  const counts = new Map(["pending", "approved", "rejected", "cancelled", "ready_for_claim", "claimed", "released", "completed"].map(status => [status, 0]));
+  requests.forEach(request => {
+    const status = String(request.status || "unknown").trim().toLowerCase().replace(/\s+/g, "_");
+    counts.set(status, (counts.get(status) || 0) + 1);
+  });
+  const maximum = Math.max(1, ...counts.values());
+  const step = Math.max(1, Math.ceil(maximum / 4));
+  const limit = step * 4;
+  const labelFor = status => status.replaceAll("_", " ").replace(/^./, letter => letter.toUpperCase());
+
+  return <figure className="request-status-chart">
+    <figcaption className="request-chart-heading"><div><span className="request-chart-eyebrow">Request analytics</span><h3>Requests by status</h3><p>A breakdown of requests matching your filters.</p></div><div className="request-chart-total"><strong>{requests.length}</strong><span>Total requests</span></div></figcaption>
+    {!requests.length ? <p className="empty-state">No requests match the selected filters.</p> : <>
+      <p className="request-chart-axis-title">Number of requests</p>
+      <div className="request-chart-scroll">
+        <div className="request-chart-plot" role="group" aria-label="Request counts by status. Focus a column for details.">
+          <div className="request-chart-grid" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <div key={index}><span>{limit - index * step}</span></div>)}</div>
+          <div className="request-chart-columns">{[...counts].map(([status, count], index) => <div className={`request-chart-column request-chart-bar--${status}`} key={status} tabIndex={0} aria-label={`${labelFor(status)}: ${count} requests, ${Math.round(count / requests.length * 100)}% of total`} style={{ "--bar-delay": `${index * 65}ms` }}>
+            <div className="request-chart-tooltip" aria-hidden="true"><b>{labelFor(status)}</b><span>{count} request{count === 1 ? "" : "s"} <i /> {Math.round(count / requests.length * 100)}%</span></div>
+            <div className="request-chart-bar-area" aria-hidden="true"><div className={`request-chart-bar${count === 0 ? " is-zero" : ""}`} style={{ height: `${count / limit * 100}%` }}><strong>{count}</strong><div key={`${count}-${limit}`} className="request-chart-bar-fill" /></div></div>
+            <span className="request-chart-label" aria-hidden="true"><i />{labelFor(status)}</span>
+          </div>)}</div>
+        </div>
+      </div>
+      <div className="request-chart-footer"><span><i /> Current filtered results</span><span>Hover or focus a column to see its share</span></div>
+    </>}
+  </figure>;
 }

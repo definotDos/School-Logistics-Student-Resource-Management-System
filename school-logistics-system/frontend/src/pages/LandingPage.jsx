@@ -113,10 +113,36 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(readTheme)
   const [ripples, setRipples] = useState([])
+  const [activeNav, setActiveNav] = useState('top')
 
   useEffect(() => {
     localStorage.setItem(THEME_KEY, JSON.stringify(isDarkMode))
   }, [isDarkMode])
+
+  useEffect(() => {
+    const sectionIds = navItems.map((item) => item.target).filter((target) => target !== 'top')
+    const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean)
+
+    const updateActiveNav = () => {
+      if (window.scrollY < 180) {
+        setActiveNav('top')
+        return
+      }
+
+      const currentSection = [...sections]
+        .reverse()
+        .find((section) => section.getBoundingClientRect().top <= 160)
+
+      if (currentSection) {
+        setActiveNav(currentSection.id)
+      }
+    }
+
+    updateActiveNav()
+    window.addEventListener('scroll', updateActiveNav, { passive: true })
+
+    return () => window.removeEventListener('scroll', updateActiveNav)
+  }, [])
 
   const handleBrandClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -132,6 +158,8 @@ export function LandingPage() {
   }
 
   const scrollToSection = (target) => {
+    setActiveNav(target)
+
     if (target === 'top') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -171,8 +199,9 @@ export function LandingPage() {
             <button
               type="button"
               key={item.label}
-              className="nav-link-btn"
+              className={`nav-link-btn ${activeNav === item.target ? 'is-active' : ''}`}
               onClick={() => scrollToSection(item.target)}
+              aria-current={activeNav === item.target ? 'page' : undefined}
             >
               {item.label}
             </button>

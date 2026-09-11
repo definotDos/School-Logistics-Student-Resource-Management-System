@@ -6,6 +6,7 @@ import { useAuth } from "../../context/useAuth";
 import { allocationAPI, distributionAPI, inventoryAPI, reportsAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
 import { CampusPanel, NotificationsPanel, ReportsPanel, DistributionPanel, CreateUserForm } from "../../components/ManagementPanels";
 import DashboardIcon from "../../components/DashboardIcon";
+import "./AdminDashboard.css";
 
 const sections = {
   dashboard: { label: "Overview", title: "Welcome back, Admin!", description: "A live view of school resource operations." },
@@ -97,7 +98,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     if (activeSection !== "users") return;
-    userAPI.getAll().then((result) => { setUserError(""); setRows((current) => ({ ...current, users: result.users.map((user) => ({ databaseId: user.id, name: user.name, detail: `${user.email} · ${user.role} · ${user.campus}`, status: user.status, action: user.status === "suspended" ? "Restore" : "Suspend" })) })); }).catch((error) => setUserError(error.message));
+    userAPI.getAll().then((result) => { setUserError(""); setRows((current) => ({ ...current, users: result.users.map((user) => ({ databaseId: user.id, name: user.name, email: user.email, avatar: user.avatar || "", role: user.role, campus: user.campus, detail: `${user.email} · ${user.role} · ${user.campus}`, status: user.status, action: user.status === "suspended" ? "Restore" : "Suspend" })) })); }).catch((error) => setUserError(error.message));
   }, [activeSection]);
 
   useEffect(() => {
@@ -113,6 +114,9 @@ function AdminDashboard() {
         setStaffMembers(userResult.users.filter((user) => user.role === "staff" && user.status !== "suspended"));
         setWorkflowRows((current) => ({ ...current, allocation: (allocationResult.allocations || []).map((allocation) => ({
           databaseId: allocation._id,
+          studentName: allocation.student?.name || "Student",
+          resourceName: allocation.resource?.name || "Resource",
+          quantity: allocation.quantity,
           name: allocation.student?.studentId || allocation.student?.id || `Student ${String(allocation._id).slice(-6)}`,
           detail: `${allocation.student?.name || "Student"} · ${allocation.resource?.name || "Resource"} · ${allocation.quantity} unit(s)`,
           status: allocation.status,
@@ -196,7 +200,7 @@ function AdminDashboard() {
   return <div className={`admin-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
-    {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel onCreated={user => setRows(current => ({ ...current, users: [...current.users, { databaseId: user.id, name: user.name, detail: `${user.email} ? ${user.role} ? ${user.campus}`, status: user.status, action: "Suspend" }] }))} users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "distribution" ? <DistributionPanel /> : activeSection === "campuses" ? <CampusPanel /> : activeSection === "notifications" ? <NotificationsPanel /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
+    {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel onCreated={user => setRows(current => ({ ...current, users: [...current.users, { databaseId: user.id, name: user.name, email: user.email, avatar: user.avatar || "", role: user.role, campus: user.campus, detail: `${user.email} ? ${user.role} ? ${user.campus}`, status: user.status, action: "Suspend" }] }))} users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "distribution" ? <DistributionPanel /> : activeSection === "campuses" ? <CampusPanel /> : activeSection === "notifications" ? <NotificationsPanel /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
   </main></div></div>;
 }
 
@@ -210,23 +214,149 @@ function Overview({ overview }) {
   const fulfillmentRate = Number(summary.requests?.completionRate || 0);
   const approvalRate = Number(summary.requests?.approvalRate || 0);
 
-  return <>
+  return <div className="admin-overview">
   <div className="admin-stats"><AdminStat label="Pending requests" value={pendingRequests} change="Live from system" tone="orange" /><AdminStat label="Available resources" value={availableResources} change="Current inventory" tone="blue" /><AdminStat label="Active users" value={activeUsers} change="Registered accounts" tone="green" /><AdminStat label="Scheduled claims" value={scheduledClaims} change="Live schedule count" tone="navy" /></div>
   <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="!" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="+" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="◷" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{fulfillmentRate}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div></div><div className="progress-block"><div><span>Approval rate</span><strong>{approvalRate}%</strong></div><div className="progress green"><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div></div><div className="progress-block"><div><span>Resources released</span><strong>{resourcesReleased}</strong></div><div className="progress orange"><i style={{ width: `${resourcesReleased ? 100 : 0}%` }} /></div></div></section></div>
   <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="resources" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="history" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
-</>; }
-function AdminStat({ label, value, change, tone }) { return <article className={`admin-stat ${tone}`}><span>{label}</span><strong>{value}</strong><small>{change}</small></article>; }
+</div>; }
+function AdminStat({ label, value, change, tone }) {
+  const icon = { orange: "requests", blue: "resources", green: "users", navy: "calendar" }[tone];
+  return <article className={`admin-stat ${tone}`}>
+    <div className="admin-stat-heading"><span>{label}</span><span className="admin-stat-icon" aria-hidden="true"><DashboardIcon name={icon} /></span></div>
+    <strong>{value.toLocaleString()}</strong>
+    <small>{change}</small>
+  </article>;
+}
 function PanelHeading({ title, description }) { return <div className="admin-panel-heading"><div><h2>{title}</h2><p>{description}</p></div></div>; }
 function Attention({ icon, title, detail, action, href }) { return <div className="attention-row"><b>{icon}</b><div><strong>{title}</strong><small>{detail}</small></div><Link to={href}>{action} →</Link></div>; }
 
 function RecordPanel({ section, rows, onAction, onAdd }) { const [search, setSearch] = useState(""); const [showForm, setShowForm] = useState(false); const [form, setForm] = useState({ name: "", category: "Academic materials", detail: "" }); const filteredRows = rows.filter((row) => `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())); const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value })); const submit = async (event) => { event.preventDefault(); if (!form.name.trim() || !form.detail.trim()) return; try { await onAdd({ name: form.name.trim(), detail: `${form.category} · ${form.detail.trim()}`, status: "Published", action: "Edit" }); setForm({ name: "", category: "Academic materials", detail: "" }); setShowForm(false); } catch (error) { window.alert(error.message); } }; return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>{sections[section].label}</h2><p>{rows.length} records in this workspace</p></div><div className="record-tools">{onAdd && <button className="admin-secondary" onClick={() => setShowForm((visible) => !visible)}>{showForm ? "Close" : "+ Add resource"}</button>}<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records..." aria-label="Search records" /></div></div>{showForm && <form className="resource-form" onSubmit={submit}><label>Resource name<input value={form.name} onChange={update("name")} placeholder="e.g. Science Laboratory Kit" required /></label><label>Category<select value={form.category} onChange={update("category")}><option>Academic materials</option><option>Uniforms</option><option>Footwear</option><option>Identification</option><option>Other</option></select></label><label>Description or eligibility<input value={form.detail} onChange={update("detail")} placeholder="e.g. Grades 10-12" required /></label><button className="admin-primary" type="submit">Add to catalog</button></form>}<div className="record-list">{filteredRows.map((row, index) => <div className="record-row" key={`${row.name}-${index}`}><div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div><div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.action === "View"} onClick={() => onAction(row.databaseId, row.action)}>{row.action}</button></div>)}</div>{!filteredRows.length && <div className="empty-state">No matching records found.</div>}</section>; }
 function UserPanel({ users, error, onStatus, onDelete, onCreated }) {
   const [search, setSearch] = useState("");
-  const filteredUsers = users.filter((user) => `${user.name} ${user.detail}`.toLowerCase().includes(search.toLowerCase()));
-  return <section className="admin-panel record-panel user-management-panel"><CreateUserForm onCreated={onCreated} /><div className="record-toolbar"><div><h2>Registered users</h2><p>{users.length} account{users.length === 1 ? "" : "s"} saved in MongoDB.</p></div><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search users..." aria-label="Search users" /></div>{error && <p className="auth-error" role="alert">{error}</p>}{!error && !filteredUsers.length && <p className="request-empty">No registered users match your search.</p>}<div className="record-list">{filteredUsers.map((user) => <div className="record-row user-record" key={user.databaseId}><div className="record-icon">{user.name.slice(0, 2).toUpperCase()}</div><div className="record-copy"><strong>{user.name}</strong><small>{user.detail}</small></div><span className={`status-pill ${user.status.toLowerCase()}`}>{user.status}</span><button className="row-action" onClick={() => onStatus(user, user.status === "suspended" ? "active" : "suspended")}>{user.action}</button><button className="row-action delete-action" onClick={() => onDelete(user)}>Delete</button></div>)}</div></section>;
+  const [role, setRole] = useState("");
+  const [status, setStatus] = useState("");
+  const filteredUsers = users.filter((user) =>
+    `${user.name} ${user.email} ${user.campus}`.toLowerCase().includes(search.trim().toLowerCase()) &&
+    (!role || user.role === role) && (!status || user.status === status)
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  const hasFilters = search || role || status;
+  const clearFilters = () => { setSearch(""); setRole(""); setStatus(""); };
+
+  return <section className="admin-panel record-panel user-management-panel users-organized">
+    <div className="users-heading"><div><h2>Registered users <span>{users.length}</span></h2><p>Manage accounts and access across your school.</p></div></div>
+    <div className="users-summary" aria-label="Account summary">
+      {[['Total users', users.length], ['Active', users.filter(user => user.status === 'active').length], ['Suspended', users.filter(user => user.status === 'suspended').length]].map(([label, count]) => <div key={label}><span>{label}</span><strong>{count}</strong></div>)}
+    </div>
+    <div className="users-create"><CreateUserForm onCreated={onCreated} /></div>
+    <div className="users-filters">
+      <label className="users-search">Search users<input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, email, or campus" /></label>
+      <label>Role<select value={role} onChange={event => setRole(event.target.value)}><option value="">All roles</option><option value="student">Student</option><option value="staff">Staff</option><option value="admin">Admin</option></select></label>
+      <label>Status<select value={status} onChange={event => setStatus(event.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="suspended">Suspended</option></select></label>
+      {hasFilters && <button className="row-action" onClick={clearFilters}>Clear filters</button>}
+    </div>
+    {error && <p className="auth-error" role="alert">{error}</p>}
+    <div className="users-table-wrap"><table className="users-table">
+      <caption className="users-results" aria-live="polite">Showing {filteredUsers.length} of {users.length} users ? Name A?Z</caption>
+      <thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Campus</th><th scope="col">Status</th><th scope="col" className="users-actions-heading">Actions</th></tr></thead>
+      <tbody>{filteredUsers.map(user => <tr key={user.databaseId}>
+        <td><div className="users-identity"><span className="users-avatar" aria-hidden="true">{user.avatar ? <img src={user.avatar} alt="" /> : user.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase()}</span><div><strong>{user.name}</strong><small>{user.email}</small></div></div></td>
+        <td><span className={`users-role ${user.role}`}>{user.role}</span></td>
+        <td className="users-campus">{user.campus || 'Unassigned'}</td>
+        <td><span className={`users-status ${user.status}`}>{user.status}</span></td>
+        <td><div className="users-actions"><button className="row-action" aria-label={`${user.status === 'suspended' ? 'Restore' : 'Suspend'} ${user.name}`} onClick={() => onStatus(user, user.status === "suspended" ? "active" : "suspended")}>{user.status === 'suspended' ? 'Restore' : 'Suspend'}</button><button className="row-action delete-action" aria-label={`Delete ${user.name}`} onClick={() => onDelete(user)}>Delete</button></div></td>
+      </tr>)}</tbody>
+    </table></div>
+    {!error && !filteredUsers.length && <div className="users-empty"><strong>{users.length ? 'No matching users' : 'No users yet'}</strong><p>{users.length ? 'Try another search or adjust your filters.' : 'Add a user to get started.'}</p>{hasFilters && <button className="row-action" onClick={clearFilters}>Clear filters</button>}</div>}
+  </section>;
 }
 
-function ProfilePanel({ setNotice }) { const { user, updateUser } = useAuth(); const [form, setForm] = useState({ name: user?.name || "", email: user?.email || "", avatar: user?.avatar || "" }); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value })); const choosePicture = (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/")) return setError("Choose an image file."); if (file.size > 2 * 1024 * 1024) return setError("Profile pictures must be 2 MB or smaller."); const reader = new FileReader(); reader.onload = () => { setForm((current) => ({ ...current, avatar: reader.result })); setError(""); }; reader.readAsDataURL(file); }; const submit = async (event) => { event.preventDefault(); setSaving(true); setError(""); setNotice(""); try { await updateUser({ name: form.name.trim(), email: form.email.trim(), avatar: form.avatar }); setNotice("Administrator profile updated successfully."); } catch (updateError) { setError(updateError.message); } finally { setSaving(false); } }; const initials = (form.name || "Admin").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(); return <section className="admin-panel profile-panel"><form onSubmit={submit}><div className="profile-hero"><div className="profile-picture">{form.avatar ? <img src={form.avatar} alt="Administrator profile preview" /> : <b>{initials}</b>}</div><div><h2>Profile picture</h2><p>Use a clear image for account identification.</p><label className="upload-button">Choose image<input type="file" accept="image/png,image/jpeg,image/webp" onChange={choosePicture} /></label></div></div><div className="profile-fields"><label>Full name<input value={form.name} onChange={update("name")} required /></label><label>School email<input type="email" value={form.email} onChange={update("email")} required /></label><label>Account role<input value="Administrator" readOnly /></label></div>{error && <p className="form-error" role="alert">{error}</p>}<button className="admin-primary" type="submit" disabled={saving}>{saving ? "Saving changes..." : "Save profile changes"}</button></form></section>; }
+function ProfilePanel({ setNotice }) {
+  const { user, updateUser } = useAuth();
+  const [form, setForm] = useState({ name: user?.name || "", email: user?.email || "", avatar: user?.avatar || "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+  const choosePicture = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return setError("Choose a JPG, PNG, or WebP image.");
+    if (file.size > 2 * 1024 * 1024) return setError("Profile pictures must be 2 MB or smaller.");
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((current) => ({ ...current, avatar: reader.result }));
+      setError("");
+    };
+    reader.onerror = () => setError("Unable to read this image. Please try another file.");
+    reader.readAsDataURL(file);
+  };
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!form.name.trim()) return setError("Enter your full name.");
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      await updateUser({ name: form.name.trim(), email: form.email.trim(), avatar: form.avatar });
+      setNotice("Administrator profile updated successfully.");
+    } catch (updateError) {
+      setError(updateError.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const initials = (form.name.trim() || "Admin").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+
+  return (
+    <section className="admin-panel admin-profile-card" aria-label="Profile settings">
+      <form onSubmit={submit} aria-busy={saving}>
+        <div className="admin-profile-summary">
+          <div className="admin-profile-avatar">
+            {form.avatar ? <img src={form.avatar} alt="Administrator profile preview" /> : <span>{initials}</span>}
+          </div>
+          <div className="admin-profile-identity">
+            <span className="admin-profile-eyebrow">YOUR ACCOUNT</span>
+            <h2>{form.name.trim() || "Administrator"}</h2>
+            <span className="admin-profile-badge"><DashboardIcon name="profile" />Administrator</span>
+          </div>
+          <div className="admin-profile-upload">
+            <label className="admin-profile-upload-button">
+              Change photo
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={choosePicture} disabled={saving} aria-describedby="admin-photo-help" />
+            </label>
+            <small id="admin-photo-help">JPG, PNG or WebP · Max 2 MB</small>
+          </div>
+        </div>
+
+        <div className="admin-profile-section">
+          <div className="admin-profile-section-copy">
+            <span className="admin-profile-section-icon"><DashboardIcon name="profile" /></span>
+            <h3>Personal information</h3>
+            <p>Manage your name and school email address.</p>
+          </div>
+          <div className="admin-profile-fields">
+            <label htmlFor="admin-profile-name">Full name
+              <input id="admin-profile-name" name="name" autoComplete="name" value={form.name} onChange={update("name")} required disabled={saving} />
+            </label>
+            <label htmlFor="admin-profile-email">School email
+              <input id="admin-profile-email" name="email" type="email" autoComplete="email" value={form.email} onChange={update("email")} required disabled={saving} />
+            </label>
+          </div>
+          <div className="admin-profile-role">
+            <DashboardIcon name="profile" />
+            <div><strong>Account role</strong><p>Your administrator role is managed by the system.</p></div>
+            <span>Administrator</span>
+          </div>
+        </div>
+
+        {error && <p className="admin-profile-error" role="alert">{error}</p>}
+        <div className="admin-profile-actions">
+          <p>Save your changes to update your profile.</p>
+          <button className="admin-primary" type="submit" disabled={saving}>{saving ? "Saving changes..." : "Save changes"}</button>
+        </div>
+      </form>
+    </section>
+  );
+}
 
 function InventoryPanel({ setNotice }) {
   const [items, setItems] = useState([]);
@@ -261,14 +391,29 @@ function AllocationPanel({ rows, staffMembers, onAssign }) {
   });
   const assignedCount = rows.filter((row) => row.assignedStaff).length;
 
-  return <section className="admin-panel record-panel allocation-panel">
-    <div className="record-toolbar"><div><h2>Resource allocations</h2><p>{assignedCount} assigned · {rows.length - assignedCount} awaiting distributor assignment.</p></div><div className="record-tools"><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter allocations by status"><option>All statuses</option>{[...new Set(rows.map((row) => row.status))].map((value) => <option key={value}>{value}</option>)}</select><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search allocations..." aria-label="Search allocations" /></div></div>
-    {!filteredRows.length && <p className="request-empty">No allocations match the current filters.</p>}
-    <div className="record-list allocation-list">{filteredRows.map((row) => <div className="record-row allocation-row" key={row.databaseId}>
-      <div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div>
-      <div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div>
-      <div className="allocation-meta"><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><label className="assignment-control"><span>Distributor</span><select aria-label={`Assign staff for ${row.name}`} value={row.assignedStaff?._id || row.assignedStaff || ""} onChange={(event) => onAssign(row, event.target.value)}><option value="">Unassigned</option>{staffMembers.map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label></div>
-    </div>)}</div>
+  return <section className="admin-panel allocation-panel">
+    <div className="allocation-heading"><div><h2>Resource allocations</h2><p>Review approved resources and assign a distributor.</p></div><span className="allocation-total">{rows.length} total</span></div>
+    <div className="allocation-summary">
+      <div><span>Assigned</span><strong>{assignedCount}</strong><small>Distributor selected</small></div>
+      <div><span>Awaiting assignment</span><strong>{rows.length - assignedCount}</strong><small>Needs a distributor</small></div>
+      <div><span>Released</span><strong>{rows.filter((row) => row.status.toLowerCase() === "released").length}</strong><small>Resources handed over</small></div>
+    </div>
+    <div className="allocation-filters">
+      <label className="allocation-search"><span>Search allocations</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search student, ID, or resource…" /></label>
+      <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option>All statuses</option>{[...new Set(rows.map((row) => row.status))].map((value) => <option key={value}>{value}</option>)}</select></label>
+    </div>
+    <div className="allocation-table-wrap"><table className="allocation-table">
+      <thead><tr><th scope="col">Resource</th><th scope="col">Student</th><th scope="col">Quantity</th><th scope="col">Status</th><th scope="col">Distributor</th></tr></thead>
+      <tbody>{filteredRows.map((row) => <tr key={row.databaseId}>
+        <td data-label="Resource"><strong>{row.resourceName}</strong></td>
+        <td data-label="Student"><div className="allocation-student"><strong>{row.studentName}</strong><small>Student ID: {row.name}</small></div></td>
+        <td data-label="Quantity"><span className="allocation-quantity">{row.quantity} <small>{Number(row.quantity) === 1 ? "unit" : "units"}</small></span></td>
+        <td data-label="Status"><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status.replaceAll("_", " ")}</span></td>
+        <td data-label="Distributor"><select className="allocation-distributor" aria-label={`Distributor for ${row.studentName}, ${row.resourceName}`} value={row.assignedStaff?._id || row.assignedStaff || ""} onChange={(event) => onAssign(row, event.target.value)}><option value="">Unassigned</option>{staffMembers.map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></td>
+      </tr>)}</tbody>
+    </table></div>
+    {!filteredRows.length && <div className="allocation-empty"><strong>{rows.length ? "No matching allocations" : "No allocations yet"}</strong><p>{rows.length ? "Try another search or status filter." : "Approved resource requests will appear here."}</p>{rows.length > 0 && <button type="button" className="admin-secondary" onClick={() => { setSearch(""); setStatus("All statuses"); }}>Clear filters</button>}</div>}
+    <div className="allocation-footer" aria-live="polite">Showing {filteredRows.length} of {rows.length} allocations</div>
   </section>;
 }
 
