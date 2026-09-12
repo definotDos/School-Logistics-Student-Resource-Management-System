@@ -38,3 +38,12 @@ test("a deleted account cannot authenticate", async () => {
   await protect({ headers: { authorization: `Bearer ${token}` } }, res, jest.fn());
   expect(res.status).toHaveBeenCalledWith(401);
 });
+
+test('password reset invalidates tokens from previous sessions', async () => {
+  jest.spyOn(User, 'findById').mockResolvedValue({ sessionVersion: 1, emailVerified: true, status: 'active' });
+  const token = jwt.sign({ id: '000000000000000000000001', sessionVersion: 0 }, process.env.JWT_SECRET);
+  const res = response(); const next = jest.fn();
+  await protect({ headers: { authorization: `Bearer ${token}` } }, res, next);
+  expect(res.status).toHaveBeenCalledWith(401);
+  expect(next).not.toHaveBeenCalled();
+});

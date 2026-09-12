@@ -1,0 +1,65 @@
+.staff-account {
+  --sp-surface: #fff;
+  --sp-soft: #f5f8fc;
+  --sp-border: #dfe7f0;
+  --sp-text: #20364f;
+  --sp-muted: #667b91;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  color: var(--sp-text);
+}
+.admin-main.staff-profile-main > .admin-topline { width: min(100%, 1000px); margin-right: auto; margin-left: auto; }
+.staff-account-summary, .staff-account-card { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px #183b5b05; }
+.staff-account-summary { display: flex; flex-direction: column; align-items: center; padding: 28px 22px 0; text-align: center; }
+.staff-account-kicker { color: var(--sp-muted); font-size: 10px; font-weight: 700; letter-spacing: 1.6px; }
+.staff-account-avatar { display: grid; place-items: center; width: 96px; height: 96px; margin: 24px 0 16px; border: 5px solid var(--sp-surface); border-radius: 50%; background: #dfedf6; color: #245474; box-shadow: 0 0 0 1px var(--sp-border); overflow: hidden; font-size: 30px; font-weight: 700; }
+.staff-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.staff-account-summary h2 { margin: 0 0 10px; color: var(--sp-text); font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; max-width: 100%; }
+.staff-account-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: var(--sp-soft); border-radius: 20px; font-size: 11px; font-weight: 600; }
+.staff-account svg { width: 18px; height: 18px; flex-shrink: 0; }
+.staff-account-email { margin: 14px 0 22px; color: var(--sp-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; max-width: 100%; }
+.staff-account-photo { position: relative; display: grid; place-items: center; width: 100%; min-height: 40px; border: 1px solid var(--sp-border); border-radius: 8px; font-size: 12px; font-weight: 600; overflow: hidden; cursor: pointer; }
+.staff-account-photo input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.staff-account-summary > small { margin: 10px 0 24px; color: var(--sp-muted); font-size: 10px; }
+.staff-account-access { display: flex; gap: 10px; width: calc(100% + 44px); padding: 20px 22px; border-top: 1px solid var(--sp-border); background: var(--sp-soft); text-align: left; }
+.staff-account-access strong { font-size: 12px; }
+.staff-account-access p { margin: 5px 0 0; color: var(--sp-muted); font-size: 11px; line-height: 1.7; }
+.staff-account-details { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
+.staff-account-card > header { display: flex; align-items: center; gap: 12px; padding: 22px 24px; border-bottom: 1px solid var(--sp-border); }
+.staff-account-section-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: var(--sp-soft); color: #3980a4; flex-shrink: 0; }
+.staff-account-card h3 { margin: 0; color: var(--sp-text); font-size: 16px; }
+.staff-account-card header p { margin: 5px 0 0; color: var(--sp-muted); font-size: 12px; line-height: 1.6; }
+.staff-account-body { padding: 22px 24px; }
+.staff-account-body > label { display: block; margin-bottom: 10px; color: var(--sp-text); font-size: 13px; font-weight: 700; }
+.staff-account .staff-account-body input { display: block; box-sizing: border-box; width: 100%; min-width: 0; height: 46px; padding: 0 14px; border: 1px solid #aebfd0; border-radius: 8px; background: var(--sp-surface); color: var(--sp-text); font: inherit; font-size: 14px; }
+.staff-account .staff-account-body input:hover { border-color: #7895af; }
+.staff-account .staff-account-body input:focus { border-color: #17658a; }
+.staff-account-body > small { display: block; margin-top: 8px; color: var(--sp-muted); font-size: 11px; }
+.staff-account-card footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; background: var(--sp-soft); border-top: 1px solid var(--sp-border); }
+.staff-account-card footer > span { font-size: 11px; color: var(--sp-muted); }
+.staff-account-card footer button { flex-shrink: 0; white-space: nowrap; min-height: 42px; padding: 10px 20px; border: 0; border-radius: 8px; background: #17658a; color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
+.staff-account-card footer button:enabled:hover { background: #124e6b; }
+.staff-account-card footer button:disabled { opacity: .55; cursor: not-allowed; }
+.staff-account .email-change { padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--sp-text); gap: 12px; }
+.staff-account .email-change > span { padding: 12px 14px; border: 1px solid var(--sp-border); border-radius: 8px; background: var(--sp-soft); font-weight: 500; }
+.staff-account .email-change small { color: var(--sp-muted); }
+.staff-account .email-change label { gap: 10px; margin-top: 6px; color: var(--sp-text); font-size: 13px; font-weight: 700; }
+.staff-account .email-change button { border-color: var(--sp-border); background: var(--sp-soft); color: var(--sp-text); }
+.staff-account input:focus-visible, .staff-account button:focus-visible, .staff-account-photo:focus-within { outline: 3px solid #4b9bc155; outline-offset: 2px; }
+.staff-account-error { margin: 14px 0 0; color: #b42318; font-size: 12px; }
+.dark-mode .staff-account { --sp-surface: #182638; --sp-soft: #1e3045; --sp-border: #40546b; --sp-text: #e3ebf6; --sp-muted: #a8bad0; }
+.dark-mode .staff-account-error { color: #fda4a4; }
+@media (max-width: 900px) {
+  .staff-account { grid-template-columns: minmax(0, 1fr); }
+  .staff-account-summary { padding-top: 22px; }
+  .staff-account-avatar { margin-top: 16px; }
+  .staff-account-photo { max-width: 240px; }
+}
+@media (max-width: 480px) {
+  .staff-account-card > header, .staff-account-body { padding: 18px; }
+  .staff-account-card footer { padding: 16px 18px; flex-direction: column; align-items: stretch; }
+}

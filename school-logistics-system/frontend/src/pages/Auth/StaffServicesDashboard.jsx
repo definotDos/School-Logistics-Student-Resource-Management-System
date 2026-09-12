@@ -1,3 +1,4 @@
+import ProfilePanel from "../../components/ProfilePanel";
 import { NotificationsPanel, ReportsPanel } from "../../components/ManagementPanels";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -8,6 +9,7 @@ import DashboardIcon from "../../components/DashboardIcon";
 import "./StaffServicesDashboard.css";
 
 const sections = {
+  profile: { label: "My Profile", title: "Staff profile", description: "Manage your personal details, photo, and verified email." },
   dashboard: { label: "Overview", title: "Staff & Services Dashboard", description: "Manage student requests, eligibility, and resource distribution." },
   verify_eligibility: { label: "Verify Eligibility", title: "Student Eligibility Review", description: "Check if students qualify to receive resources based on criteria." },
   review_requests: { label: "Review Requests", title: "Request Review Queue", description: "Review submitted requests and student information." },
@@ -276,7 +278,7 @@ function StaffServicesDashboard() {
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
-        <main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""}`}>
+        <main className={`admin-main ${activeSection === "reports" ? "reports-main" : activeSection === "profile" ? "profile-main staff-profile-main" : ""}`}>
 
 
           <div className="admin-topline">
@@ -335,6 +337,7 @@ function StaffServicesDashboard() {
           {activeSection === "update_status" && (
             <UpdateStatusPanel rows={rows["update_status"]} onUpdateStatus={handleUpdateStatus} />
           )}
+          {activeSection === "profile" && <ProfilePanel setNotice={setNotice} />}
           {activeSection === "reports" && <ReportsPanel setNotice={setNotice} />}
           {activeSection === "notifications" && (
             <NotificationsPanel

@@ -33,6 +33,7 @@ const adminLinks = [
 ];
 
 const staffLinks = [
+  { name: "My Profile", path: "/staff/profile", icon: "profile" },
   { name: "Dashboard", path: "/staff", icon: "home" },
   { name: "Verify Eligibility", path: "/staff/verify_eligibility", icon: "users" },
   { name: "Review Requests", path: "/staff/review_requests", icon: "requests" },

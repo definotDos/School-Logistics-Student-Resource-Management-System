@@ -1,11 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { getToken, clearSession } from "./session";
+
+const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 
 /**
  * Generic API request wrapper with authentication
  * Handles token management and error responses
  */
 export async function apiRequest(endpoint, options = {}) {
-  const token = localStorage.getItem("srmsToken");
+  const token = getToken();
   let response;
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
@@ -17,14 +19,16 @@ export async function apiRequest(endpoint, options = {}) {
       },
     });
   } catch {
-    throw new Error("Unable to connect to the server. Start the backend with npm run dev in the backend folder.");
+    throw new Error("We could not reach the server. Please try again in a moment.");
   }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const error = new Error(data.message || `Request failed with status ${response.status}.`);
+    const error = new Error(data.message || (response.status >= 500 ? "The service is temporarily unavailable. Please try again shortly." : `Request failed with status ${response.status}.`));
     error.status = response.status;
+    error.requiresVerification = data.requiresVerification;
+    error.email = data.email;
     throw error;
   }
 
@@ -36,6 +40,8 @@ export async function apiRequest(endpoint, options = {}) {
 // ============================================
 
 export const authAPI = {
+  forgotPassword: email => apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
+  resetPassword: details => apiRequest("/auth/reset-password", { method: "POST", body: JSON.stringify(details) }),
   /**
    * Sign up new user
    */
@@ -77,8 +83,7 @@ export const authAPI = {
    * Logout (client-side only, clears token)
    */
   logout: () => {
-    localStorage.removeItem("srmsToken");
-    localStorage.removeItem("srmsUser");
+    clearSession();
   },
 };
 
@@ -457,6 +462,9 @@ export const userAPI = {
   /**
    * Update current user profile
    */
+  updateStudentId: (id, studentId) => apiRequest(`/users/${id}/student-id`, { method: "PATCH", body: JSON.stringify({ studentId }) }),
+  requestEmailChange: (email) => apiRequest("/users/me/email-change", { method: "POST", body: JSON.stringify({ email }) }),
+  confirmEmailChange: (details) => apiRequest("/users/me/email-change/verify", { method: "POST", body: JSON.stringify(details) }),
   updateMe: (details) =>
     apiRequest("/users/me", {
       method: "PATCH",

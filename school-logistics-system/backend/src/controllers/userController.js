@@ -14,7 +14,7 @@ async function getAllUsers(req, res) {
 			filter.role = req.query.role;
 		}
 		const users = await User.find(filter).sort({ createdAt: -1 });
-		res.json({ users: users.map(publicUser) });
+		res.json({ users: users.map(publicUser), accountCreationReady: req.app?.locals.accountCreationReady !== false });
 	} catch {
 		res.status(500).json({ message: "Unable to load users." });
 	}
@@ -56,7 +56,8 @@ async function updateMe(req, res) {
 		if (req.body.campus !== undefined && req.body.campus !== req.user.campus) {
 			return res.status(403).json({ message: "Campus changes are not allowed after account creation." });
 		}
-		const allowedFields = ["name", "email", "grade", "strand", "avatar"];
+		if (req.body.email !== undefined && (typeof req.body.email !== "string" || req.body.email.trim().toLowerCase() !== req.user.email)) return res.status(400).json({ message: "Verify your new email using Change email before updating it." });
+        const allowedFields = ["name", "grade", "strand", "avatar"];
 		if (req.body.activeCampus !== undefined) {
 			if (req.user.role !== "admin") return res.status(403).json({ message: "Your account is locked to its assigned campus." });
 			if (typeof req.body.activeCampus !== "string") return res.status(400).json({ message: "Active campus must be a campus name or an empty string for all campuses." });
@@ -64,11 +65,7 @@ async function updateMe(req, res) {
 			allowedFields.push("activeCampus");
 		}
 		const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowedFields.includes(key)));
-		if (updates.email) updates.email = updates.email.toLowerCase().trim();
-		if (updates.email) {
-			const existingUser = await User.findOne({ email: updates.email, _id: { $ne: req.user._id } });
-			if (existingUser) return res.status(409).json({ message: "That email address is already in use." });
-		}
+		if (updates.name !== undefined && (typeof updates.name !== "string" || !updates.name.trim())) return res.status(400).json({ message: "Enter your full name." });
 		const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: "after", runValidators: true });
 		if (!user) return res.status(404).json({ message: "Your account could not be found." });
 		res.json({ user: publicUser(user) });
@@ -85,6 +82,6 @@ async function createUser(req, res) {
 		if (role === "student" && !String(studentId || "").trim()) return res.status(400).json({ message: "Student ID is required." });
 		const user = await User.create({ name, email, password: await require("bcryptjs").hash(password, 12), role, campus, studentId, emailVerified: true });
 		res.status(201).json({ user: publicUser(user) });
-	} catch (error) { res.status(error.code === 11000 ? 409 : 400).json({ message: error.code === 11000 ? "Email already exists." : "Unable to create account." }); }
+	} catch (error) { res.status(error.code === 11000 ? 409 : 400).json({ message: error.code === 11000 ? error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : "Unable to create account." }); }
 }
 module.exports = { getMe, getAllUsers, updateUserStatus, deleteUser, updateMe, createUser };

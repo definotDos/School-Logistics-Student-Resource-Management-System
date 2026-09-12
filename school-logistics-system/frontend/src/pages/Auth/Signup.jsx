@@ -17,7 +17,7 @@ export function SignupPage({
   const [campusError, setCampusError] = useState('')
   useEffect(() => { campusAPI.getPublic().then(r => setAvailableCampuses(r.campuses)).catch(e => setCampusError(e.message)) }, [])
   const [validationErrors, setValidationErrors] = useState({})
-  const [verificationEmail, setVerificationEmail] = useState('')
+  const [verificationEmail, setVerificationEmail] = useState(() => sessionStorage.getItem('srmsVerificationEmail') || '')
   const [verificationCode, setVerificationCode] = useState('')
   const [verificationMessage, setVerificationMessage] = useState('')
   const [verificationError, setVerificationError] = useState('')
@@ -33,7 +33,7 @@ export function SignupPage({
     setForm({ ...form, [key]: event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
   }
-  const identityLabel = form.role === 'student' ? 'Student ID' : form.role === 'admin' ? 'Admin ID' : 'Employee ID'
+  const identityLabel = form.role === 'student' ? 'Student ID' : 'Employee ID'
 
   const submit = async event => {
     event.preventDefault()
@@ -47,7 +47,7 @@ export function SignupPage({
     setValidationErrors({})
     try {
       const result = await onSignup(form)
-      if (result?.requiresVerification) setVerificationEmail(result.email || form.email.trim().toLowerCase())
+      if (result?.requiresVerification) { const email = result.email || form.email.trim().toLowerCase(); sessionStorage.setItem('srmsVerificationEmail', email); setVerificationEmail(email) }
     } catch {
       // handled upstream
     }
@@ -109,7 +109,7 @@ export function SignupPage({
     <div className="auth-form-wrap verification-wrap">
       <div className="auth-heading">
         <h2>Check your email</h2>
-        <p>We sent a 6-digit verification code to {verificationEmail}.</p>
+        <p>Enter the 6-digit code sent to {verificationEmail}, or request a new code below.</p>
       </div>
       <form className="auth-form" onSubmit={submitVerification}>
         <label className="auth-field form-wide">
@@ -137,6 +137,7 @@ export function SignupPage({
         {verificationError && <p className="auth-error form-wide" role="alert">{verificationError}</p>}
         {verificationMessage && <p className="auth-success form-wide" role="status">{verificationMessage}</p>}
       </form>
+      <p className="auth-footer"><button type="button" onClick={() => { sessionStorage.removeItem('srmsVerificationEmail'); setVerificationEmail(''); onChangeMode('login') }}>Back to login</button></p>
       <p className="auth-footer">Didn&apos;t receive it? <button type="button" onClick={resendCode}>Resend code</button></p>
     </div>
   )
@@ -154,7 +155,6 @@ export function SignupPage({
             {[
               ['student', '♙', 'Student', 'Request school resources'],
               ['staff', '♧', 'Staff', 'Manage requests/distribution'],
-              ['admin', '⚙', 'Admin', 'Manage the whole system'],
             ].map(([role, icon, label, description]) => (
               <label key={role} className={form.role === role ? 'selected' : ''}>
                 <input type="radio" name="role" value={role} checked={form.role === role} onChange={update('role')} />

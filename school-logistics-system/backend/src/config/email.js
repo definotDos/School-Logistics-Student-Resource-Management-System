@@ -51,4 +51,10 @@ async function sendVerificationEmail(email, code) {
 	return result;
 }
 
-module.exports = { sendVerificationEmail };
+async function sendPasswordResetEmail(email, code) {
+ const mailer = await getTransporter();
+ return mailer.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to: email,
+  subject: "School Logistics password reset",
+  text: `Your password reset code is ${code}. Paste it into the password recovery form. It expires in 15 minutes and can be used once. If you did not request this, ignore this email.` });
+}
+module.exports = { sendVerificationEmail, sendPasswordResetEmail };

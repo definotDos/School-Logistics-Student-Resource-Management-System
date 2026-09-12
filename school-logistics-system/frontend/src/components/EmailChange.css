@@ -1,0 +1,7 @@
+.email-change { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.email-change > span, .email-change small { overflow-wrap: anywhere; }
+.email-change small { line-height: 1.5; opacity: .8; }
+.email-change label { display: flex; flex-direction: column; gap: 6px; }
+.email-change button { align-self: flex-start; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 14px; cursor: pointer; }
+.email-change button:disabled { opacity: .6; cursor: wait; }
+.email-change [role="alert"] { color: #b91c1c; }

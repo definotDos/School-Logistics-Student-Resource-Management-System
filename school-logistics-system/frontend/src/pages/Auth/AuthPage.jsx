@@ -15,6 +15,7 @@ export function AuthPage() {
   const { login, signup, verifyEmail, resendVerificationCode } = useAuth()
 
   const handleModeChange = nextMode => {
+    setAuthError('')
     if (nextMode === mode) return
     if (nextMode === 'signup') {
       setSelectedCampus(undefined)
@@ -24,13 +25,21 @@ export function AuthPage() {
     }
   }
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email, password, rememberMe) => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
     setAuthError('')
     try {
-      const user = await login(email, password)
+      const user = await login(email, password, rememberMe)
       navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student')
     } catch (error) {
       setAuthError(error.message)
+      if (error.requiresVerification) {
+        sessionStorage.setItem('srmsVerificationEmail', error.email)
+        navigate('/signup')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -60,7 +69,7 @@ export function AuthPage() {
       campus={selectedCampus}
     >
       {mode === 'login' ? (
-        <LoginPage onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
+        <LoginPage isSubmitting={isSubmitting} onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
         <SignupPage
           onSignup={handleSignup}

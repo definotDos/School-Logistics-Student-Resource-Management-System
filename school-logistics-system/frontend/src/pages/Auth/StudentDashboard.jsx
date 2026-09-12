@@ -1,3 +1,4 @@
+import EmailChange from "../../components/EmailChange";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
@@ -95,7 +96,8 @@ function StudentDashboard() {
     event.preventDefault();
     setProfileError("");
     try {
-      await updateUser(draftProfile);
+      const details = { name: draftProfile.name, grade: draftProfile.grade, strand: draftProfile.strand, avatar: draftProfile.avatar };
+      await updateUser(details);
       setProfileSaved(true);
       window.setTimeout(() => setProfileOpen(false), 900);
     } catch (error) {
@@ -175,7 +177,7 @@ function StudentDashboard() {
                   <div className="profile-section"><span className="profile-section-title">Personal details</span>
                   <div className="profile-form-grid">
                     <label>Full name<input value={draftProfile.name} onChange={(event) => updateDraft("name", event.target.value)} required /></label>
-                    <label>Email address<input type="email" value={draftProfile.email} onChange={(event) => updateDraft("email", event.target.value)} required /></label>
+                    <EmailChange />
                   </div></div>
                   <div className="profile-section"><span className="profile-section-title">Academic details</span>
                   <div className="profile-form-grid">

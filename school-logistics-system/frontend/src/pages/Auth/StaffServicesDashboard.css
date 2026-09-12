@@ -1,5 +1,52 @@
 /* Staff Services Dashboard Styles */
 
+/* Keep account settings compact and separate email verification from profile edits. */
+.staff-profile-main .admin-profile-fields {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 24px;
+}
+
+.staff-profile-main .email-change {
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-soft);
+  color: var(--ap-text);
+  font-size: 13px;
+}
+
+.staff-profile-main .email-change > strong { font-size: 14px; }
+.staff-profile-main .email-change > span {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ap-border);
+  line-height: 1.5;
+}
+.staff-profile-main .email-change small {
+  color: var(--ap-muted);
+  font-size: 12px;
+  opacity: 1;
+}
+.staff-profile-main .email-change button {
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.staff-profile-main .email-change button:enabled:hover { border-color: #4b9bc1; }
+.staff-profile-main .email-change button:focus-visible { outline: 3px solid #4b9bc166; outline-offset: 2px; }
+.staff-profile-main .email-change button:disabled { cursor: not-allowed; }
+.staff-profile-main .email-change p { margin: 0; font-size: 12px; line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .staff-profile-main .admin-profile-fields { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .staff-profile-main .email-change { padding: 16px; }
+  .staff-profile-main .email-change button { align-self: stretch; }
+}
+
 .staff-service-nav {
   display: flex;
   flex-wrap: wrap;

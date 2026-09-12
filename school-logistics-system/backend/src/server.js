@@ -7,6 +7,14 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   await connectDB();
+  // Existing users must still be able to sign in and correct legacy ID conflicts.
+  app.locals.accountCreationReady = false;
+  try {
+    await require("./utils/studentIds").prepareStudentIds(require("./models/User"));
+    app.locals.accountCreationReady = true;
+  } catch (error) {
+    console.error("Account creation paused:", error.message);
+  }
   // Campus records are imported from existing database locations, never a mock catalog.
   const Campus = require("./models/Campus");
   const names = new Set([...(await require("./models/User").distinct("campus")), ...(await Resource.distinct("campus"))]);

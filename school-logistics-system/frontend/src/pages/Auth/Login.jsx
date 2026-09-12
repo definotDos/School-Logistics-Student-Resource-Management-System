@@ -1,7 +1,14 @@
 import { useState } from 'react'
+import { authAPI } from '../../services/api'
 
 
-export function LoginPage({ onLogin, onChangeMode, error }) {
+export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }) {
+  const [rememberMe, setRememberMe] = useState(false)
+  const [resetCode, setResetCode] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [resetStage, setResetStage] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -17,7 +24,7 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
     if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) return setValidationError('Enter a valid email address.')
     if (!password) return setValidationError('Enter your password.')
     setValidationError('')
-    onLogin(normalizedEmail, password)
+    onLogin(normalizedEmail, password, rememberMe)
   }
 
   const openForgotPassword = () => {
@@ -26,10 +33,21 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
     setForgotOpen(true)
   }
 
-  const submitForgotPassword = event => {
+  const submitForgotPassword = async event => {
     event.preventDefault()
     if (!/^\S+@\S+\.\S+$/.test(forgotEmail.trim())) return setForgotMessage('Enter a valid email address.')
-    setForgotMessage('Contact your campus administrator to reset your password.')
+    if (busy) return
+    if (resetStage && newPassword !== confirmPassword) return setForgotMessage('Passwords do not match.')
+    setBusy(true)
+    try {
+      const result = resetStage
+        ? await authAPI.resetPassword({ email: forgotEmail.trim(), code: resetCode.trim(), password: newPassword })
+        : await authAPI.forgotPassword(forgotEmail.trim())
+      setForgotMessage(result.message)
+      setResetStage(!resetStage)
+      setResetCode(''); setNewPassword(''); setConfirmPassword('')
+    } catch (error) { setForgotMessage(error.message) }
+    finally { setBusy(false) }
   }
 
   return (
@@ -38,7 +56,7 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
         <h2>Login</h2>
         <p>Welcome back. Please enter your details.</p>
       </div>
-      <form className="auth-form" onSubmit={submit}>
+      <form className="auth-form" onSubmit={submit} aria-busy={isSubmitting}>
         <label className="auth-field compact-field">
           <span>Email address</span>
           <input className={validationError && !/^\S+@\S+\.\S+$/.test(email.trim()) ? 'input-invalid' : ''} type="email" placeholder="Email Address" value={email} onChange={event => { setEmail(event.target.value); setValidationError('') }} autoComplete="email" required aria-invalid={Boolean(validationError && !/^\S+@\S+\.\S+$/.test(email.trim()))} />
@@ -53,22 +71,29 @@ export function LoginPage({ onLogin, onChangeMode, error }) {
           </span>
         </label>
         <div className="auth-options">
-          <label><input type="checkbox" /> Remember me</label>
+          <label><input type="checkbox" checked={rememberMe} onChange={event => setRememberMe(event.target.checked)} /> Remember me</label>
           <button type="button" onClick={openForgotPassword}>Forgot password?</button>
         </div>
-        <button className="auth-submit" type="submit">Login</button>
+        <button className="auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? "Signing in..." : "Login"}</button>
         {(validationError || error) && <p className={`auth-error ${error?.includes('successfully') ? 'auth-success' : ''}`} role="alert">{validationError || error}</p>}
       </form>
+      <p className="auth-footer"><button type="button" onClick={() => { if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setValidationError('Enter your email address to resume verification.'); sessionStorage.setItem('srmsVerificationEmail', email.trim().toLowerCase()); onChangeMode('signup') }}>Resume email verification</button></p>
       <p className="auth-footer">Don't have an account? <button type="button" onClick={() => onChangeMode('signup')}>Register</button></p>
       {forgotOpen && <div className="forgot-modal-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setForgotOpen(false)}>
         <section className="forgot-modal" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
           <button className="forgot-modal-close" type="button" aria-label="Close password recovery" onClick={() => setForgotOpen(false)}>×</button>
           <div className="forgot-modal-icon" aria-hidden="true">?</div>
           <h3 id="forgot-title">Forgot your password?</h3>
-          <p>Enter your account email so an administrator can help you recover access.</p>
+          <p>Request a reset code by email, then enter it below with your new password.</p>
           <form onSubmit={submitForgotPassword}>
             <label className="auth-field compact-field"><span>Email address</span><input type="email" value={forgotEmail} onChange={event => { setForgotEmail(event.target.value); setForgotMessage('') }} placeholder="you@example.com" autoComplete="email" required /></label>
-            <button className="auth-submit" type="submit">Request help</button>
+            {resetStage && <>
+              <label className="auth-field compact-field"><span>Reset code</span><input value={resetCode} onChange={event => setResetCode(event.target.value)} autoComplete="one-time-code" required /></label>
+              <label className="auth-field compact-field"><span>New password</span><input type="password" value={newPassword} onChange={event => setNewPassword(event.target.value)} minLength={8} autoComplete="new-password" required /></label>
+              <label className="auth-field compact-field"><span>Confirm password</span><input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} minLength={8} autoComplete="new-password" required /></label>
+            </>}
+            <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait...' : resetStage ? 'Reset password' : 'Send reset code'}</button>
+            <button type="button" disabled={busy} onClick={() => { setResetStage(!resetStage); setForgotMessage('') }}>{resetStage ? 'Request a new code' : 'I already have a reset code'}</button>
             {forgotMessage && <p className="forgot-message" role="status">{forgotMessage}</p>}
           </form>
         </section>

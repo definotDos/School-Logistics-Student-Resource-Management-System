@@ -1,11 +1,13 @@
 import { createContext, useEffect, useState } from "react";
 import { authAPI, userAPI } from "../services/api";
 
+import { sessionStorageForAuth, getToken, clearSession, saveSession } from "../services/session";
+
 const AuthContext = createContext(null);
 
 function readStoredUser() {
   try {
-    return JSON.parse(localStorage.getItem("srmsUser") || "null");
+    return JSON.parse(sessionStorageForAuth().getItem("srmsUser") || "null");
   } catch {
     return null;
   }
@@ -15,20 +17,19 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser);
 
   useEffect(() => {
-    if (!localStorage.getItem("srmsToken")) return;
+    if (!getToken()) return;
     userAPI.getMe().then(result => {
       setUser(result.user);
-      localStorage.setItem("srmsUser", JSON.stringify(result.user));
+      sessionStorageForAuth().setItem("srmsUser", JSON.stringify(result.user));
     }).catch(error => {
-      if ([401, 403].includes(error.status)) { setUser(null); localStorage.removeItem("srmsUser"); localStorage.removeItem("srmsToken"); }
+      if ([401, 403].includes(error.status)) { setUser(null); clearSession(); }
     });
   }, []);
 
-  const login = async (email, password) => {
-    const result = await authAPI.login({ email, password });
+  const login = async (email, password, rememberMe = false) => {
+    const result = await authAPI.login({ email, password, rememberMe });
     setUser(result.user);
-    localStorage.setItem("srmsToken", result.token);
-    localStorage.setItem("srmsUser", JSON.stringify(result.user));
+    saveSession(result, rememberMe);
     return result.user;
   };
 
@@ -39,24 +40,21 @@ export function AuthProvider({ children }) {
 
   const verifyEmail = async (email, code) => {
     const result = await authAPI.verifyEmail({ email, code });
-    setUser(result.user);
-    localStorage.setItem("srmsToken", result.token);
-    localStorage.setItem("srmsUser", JSON.stringify(result.user));
-    return result.user;
+    sessionStorage.removeItem("srmsVerificationEmail");
+    return result;
   };
 
   const resendVerificationCode = async (email) => authAPI.resendVerificationCode(email);
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("srmsToken");
-    localStorage.removeItem("srmsUser");
+    clearSession();
   };
 
   const updateUser = async (updates) => {
     const result = await userAPI.updateMe(updates);
     setUser(result.user);
-    localStorage.setItem("srmsUser", JSON.stringify(result.user));
+    sessionStorageForAuth().setItem("srmsUser", JSON.stringify(result.user));
     return result.user;
   };
 
