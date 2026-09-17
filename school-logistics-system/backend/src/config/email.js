@@ -23,8 +23,11 @@ function getDefaultSmtpConfig() {
 async function getTransporter() {
 	if (transporter) return transporter;
 	const smtpHost = process.env.SMTP_HOST || getDefaultSmtpConfig().host;
-	const smtpUser = process.env.SMTP_USER || "";
-	const smtpPass = process.env.SMTP_PASS || "";
+	const smtpUser = (process.env.SMTP_USER || "").trim();
+	// Google displays App Passwords in groups separated by spaces.
+	const smtpPass = smtpHost === "smtp.gmail.com"
+		? (process.env.SMTP_PASS || "").replace(/\s/g, "")
+		: (process.env.SMTP_PASS || "");
 	const placeholders = ["your-email@gmail.com", "your-real-gmail@gmail.com", "your-google-app-password", "your-email@example.com", "your-mailtrap-username", "your-mailtrap-password", "replace-with-your-google-app-password"];
 	if (!smtpUser || !smtpPass || placeholders.includes(smtpUser) || placeholders.includes(smtpPass)) throw new Error("Email delivery is not configured. Set SMTP_USER and SMTP_PASS in backend/.env, then restart the backend.");
 
@@ -33,6 +36,9 @@ async function getTransporter() {
 		port: Number(process.env.SMTP_PORT || getDefaultSmtpConfig().port),
 		secure: process.env.SMTP_SECURE === "true" || getDefaultSmtpConfig().secure,
 		auth: { user: smtpUser, pass: smtpPass },
+		connectionTimeout: 15000,
+		greetingTimeout: 15000,
+		socketTimeout: 30000,
 	});
 	return transporter;
 }
@@ -57,4 +63,9 @@ async function sendPasswordResetEmail(email, code) {
   subject: "School Logistics password reset",
   text: `Your password reset code is ${code}. Paste it into the password recovery form. It expires in 15 minutes and can be used once. If you did not request this, ignore this email.` });
 }
-module.exports = { sendVerificationEmail, sendPasswordResetEmail };
+async function verifyEmailConnection() {
+	const mailer = await getTransporter();
+	return mailer.verify();
+}
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, verifyEmailConnection };

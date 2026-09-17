@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { campusAPI } from '../../services/api'
 import { campuses as campusDirectory } from '../../data/campuses'
+import './Signup.css'
 
 export function SignupPage({
   onSignup,
@@ -37,8 +38,9 @@ export function SignupPage({
 
   const submit = async event => {
     event.preventDefault()
-    if (isSubmitting || !form.campus) return
+    if (isSubmitting) return
     const errors = {}
+    if (!form.campus) errors.campus = 'Choose your campus.'
     if (form.name.trim().length < 2) errors.name = 'Enter your full name.'
     if (form.role === 'student' && form.studentId.trim().length < 2) errors.studentId = `Enter your ${identityLabel.toLowerCase()}.`
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = 'Enter a valid school email address.'
@@ -47,6 +49,7 @@ export function SignupPage({
     setValidationErrors({})
     try {
       const result = await onSignup(form)
+      if (result?.requiresVerification) setForm(current => ({ ...current, password: '' }))
       if (result?.requiresVerification) { const email = result.email || form.email.trim().toLowerCase(); sessionStorage.setItem('srmsVerificationEmail', email); setVerificationEmail(email) }
     } catch {
       // handled upstream
@@ -149,6 +152,7 @@ export function SignupPage({
         <h2>Create account</h2>
       </div>
       <form className="auth-form signup-form" onSubmit={submit}>
+        {error && <p className="auth-error form-wide" role="alert">{error}</p>}
         <fieldset className="account-type form-wide">
           <legend>Choose account type</legend>
           <div className="account-type-options">
@@ -169,11 +173,12 @@ export function SignupPage({
             {selectedCampus && (selectedCampus.logo ? <img src={selectedCampus.logo} alt="" /> : <i>{selectedCampus.code}</i>)}
             <span>{selectedCampus ? selectedCampus.name : 'Please Select Your Campus'}</span><b aria-hidden="true">⌄</b>
           </button>
+          {validationErrors.campus && <small className="field-error">{validationErrors.campus}</small>}
         </label>
         {campusMenuOpen && <div className="signup-campus-menu form-wide" role="listbox" aria-label="Available campuses">{availableCampuses.map(campus => { const campusDetails = { ...campusDirectory.find(entry => entry.name === campus.name), ...campus }; return <button key={campus._id} type="button" role="option" aria-selected={form.campus === campus.name} onClick={() => { setForm({ ...form, campus: campus.name }); setCampusMenuOpen(false); }}>{campusDetails.logo ? <img src={campusDetails.logo} alt="" /> : <i>{campusDetails.code || campus.name.slice(0, 2).toUpperCase()}</i>}<span>{campus.name}</span></button> })}{!availableCampuses.length && <p>No active campuses. Contact an administrator.</p>}</div>}
         <label className="auth-field compact-field">
           <span>Full name</span>
-          <input className={validationErrors.name ? 'input-invalid' : ''} placeholder="FullName" value={form.name} onChange={update('name')} autoComplete="name" required aria-invalid={Boolean(validationErrors.name)} />
+          <input className={validationErrors.name ? 'input-invalid' : ''} placeholder="Full name" value={form.name} onChange={update('name')} autoComplete="name" required aria-invalid={Boolean(validationErrors.name)} />
           {validationErrors.name && <small className="field-error">{validationErrors.name}</small>}
         </label>
         <label className="auth-field compact-field">
@@ -198,7 +203,6 @@ export function SignupPage({
         </label>
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
         <button className="auth-submit form-wide" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Sign Up'}</button>
-        {error && <p className="auth-error form-wide" role="alert">{error}</p>}
       </form>
       <p className="auth-footer">Already have an account? <button type="button" onClick={() => onChangeMode('login')}>Login</button></p>
     </div>

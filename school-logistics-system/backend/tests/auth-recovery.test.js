@@ -6,6 +6,19 @@ const auth = require('../src/controllers/authController');
 const mail = require('../src/config/email');
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => jest.restoreAllMocks());
+test.each(['EAUTH', 'ETIMEDOUT', 'ECONNECTION', undefined])('Email failure %s rolls back signup and returns a useful error', async code => {
+ jest.spyOn(require('../src/models/Campus'), 'exists').mockResolvedValue({ _id: 'campus' });
+ jest.spyOn(User, 'findOne').mockResolvedValue(null);
+ jest.spyOn(User, 'create').mockResolvedValue({ _id: 'new-user' });
+ const remove = jest.spyOn(User, 'deleteOne').mockResolvedValue({ deletedCount: 1 });
+ jest.spyOn(console, 'error').mockImplementation(() => {});
+ mail.sendVerificationEmail.mockRejectedValueOnce(Object.assign(new Error('Private SMTP details'), { code }));
+ const res = response();
+ await auth.signup({ body: { name: 'Staff', email: 'staff@example.com', password: 'password123', campus: 'Main', role: 'staff' } }, res);
+ expect(remove).toHaveBeenCalledWith({ _id: 'new-user' });
+ expect(res.status).toHaveBeenCalledWith(503);
+ expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining('Your account was not created') });
+});
 test('public signup rejects administrator roles before creating an account', async () => {
  const create = jest.spyOn(User, 'create'); const res = response();
  await auth.signup({ body: { name: 'Admin', email: 'a@example.com', password: 'password123', campus: 'Main', role: 'admin' } }, res);

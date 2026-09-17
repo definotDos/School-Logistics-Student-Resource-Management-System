@@ -1,0 +1,59 @@
+.auth-page.is-signup .auth-panel {
+  overflow-y: auto;
+  align-items: safe center;
+  padding-block: 24px;
+}
+
+.auth-page.is-signup .auth-panel-inner {
+  max-height: none;
+}
+
+.signup-form-wrap .account-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.signup-form-wrap .account-type-options label {
+  width: auto;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 10px;
+  flex-direction: row;
+  gap: 10px;
+  text-align: left;
+}
+
+.signup-form-wrap .account-type-options small {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.signup-form-wrap .auth-field {
+  min-width: 0;
+}
+
+.signup-form-wrap .auth-error {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  .auth-page.is-signup {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-rows: 145px auto;
+  }
+
+  .auth-page.is-signup .auth-panel {
+    height: auto;
+    overflow: visible;
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-form-wrap .signup-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -55,7 +55,8 @@ async function signup(req, res) {
 			await sendVerificationEmail(normalizedEmail, verificationCode);
 		} catch (emailError) {
 			await User.deleteOne({ _id: user._id });
-			throw emailError;
+			console.error("Signup email delivery failed:", emailError.code || "EMAIL_CONFIGURATION");
+			return res.status(503).json({ message: "Verification email is unavailable. Your account was not created. Please contact your administrator, then try again." });
 		}
 		res.status(201).json({ message: "Account created. Check your email for the verification code.", requiresVerification: true, email: normalizedEmail });
 	} catch (error) {
