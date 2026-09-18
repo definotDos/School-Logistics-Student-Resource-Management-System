@@ -1,0 +1,154 @@
+/* Scoped to login so registration retains its campus theme. */
+.auth-page.is-login .auth-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding: 20px clamp(20px, 4vw, 64px);
+  background:
+    radial-gradient(ellipse at 18% 22%, #7955df45, transparent 52%),
+    radial-gradient(ellipse at 88% 80%, #27b6c52b, transparent 48%),
+    #0b1224;
+}
+
+.auth-page.is-login .auth-panel::before,
+.auth-page.is-login .auth-panel::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: .65;
+  filter: blur(18px);
+  transform: none;
+}
+
+.auth-page.is-login .auth-panel::before {
+  top: 10%;
+  left: 3%;
+  background: radial-gradient(circle at 35% 30%, #a98cff, #6441c8 60%, #342661);
+}
+
+.auth-page.is-login .auth-panel::after {
+  top: auto;
+  bottom: 8%;
+  right: 0;
+  background: radial-gradient(circle at 65% 65%, #53c9d7, #287c9e 55%, #143753);
+}
+
+.auth-page.is-login .auth-panel-inner {
+  position: relative;
+  padding: clamp(26px, 3vw, 42px);
+  max-height: none;
+  overflow: visible;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-top-color: rgb(255 255 255 / 36%);
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 4%));
+  box-shadow: 0 28px 70px #00000040, inset 0 1px 0 #ffffff14;
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  backdrop-filter: blur(28px) saturate(140%);
+  color: #f5f3ff;
+}
+
+.auth-page.is-login .auth-heading h2 {
+  color: #fff;
+  font-size: clamp(30px, 3vw, 38px);
+  letter-spacing: -1.2px;
+}
+
+.is-login .auth-heading p {
+  margin: 10px 0 30px;
+  color: #bec8dd;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.is-login .auth-form { gap: 20px; }
+.is-login .auth-form .compact-field { gap: 9px; }
+.is-login .auth-form .compact-field > span:not(.password-control) {
+  color: #e3e8f6;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.is-login .auth-form .compact-field input {
+  height: 52px;
+  padding-inline: 16px;
+  border: 1px solid #ffffff26;
+  border-radius: 12px;
+  background: #090f253d;
+  color: #fff;
+  font-size: 16px;
+  color-scheme: dark;
+  box-shadow: inset 0 2px 4px #0000000d;
+}
+
+.is-login .auth-form .password-control input { padding-right: 50px; }
+.is-login .auth-form input::placeholder { color: #aab6cf; opacity: 1; }
+.is-login .auth-form input:hover { border-color: #ffffff50; background: #ffffff0a; }
+.is-login .auth-form input:focus {
+  outline: none;
+  border-color: #b7a3ff;
+  background: #111a35a6;
+  box-shadow: 0 0 0 4px #a78bfa24;
+}
+.is-login .auth-form input.input-invalid { border-color: #fda4af; background: #88133733; }
+.is-login .password-toggle { width: 40px; height: 40px; color: #c9baff; border-radius: 8px; }
+.is-login .auth-options { gap: 12px; flex-wrap: wrap; }
+.is-login .auth-options label { color: #c4cde0; font-size: 12px; }
+.is-login .auth-options input { accent-color: #a78bfa; width: 16px; height: 16px; }
+.auth-page.is-login .auth-options button,
+.auth-page.is-login .auth-footer button { color: #fff; font-size: 12px; text-underline-offset: 4px; }
+.auth-page.is-login .auth-options button:hover,
+.auth-page.is-login .auth-footer button:hover { color: #fff; }
+.is-login .auth-panel button:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 4px; }
+
+.is-login .auth-form .auth-submit {
+  width: 100%;
+  height: 54px;
+  margin-top: 2px;
+  border: 1px solid #ffffff26;
+  border-radius: 15px;
+  background: linear-gradient(105deg, #090713 0%, #30275f 44%, #6955df 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px #7354de30, inset 0 1px 0 #ffffff40;
+}
+.is-login .auth-form .auth-submit:hover:not(:disabled) {
+  background: linear-gradient(105deg, #121020 0%, #3c3173 44%, #7864ed 100%);
+  box-shadow: 0 10px 30px #7354de60;
+}
+.is-login .auth-form .auth-submit:disabled { transform: none; }
+.is-login .auth-footer { margin-top: 22px; color: #fff; font-size: 13px; }
+.is-login .auth-footer + .auth-footer { padding-top: 20px; border-top: 1px solid #ffffff14; }
+
+@supports not (backdrop-filter: blur(1px)) {
+  .auth-page.is-login .auth-panel-inner { background: #202b43; }
+}
+
+@media (max-width: 700px) {
+  .auth-page.is-login { height: auto; min-height: 100dvh; overflow: visible; grid-template-rows: 145px 1fr; }
+  .auth-page.is-login .auth-panel { padding: 28px 18px; overflow: visible; }
+  .auth-page.is-login .auth-panel-inner { padding: 28px 22px; border-radius: 22px; }
+}
+
+/* Fit shorter screens without introducing an inner form scrollbar. */
+@media (max-height: 800px) {
+  .auth-page.is-login .auth-panel-inner { padding: 24px; }
+  .is-login .auth-heading p { margin: 8px 0 18px; }
+  .is-login .auth-form { gap: 14px; }
+  .is-login .auth-form .compact-field { gap: 6px; }
+  .is-login .auth-form .compact-field input,
+  .is-login .auth-form .auth-submit { height: 46px; }
+  .is-login .auth-footer { margin-top: 14px; }
+  .is-login .auth-footer + .auth-footer { padding-top: 14px; }
+}
+
+@media (max-width: 700px) and (max-height: 800px) {
+  .auth-page.is-login { grid-template-rows: 110px 1fr; }
+  .auth-page.is-login .auth-intro { height: 110px; min-height: 0; }
+  .auth-page.is-login .auth-panel { padding: 16px; }
+}

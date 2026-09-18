@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import DashboardIcon from "./DashboardIcon";
+import { campuses as campusBranding } from "../data/campuses";
+import "./CampusPanel.css";
 import { allocationAPI, distributionAPI, campusAPI, notificationAPI, reportsAPI, userAPI } from "../services/api";
 
 export function CreateUserForm({ onCreated }) {
@@ -84,12 +86,16 @@ export function DistributionPanel() {
   </div>;
 }
 export function CampusPanel() {
+  const emptyForm = { name: "", address: "", contact: "" };
   const [campuses, setCampuses] = useState([]);
-  const [form, setForm] = useState({ name: "", code: "", address: "", contact: "" });
+  const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
-  const load = () => campusAPI.getAll().then(r => { setCampuses(r.campuses); setError(""); });
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const load = () => campusAPI.getAll().then(r => setCampuses(r.campuses));
   useEffect(() => {
     let cancelled = false;
     campusAPI.getAll().then(r => { if (!cancelled) setCampuses(r.campuses); })
@@ -98,27 +104,65 @@ export function CampusPanel() {
     return () => { cancelled = true; };
   }, []);
   const save = async (event) => {
-    event.preventDefault(); setBusy(true); setError("");
+    event.preventDefault();
+    if (!form.name.trim()) { setError("Enter a campus name."); return; }
+    setBusy(true); setError(""); setNotice("");
     try {
       if (form._id) await campusAPI.update(form._id, form); else await campusAPI.create(form);
-      setForm({ name: "", code: "", address: "", contact: "" }); await load();
+      setNotice(form._id ? "Campus details updated." : "Campus added successfully.");
+      setForm(emptyForm);
       window.dispatchEvent(new Event("campuses-updated"));
+      await load();
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   const remove = async (campus) => {
-    if (!window.confirm(`Delete ${campus.name}? Campuses with linked records cannot be deleted.`)) return;
-    setBusy(true); setError("");
-    try { await campusAPI.delete(campus._id); await load(); window.dispatchEvent(new Event("campuses-updated")); } catch (e) { setError(e.message); } finally { setBusy(false); }
+    if (!window.confirm(`Delete ${campus.name}? Campuses with linked records cannot be deleted. You can set their status to inactive instead.`)) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await campusAPI.delete(campus._id);
+      if (form._id === campus._id) setForm(emptyForm);
+      setNotice("Campus deleted.");
+      window.dispatchEvent(new Event("campuses-updated"));
+      await load();
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
-  return <section className="admin-panel record-panel"><h2>Campuses</h2>
-    <form className="resource-form" onSubmit={save}>{["name", "code", "address", "contact"].map(key => <label key={key}>{key}<input required={key === "name"} disabled={key === "name" && !!form._id} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
-      {form._id && <label>Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="active">Active</option><option value="inactive">Inactive</option></select></label>}
-      <button disabled={busy} className="admin-primary">{busy ? "Saving…" : form._id ? "Save campus" : "Add campus"}</button>
-      {form._id && <button type="button" onClick={() => setForm({ name: "", code: "", address: "", contact: "" })}>Cancel edit</button>}
-    </form>{error && <p role="alert" className="auth-error">{error}</p>}
-    {campuses.map(c => <div className="record-row" key={c._id}><div className="record-copy"><strong>{c.name}</strong><small>{c.address} · {c.contact}</small></div><span>{c.status}</span><button onClick={() => setForm(c)}>Edit</button><button onClick={() => remove(c)}>Delete</button></div>)}
-    {loading ? <p role="status">Loading campuses...</p> : !error && !campuses.length && <p>No campuses have been registered.</p>}
-  </section>;
+  const visible = campuses.filter(c => (status === "all" || c.status === status) &&
+    [c.name, c.address, c.contact].some(value => (value || "").toLowerCase().includes(search.trim().toLowerCase())));
+  const edit = campus => {
+    setForm({ ...emptyForm, ...campus }); setError(""); setNotice("");
+    document.getElementById("campus-address")?.focus();
+  };
+  return <div className="campus-workspace">
+    {error && <p role="alert" className="campus-feedback campus-feedback-error">{error}</p>}
+    {notice && <p role="status" className="campus-feedback">{notice}</p>}
+    <section className="admin-panel campus-editor" aria-labelledby="campus-form-title">
+      <div className="campus-section-heading"><span className="campus-heading-icon"><DashboardIcon name="school" /></span><div><h2 id="campus-form-title">{form._id ? "Edit campus details" : "Add a campus"}</h2><p>{form._id ? "Update the campus contact information and availability." : "Register a school or campus for resource deliveries and collections."}</p></div></div>
+      <form onSubmit={save} className="campus-form">
+        <div className="campus-form-grid">
+          <label htmlFor="campus-name">Campus name <span>Required</span><input id="campus-name" required disabled={busy || !!form._id} value={form.name} placeholder="e.g. PHINMA University of Pangasinan" onChange={e => setForm({ ...form, name: e.target.value })} />{form._id && <small>Campus names are fixed to preserve linked records.</small>}</label>
+          <label htmlFor="campus-address">Campus address <span>Optional</span><input id="campus-address" disabled={busy} value={form.address} placeholder="Street, barangay, city or province" onChange={e => setForm({ ...form, address: e.target.value })} /></label>
+          <label htmlFor="campus-contact">Contact details <span>Optional</span><input id="campus-contact" disabled={busy} value={form.contact} placeholder="Contact person, phone number or email" onChange={e => setForm({ ...form, contact: e.target.value })} /></label>
+          {form._id && <label htmlFor="campus-status">Campus status<select id="campus-status" disabled={busy} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="active">Active</option><option value="inactive">Inactive</option></select><small>Set to inactive if this campus is no longer available.</small></label>}
+        </div>
+        <div className="campus-form-footer"><p>{form._id ? "Review your changes before saving." : "New campuses are active by default."}</p><div>{form._id && <button disabled={busy} className="campus-button" type="button" onClick={() => setForm(emptyForm)}>Cancel edit</button>}<button disabled={busy || loading} className="admin-primary" type="submit">{busy ? "Please wait..." : form._id ? "Save changes" : "Add campus"}</button></div></div>
+      </form>
+    </section>
+    <section className="admin-panel campus-directory" aria-labelledby="campus-directory-title" aria-busy={loading}>
+      <div className="campus-section-heading"><div><h2 id="campus-directory-title">Campus directory <span className="campus-count">{loading ? "..." : campuses.length}</span></h2><p>View registered campuses and manage their details.</p></div><span className="campus-active-count">{loading ? "Loading..." : `${campuses.filter(c => c.status === "active").length} active`}</span></div>
+      <div className="campus-filters"><label htmlFor="campus-search">Search campuses<input id="campus-search" type="search" placeholder="Search by name, address or contact" value={search} onChange={e => setSearch(e.target.value)} /></label><label htmlFor="campus-filter">Status<select id="campus-filter" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label></div>
+      <div className="campus-list">
+        {visible.map(c => {
+          const branding = campusBranding.find(campus => campus.name.toLowerCase() === c.name.trim().toLowerCase());
+          return <article className="campus-card" key={c._id}>
+          <div className="campus-card-heading"><div className="campus-identity"><span className={`campus-heading-icon${branding ? " campus-logo" : ""}`}>{branding ? <img src={branding.logo} alt={`${branding.shortName} logo`} /> : <DashboardIcon name="school" />}</span><div><h3>{c.name}</h3></div></div><span className={`campus-status ${c.status}`}>{c.status === "active" ? "Active" : "Inactive"}</span></div>
+          <dl className="campus-details"><div><dt>Address</dt><dd>{c.address || "No address added"}</dd></div><div><dt>Contact details</dt><dd>{c.contact || "No contact details added"}</dd></div></dl>
+          <div className="campus-card-actions"><button className="campus-button" disabled={busy} onClick={() => edit(c)} aria-label={`Edit ${c.name}`}>Edit details</button><button className="campus-button campus-delete" disabled={busy} onClick={() => remove(c)} aria-label={`Delete ${c.name}`}>Delete</button></div>
+        </article>; })}
+        {loading ? <p className="campus-empty" role="status">Loading campuses...</p> : !visible.length && <div className="campus-empty"><DashboardIcon name="school" /><h3>{error ? "Campus directory unavailable" : campuses.length ? "No matching campuses" : "No campuses yet"}</h3><p>{error ? "Please refresh the page to try again." : campuses.length ? "Try a different search or select another status." : "Use the form above to register your first campus."}</p>{(search || status !== "all") && <button className="campus-button" onClick={() => { setSearch(""); setStatus("all"); }}>Clear filters</button>}</div>}
+      </div>
+      {!loading && campuses.length > 0 && <p className="campus-directory-footer">Showing {visible.length} of {campuses.length} {campuses.length === 1 ? "campus" : "campuses"}</p>}
+    </section>
+  </div>;
 }
 
 export function NotificationsPanel() {

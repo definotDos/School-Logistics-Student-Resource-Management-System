@@ -18,7 +18,7 @@ const sections = {
   requests: { label: "Request approval", title: "Request review queue", description: "Approve, verify, and route student resource requests." },
   allocation: { label: "Allocation", title: "Resource allocation", description: "Assign approved resources to students and campuses." },
   distribution: { label: "Distribution scheduling", title: "Distribution schedule", description: "Plan collection windows and release resources." },
-  campuses: { label: "School and campus management", title: "Schools and campuses", description: "Manage delivery locations and campus contacts." },
+  campuses: { label: "Campus management", title: "Schools and campuses", description: "Keep campus locations, contact details, and availability up to date." },
   reports: { label: "Reports and analytics", title: "Reports and analytics", description: "Understand demand, fulfillment, and stock health." },
   notifications: { label: "Notification management", title: "Notification center", description: "Prepare and send operational updates." },
   audit: { label: "Audit logs", title: "Audit trail", description: "Review important changes made across the system." },

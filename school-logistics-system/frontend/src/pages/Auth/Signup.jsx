@@ -150,6 +150,7 @@ export function SignupPage({
       <div className="auth-heading">
         {campusError && <p role="alert">{campusError}</p>}
         <h2>Create account</h2>
+        <p>Join your campus. Get the resources you need.</p>
       </div>
       <form className="auth-form signup-form" onSubmit={submit}>
         {error && <p className="auth-error form-wide" role="alert">{error}</p>}
@@ -159,10 +160,10 @@ export function SignupPage({
             {[
               ['student', '♙', 'Student', 'Request school resources'],
               ['staff', '♧', 'Staff', 'Manage requests/distribution'],
-            ].map(([role, icon, label, description]) => (
+            ].map(([role, , label, description]) => (
               <label key={role} className={form.role === role ? 'selected' : ''}>
                 <input type="radio" name="role" value={role} checked={form.role === role} onChange={update('role')} />
-                <span className="account-type-icon">{icon}</span><span>{label}<small>{description}</small></span>
+                <span className="account-type-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{role === 'student' ? <><path d="m2 9 10-5 10 5-10 5-10-5Z" /><path d="M6 11v6c4 3 8 3 12 0v-6M22 9v7" /></> : <><rect x="4" y="7" width="16" height="13" rx="3" /><path d="M9 7V4h6v3M4 12h16M10 12v3h4v-3" /></>}</svg></span><span>{label}<small>{description}</small></span>
               </label>
             ))}
           </div>
@@ -199,6 +200,7 @@ export function SignupPage({
               {showPassword ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A10.9 10.9 0 0 1 12 4c5.4 0 9.2 5.1 9.8 6-.3.5-1.5 2.2-3.4 3.6M6.2 6.2C3.8 7.8 2.4 10.2 2.2 10.6c.6.9 4.4 5.4 9.8 5.4 1.3 0 2.5-.3 3.6-.8" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.2 12S5.8 5 12 5s9.8 7 9.8 7-3.6 7-9.8 7-9.8-7-9.8-7Z" /><circle cx="12" cy="12" r="2.7" /></svg>}
             </button>
           </span>
+          <small className="signup-field-hint">Use at least 8 characters.</small>
           {validationErrors.password && <small className="field-error">{validationErrors.password}</small>}
         </label>
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>

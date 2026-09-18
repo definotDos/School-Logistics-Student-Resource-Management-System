@@ -1,3 +1,5 @@
+import './LoginGlass.css'
+
 export function AuthLayout({ children, mode, onChangeMode, campus }) {
   const isLogin = mode === 'login'
   const themeStyle = campus ? { '--auth-primary': campus.primary, '--auth-primary-dark': campus.dark, '--auth-deep': campus.dark, '--auth-accent': campus.accent, '--auth-gradient': `linear-gradient(150deg, ${campus.primary}, ${campus.dark})` } : {}
