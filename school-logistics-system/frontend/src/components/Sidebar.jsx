@@ -17,19 +17,27 @@ const studentLinks = [
   },
 ];
 
-const adminLinks = [
-  { name: "Dashboard", path: "/admin", icon: "home" },
-  { name: "Users", path: "/admin/users", icon: "users" },
-  { name: "Resource Catalog", path: "/admin/catalog", icon: "catalog" },
-  { name: "Inventory", path: "/admin/inventory", icon: "resources" },
-  { name: "Requests", path: "/admin/requests", icon: "requests" },
-  { name: "Allocation", path: "/admin/allocation", icon: "requests" },
-  { name: "Distribution", path: "/admin/distribution", icon: "calendar" },
-  { name: "Campuses", path: "/admin/campuses", icon: "school" },
-  { name: "Reports", path: "/admin/reports", icon: "history" },
-  { name: "Notifications", path: "/admin/notifications", icon: "notification" },
-  { name: "Audit Logs", path: "/admin/audit", icon: "requests" },
-  { name: "My Profile", path: "/admin/profile", icon: "profile" },
+const adminNavigationGroups = [
+  { title: "Overview", items: [
+    { name: "Dashboard", path: "/admin", icon: "overview" },
+    { name: "Notifications", path: "/admin/notifications", icon: "notification" },
+  ] },
+  { title: "Resource Management", items: [
+    { name: "Resource Catalog", path: "/admin/catalog", icon: "catalog" },
+    { name: "Inventory", path: "/admin/inventory", icon: "inventory" },
+    { name: "Requests", path: "/admin/requests", icon: "studentRequests" },
+    { name: "Allocation", path: "/admin/allocation", icon: "allocation" },
+    { name: "Distribution", path: "/admin/distribution", icon: "distribution" },
+  ] },
+  { title: "Administration", items: [
+    { name: "Users", path: "/admin/users", icon: "users" },
+    { name: "Campuses", path: "/admin/campuses", icon: "school" },
+    { name: "Reports", path: "/admin/reports", icon: "reports" },
+    { name: "Audit Logs", path: "/admin/audit", icon: "audit" },
+  ] },
+  { title: "Account", items: [
+    { name: "My Profile", path: "/admin/profile", icon: "profile" },
+  ] },
 ];
 
 const staffLinks = [
@@ -51,7 +59,12 @@ function Sidebar({ type = "student" }) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
-  const links = type === "admin" ? adminLinks : type === "staff" ? staffLinks : studentLinks;
+  const links = type === "staff" ? staffLinks : studentLinks;
+  const navigationGroups = type === "admin" ? adminNavigationGroups : type === "student" ? [
+    { title: "Overview", items: links.slice(0, 1) },
+    { title: "Resources & requests", items: links.slice(1, 3) },
+    { title: "Collections", items: links.slice(3) },
+  ] : [{ title: "", items: links }];
   const [availableCampuses, setAvailableCampuses] = useState([]);
   const [campusError, setCampusError] = useState("");
   const [campusBusy, setCampusBusy] = useState(false);
@@ -93,11 +106,11 @@ function Sidebar({ type = "student" }) {
       </div>
       <nav className="sidebar-nav" id="workspace-navigation" aria-label={`${type} navigation`}>
         <p>
-          {type === "admin" ? "Administration" : type === "staff" ? "Staff Services" : "Navigation menu"}
+          {type === "staff" ? "Staff Services" : "Navigation menu"}
         </p>
 
-          {(type === "student" ? [{ title: "Overview", items: links.slice(0, 1) }, { title: "Resources & requests", items: links.slice(1, 3) }, { title: "Collections", items: links.slice(3) }] : [{ title: "", items: links }]).map((group) => <div className={type === "student" ? "student-navigation-group" : undefined} key={group.title}>
-          {group.title && <h2 className="student-navigation-label">{group.title}</h2>}
+          {navigationGroups.map((group) => <div className={type === "admin" ? "admin-navigation-group" : type === "student" ? "student-navigation-group" : undefined} key={group.title}>
+          {group.title && <h2 className={type === "admin" ? "admin-navigation-label" : "student-navigation-label"}>{group.title}</h2>}
           {group.items.map((link) => (
             <NavLink
               key={link.path}

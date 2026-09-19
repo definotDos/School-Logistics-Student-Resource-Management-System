@@ -6,6 +6,7 @@ import "./StudentDashboard.css";
 import "./StudentPages.css";
 import ResourceCard from "../../components/ResourceCard";
 import ResourceCarousel from "../../components/ResourceCarousel";
+import { getResourceImage } from "../../utils/resourceImages";
 import { requestAPI, resourceAPI } from "../../services/api";
 
 function Resources() {
@@ -30,7 +31,7 @@ function Resources() {
   const resourcePresentation = (resource) => ({
     ...resource,
     quantity: resource.stock.available,
-    image: resource.image || ({ "Mathematics Book": "/mathematics-book.svg", "Learning Modules": "/learning-modules.svg", "School Shoes": "/Shoes.jpg", "School Uniform": "/school-uniform.svg", "Student ID": "/student-id.svg" }[resource.name] || ""),
+    image: getResourceImage(resource),
     icon: resource.category === "Uniform" ? "👕" : resource.category === "Footwear" ? "👟" : resource.category === "Books" ? "📚" : resource.category === "Modules" ? "📖" : "🪪",
   });
   const filteredResources = useMemo(() => resources.filter((resource) => {

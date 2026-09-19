@@ -13,6 +13,37 @@
 }
 
 /* Student notification popover: fixed heading/footer, scrollable updates. */
+.dashboard-shell.student-shell.organized-workspace .header-actions { align-items: center; gap: 12px; }
+.dashboard-shell.student-shell.organized-workspace .notification-wrap { display: flex; align-items: center; }
+.dashboard-shell.student-shell.organized-workspace .notification-wrap .header-icon {
+  display: grid;
+  place-items: center;
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+.dashboard-shell.student-shell.organized-workspace .notification-wrap .header-icon > .dashboard-icon {
+  display: block;
+  position: static;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  transform: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dashboard-shell.student-shell.organized-workspace .header-theme-toggle { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; margin: 0; }
 .dashboard-shell .notification-menu.student-notifications {
   --notice-surface: #ffffff;
   --notice-soft: #eef5fc;

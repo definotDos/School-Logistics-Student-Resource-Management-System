@@ -5,6 +5,7 @@ import useStudentTheme from "../../hooks/useStudentTheme";
 import "./StudentDashboard.css";
 import "./StudentPages.css";
 import StatusBadge from "../../components/StatusBadge";
+import { getResourceImage } from "../../utils/resourceImages";
 import { distributionAPI } from "../../services/api";
 
 const filterOptions = ["all", "released", "completed", "received", "prepared", "pending"];
@@ -162,10 +163,8 @@ function DistributionHistory() {
                   className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-lg font-bold text-violet-700">
-                        {resourceName.charAt(0).toUpperCase()}
-                      </div>
+                    <div className="history-resource-summary flex items-start gap-4">
+                      <HistoryResourceImage name={resourceName} src={item.resourceImage || getResourceImage({ name: resourceName, image: item.resource?.image })} />
 
                       <div>
                         <h3 className="text-xl font-semibold text-slate-900">{resourceName}</h3>
@@ -198,3 +197,10 @@ function DistributionHistory() {
 }
 
 export default DistributionHistory;
+
+function HistoryResourceImage({ name, src }) {
+  const [failedSrc, setFailedSrc] = useState(null);
+  return <div className="history-resource-image">
+    {src && failedSrc !== src ? <img src={src} alt={name} loading="lazy" onError={() => setFailedSrc(src)} /> : <span aria-hidden="true">{name.charAt(0).toUpperCase()}</span>}
+  </div>;
+}
