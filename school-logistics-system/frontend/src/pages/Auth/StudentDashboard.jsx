@@ -8,6 +8,7 @@ import { useAuth } from "../../context/useAuth";
 import { distributionAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 import "./StudentDashboard.css";
+import useStudentTheme from "../../hooks/useStudentTheme";
 
 const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year"];
 const programGroups = {
@@ -20,13 +21,7 @@ const profileProgram = (value) => !value || value === "Please Select Your Course
 
 function StudentDashboard() {
   const { user, updateUser } = useAuth();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("srmsDashboardTheme");
-    return savedTheme ? savedTheme === "dark" : false;
-  });
-  useEffect(() => {
-    localStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -150,10 +145,10 @@ function StudentDashboard() {
           {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
 
           <div className="dashboard-stats">
-            <StatCard label="Total Requests" value={counts.total} tone="navy" />
-            <StatCard label="Pending Review" value={counts.pending} tone="gold" />
-            <StatCard label="Approved" value={counts.approved} tone="green" />
-            <StatCard label="Released" value={counts.released} tone="blue" />
+            <StatCard label="Total Requests" value={counts.total} tone="navy" icon="requests" detail="All your resource requests" />
+            <StatCard label="Pending Review" value={counts.pending} tone="gold" icon="history" detail="Awaiting staff review" />
+            <StatCard label="Approved" value={counts.approved} tone="green" icon="resources" detail="Approved by your school" />
+            <StatCard label="Released" value={counts.released} tone="blue" icon="school" detail="Released or completed" />
           </div>
 
           <div className="dashboard-grid">
@@ -169,7 +164,7 @@ function StudentDashboard() {
                     </div>
                     <StatusBadge status={request.status} />
                   </div>
-                )) : <p className="request-empty">Your requests will appear here.</p>}
+                )) : <div className="student-empty-state"><DashboardIcon name="requests" /><strong>No requests yet</strong><p>Browse school resources to make your first request.</p><Link to="/resources">Browse resources <span aria-hidden="true">&rarr;</span></Link></div>}
               </div>
             </section>
 
@@ -179,7 +174,7 @@ function StudentDashboard() {
               {upcomingClaim ? <>
                 <div className="claim-resource"><span>{(upcomingClaim.resource?.name || "R").charAt(0)}</span><div><strong>{upcomingClaim.resource?.name || "Resource"}</strong><small>{upcomingClaim.status === "Confirmed" ? "Identity verified" : "Approved and ready for collection"}</small></div></div>
                 <div className="claim-details"><span>◷ <b>{upcomingClaim.startTime} - {upcomingClaim.endTime}</b></span><span>⌖ <b>{upcomingClaim.location}</b></span></div>
-              </> : <p className="request-empty">No claim has been scheduled yet.</p>}
+              </> : <div className="student-empty-state"><DashboardIcon name="calendar" /><strong>You're all caught up</strong><p>Your collection time and location will appear here when a claim is scheduled.</p></div>}
               <Link className="panel-action" to="/claim-schedule">View claim details <span>→</span></Link>
             </section>
           </div>
@@ -241,8 +236,8 @@ function RequestPicture({ request }) {
   </span>;
 }
 
-function StatCard({ label, value, tone }) {
-  return <div className={`dashboard-stat ${tone}`}><span>{label}</span><strong>{value}</strong><small>Updated just now</small></div>;
+function StatCard({ label, value, tone, icon, detail }) {
+  return <div className={`dashboard-stat ${tone}`}><div className="student-stat-heading"><span>{label}</span><DashboardIcon name={icon} /></div><strong>{value}</strong><small>{detail}</small></div>;
 }
 
 export default StudentDashboard;

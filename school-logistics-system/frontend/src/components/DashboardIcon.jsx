@@ -1,4 +1,8 @@
 const paths = {
+  browse: <><path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="M3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5" /></>,
+  studentRequests: <><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="m8 11 1 1 2-2M13 11h3m-8 5 1 1 2-2M13 16h3" /></>,
+  claimCalendar: <><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M7 3v4M17 3v4M3 10h18m5 5 3 3 5-5" /></>,
+  distributionHistory: <><path d="M3 11a9 9 0 1 1 2.6 7M3 5v6h6" /><path d="M12 7v5l3 2" /></>,
   profile: <><circle cx="12" cy="7" r="3.5" /><path d="M4.5 20c.6-3.2 3.4-5.4 7.5-5.4s6.9 2.2 7.5 5.4H4.5Z" /></>,
   users: <><circle cx="12" cy="8" r="3.2" /><path d="M5 20c.4-3.5 2.7-5.5 7-5.5s6.6 2 7 5.5" /><circle cx="5.5" cy="9" r="2.2" /><path d="M1.8 19.5c.3-2.5 1.8-4 4.4-4" /><circle cx="18.5" cy="9" r="2.2" /><path d="M22.2 19.5c-.3-2.5-1.8-4-4.4-4" /></>,
   home: <path d="m3 10.5 9-7 9 7v9.2a1.3 1.3 0 0 1-1.3 1.3h-5.1v-6h-5.2v6H4.3A1.3 1.3 0 0 1 3 19.7v-9.2Z" />,

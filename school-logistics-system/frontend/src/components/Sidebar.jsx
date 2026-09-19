@@ -7,13 +7,13 @@ import { campuses as campusDirectory } from "../data/campuses";
 
 const studentLinks = [
   { name: "Dashboard", path: "/student", icon: "home" },
-  { name: "Browse Resources", path: "/resources", icon: "resources" },
-  { name: "My Requests", path: "/requests", icon: "requests" },
-  { name: "Claim Schedule", path: "/claim-schedule", icon: "calendar" },
+  { name: "Browse Resources", path: "/resources", icon: "browse" },
+  { name: "My Requests", path: "/requests", icon: "studentRequests" },
+  { name: "Claim Schedule", path: "/claim-schedule", icon: "claimCalendar" },
   {
     name: "Distribution History",
     path: "/distribution-history",
-    icon: "history",
+    icon: "distributionHistory",
   },
 ];
 
@@ -81,7 +81,7 @@ function Sidebar({ type = "student" }) {
   return (
     <aside className={`app-sidebar ${navigationOpen ? "navigation-open" : ""}`}>
       <button type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
-        <DashboardIcon name="home" /><span>{navigationOpen ? "Close navigation" : "Menu"}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg><span>{navigationOpen ? "Close navigation" : "Navigation menu"}</span>
       </button>
       <div className="sidebar-brand">
         <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
@@ -93,10 +93,12 @@ function Sidebar({ type = "student" }) {
       </div>
       <nav className="sidebar-nav" id="workspace-navigation" aria-label={`${type} navigation`}>
         <p>
-          {type === "admin" ? "Administration" : type === "staff" ? "Staff Services" : "Student Portal"}
+          {type === "admin" ? "Administration" : type === "staff" ? "Staff Services" : "Navigation menu"}
         </p>
 
-          {links.map((link) => (
+          {(type === "student" ? [{ title: "Overview", items: links.slice(0, 1) }, { title: "Resources & requests", items: links.slice(1, 3) }, { title: "Collections", items: links.slice(3) }] : [{ title: "", items: links }]).map((group) => <div className={type === "student" ? "student-navigation-group" : undefined} key={group.title}>
+          {group.title && <h2 className="student-navigation-label">{group.title}</h2>}
+          {group.items.map((link) => (
             <NavLink
               key={link.path}
               to={link.path}
@@ -116,6 +118,7 @@ function Sidebar({ type = "student" }) {
               {link.count && <em>{link.count}</em>}
             </NavLink>
           ))}
+          </div>)}
         <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={isLoggingOut}>
           <span className="nav-icon" aria-hidden="true">↪</span>
           <span className="sidebar-label">{isLoggingOut ? "Signing out..." : "Logout"}</span>

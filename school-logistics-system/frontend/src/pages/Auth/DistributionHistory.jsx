@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import useStudentTheme from "../../hooks/useStudentTheme";
+import "./StudentDashboard.css";
+import "./StudentPages.css";
 import StatusBadge from "../../components/StatusBadge";
 import { distributionAPI } from "../../services/api";
 
 const filterOptions = ["all", "released", "completed", "received", "prepared", "pending"];
 
 function DistributionHistory() {
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const [history, setHistory] = useState([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -59,13 +63,13 @@ function DistributionHistory() {
   const completedCount = history.filter((item) => (item.status || "").toLowerCase() === "completed").length;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className={`dashboard-shell student-shell organized-workspace student-pages ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
-        <Navbar />
+      <div className="dashboard-content flex flex-1 flex-col">
+        <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
 
-        <main className="p-6 lg:p-8">
+        <main className="student-animated-page distribution-history-page p-6 lg:p-8">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.12em] text-violet-600">Student Portal</p>

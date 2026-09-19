@@ -1,0 +1,160 @@
+/* Student route surfaces share the dashboard theme, including request dialogs. */
+/* Keep headings, controls, and loaded records in the same entrance rhythm. */
+@keyframes student-record-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.student-pages .dashboard-content > .student-animated-page { animation: none; }
+.student-animated-page > :first-child { animation: student-record-enter 400ms ease-out backwards; }
+.student-animated-page > p { animation: student-record-enter 400ms 50ms ease-out backwards; }
+.student-animated-page > div:not(:first-child):not(.claim-schedule-list) { animation: student-record-enter 450ms 100ms ease-out backwards; }
+.student-animated-page :is(tbody > tr, .claim-schedule-card, article) { animation: student-record-enter 400ms ease-out backwards; }
+.student-animated-page :is(tbody > tr, .claim-schedule-card, article):nth-child(2) { animation-delay: 60ms; }
+.student-animated-page :is(tbody > tr, .claim-schedule-card, article):nth-child(3) { animation-delay: 120ms; }
+.student-animated-page :is(tbody > tr, .claim-schedule-card, article):nth-child(n+4) { animation-delay: 180ms; }
+.student-animated-page .claim-filter-bar button,
+.distribution-history-page button { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+.requests-page tbody > tr { transition: background-color 180ms ease; }
+.requests-page tbody > tr:hover { background: #658db410; }
+.distribution-history-page article { transition: border-color 180ms ease, box-shadow 180ms ease; }
+.distribution-history-page article:hover { border-color: #669fc4; box-shadow: 0 8px 24px #07142618; }
+@media (prefers-reduced-motion: reduce) {
+  .student-animated-page > :first-child,
+  .student-animated-page > p,
+  .student-animated-page > div:not(:first-child):not(.claim-schedule-list),
+  .student-animated-page :is(tbody > tr, .claim-schedule-card, article) { animation: none; }
+  .student-animated-page .claim-filter-bar button,
+  .distribution-history-page button,
+  .distribution-history-page article,
+  .requests-page tbody > tr { transition: none; }
+}
+@keyframes resource-section-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.student-pages .dashboard-content > .resource-browser-page { animation: none; }
+.resource-browser-page > :first-child { animation: resource-section-enter 400ms ease-out backwards; }
+.resource-browser-page .resource-browser-filters { animation: resource-section-enter 450ms 60ms ease-out backwards; }
+.resource-browser-page .resource-carousel { animation: resource-section-enter 500ms 120ms ease-out backwards; }
+.resource-browser-page .resource-browser-grid > .resource-card { animation: resource-section-enter 450ms ease-out backwards; }
+.resource-browser-page .resource-browser-grid > .resource-card:nth-child(2) { animation-delay: 60ms; }
+.resource-browser-page .resource-browser-grid > .resource-card:nth-child(3) { animation-delay: 120ms; }
+.resource-browser-page .resource-browser-grid > .resource-card:nth-child(n+4) { animation-delay: 180ms; }
+@media (prefers-reduced-motion: reduce) {
+  .resource-browser-page > :first-child,
+  .resource-browser-page .resource-browser-filters,
+  .resource-browser-page .resource-carousel,
+  .resource-browser-page .resource-browser-grid > .resource-card { animation: none; }
+}
+/* Each route mounts its own main element, replaying the entrance on navigation. */
+@keyframes student-page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.student-pages .dashboard-content > main {
+  animation: student-page-enter 280ms cubic-bezier(.2, .7, .3, 1);
+}
+.student-pages .resource-card,
+.student-pages .claim-schedule-card {
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.student-pages .resource-card:hover,
+.student-pages .claim-schedule-card:hover {
+  border-color: #669fc4;
+  box-shadow: 0 8px 24px #07142618;
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-pages .dashboard-content > main { animation: none; }
+  .student-pages .resource-card,
+  .student-pages .claim-schedule-card { transition: none; }
+}
+.student-pages .dashboard-content > main { width: 100%; max-width: 1440px; margin-inline: auto; min-width: 0; }
+.student-pages .app-modal-backdrop { z-index: 40; }
+.student-pages .app-modal { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.student-pages.dark-mode { --ink: var(--student-text); }
+.student-pages.dark-mode :is(.bg-white, .app-modal) { background: var(--student-surface); color: var(--student-text); }
+.student-pages.dark-mode :is(.bg-slate-50, .bg-slate-100, .modal-secondary, .modal-icon) { background: var(--student-raised); color: var(--student-muted); }
+.student-pages.dark-mode :is(.text-slate-900, .text-slate-800, .text-slate-700) { color: var(--student-text); }
+.student-pages.dark-mode :is(.text-slate-600, .text-slate-500, .text-slate-400) { color: var(--student-muted); }
+.student-pages.dark-mode :is(.border-slate-200, .border-slate-300, .border-blue-100, .border-violet-200) { border-color: var(--student-border); }
+.student-pages.dark-mode .divide-slate-100 > :not(:last-child) { border-color: var(--student-border); }
+.student-pages.dark-mode :is(input, select, option) { background: var(--student-bg); color: var(--student-text); border-color: var(--student-border); }
+.student-pages.dark-mode input::placeholder { color: var(--student-muted); opacity: 1; }
+.student-pages.dark-mode :is(.bg-blue-50, .bg-blue-100) { background: #243f5b; }
+.student-pages.dark-mode .text-blue-700 { color: #b8ddff; }
+.student-pages.dark-mode :is(.bg-violet-50, .bg-violet-100, .bg-purple-50) { background: #3d3155; }
+.student-pages.dark-mode :is(.text-violet-600, .text-violet-700, .text-purple-700) { color: #decbff; }
+.student-pages.dark-mode :is(.bg-green-50, .bg-emerald-50, .success-icon) { background: #1e463a; }
+.student-pages.dark-mode :is(.text-green-700, .text-emerald-700, .success-icon) { color: #a5e8c7; }
+.student-pages.dark-mode .bg-yellow-50 { background: #493d22; }
+.student-pages.dark-mode .text-yellow-700 { color: #ffe099; }
+.student-pages.dark-mode :is(.bg-red-50, .auth-error) { background: #4b2934; }
+.student-pages.dark-mode :is(.text-red-600, .text-red-700, .auth-error) { color: #ffb7c2; }
+.student-pages.dark-mode .border-red-200 { border-color: #986173; }
+.student-pages.dark-mode :is(.bg-blue-600, .modal-primary) { background: #9bd8ff; color: #10243a; }
+.student-pages.dark-mode :is(.bg-blue-600, .modal-primary):hover { background: #c4e8ff; }
+.student-pages.dark-mode .bg-violet-600 { background: #c4b5fd; color: #211842; }
+.student-pages.dark-mode :is(.hover\:bg-slate-50, .hover\:bg-slate-200):hover { background: #2b415c; }
+.student-pages button:disabled { opacity: .55; cursor: not-allowed; }
+.student-pages.dark-mode .app-modal-backdrop { background: #030916b3; }
+
+/* Explicit card controls avoid conflicting generic button colors. */
+.student-pages .resource-card { display: flex; flex-direction: column; min-width: 0; border-radius: 16px; }
+.student-pages .resource-card-image { height: 148px; padding: 16px; border-bottom: 1px solid var(--workspace-border); }
+.student-pages .resource-card-image img { object-fit: contain; }
+.student-pages .resource-card-body { display: flex; flex-direction: column; flex: 1; gap: 18px; padding: 20px; }
+.student-pages .resource-card-body h3 { font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+.student-pages .resource-card-body > div:first-child { flex-wrap: wrap; }
+.student-pages .resource-card-status { flex-shrink: 0; align-self: flex-start; font-size: 11px; line-height: 1.5; }
+.student-pages .resource-card-stock { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: auto 0 0; padding-top: 16px; border-top: 1px solid var(--workspace-border); font-size: 12px; }
+.student-pages .resource-card-stock > span:last-child { font-size: 20px; font-variant-numeric: tabular-nums; }
+.student-pages.organized-workspace .resource-card .resource-card-request { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; margin: 0; padding: 12px 16px; border: 1px solid transparent; border-radius: 10px; background: #245b85; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+.student-pages.organized-workspace .resource-card .resource-card-request:hover:not(:disabled) { background: #19466b; }
+.student-pages.organized-workspace.dark-mode .resource-card .resource-card-request { background: #9bd8ff; color: #10243a; }
+.student-pages.organized-workspace.dark-mode .resource-card .resource-card-request:hover:not(:disabled) { background: #c4e8ff; }
+.student-pages.organized-workspace .resource-card .resource-card-request:disabled { background: #e2e8f0; color: #536077; cursor: not-allowed; opacity: 1; }
+.student-pages.organized-workspace.dark-mode .resource-card .resource-card-request:disabled { background: #2a3c51; color: #b8c9dc; }
+.student-pages .resource-results-count { margin: 0 0 16px; color: var(--workspace-muted); font-size: 12px; }
+.student-pages .resource-browser-filters { padding: 16px; border: 1px solid var(--workspace-border); border-radius: 14px; background: var(--workspace-surface); }
+.student-pages .resource-browser-filters input { min-width: 0; }
+.student-pages .resource-browser-filters select { max-width: 100%; }
+.student-pages .resource-card-gallery { border-bottom: 1px solid var(--workspace-border); }
+.student-pages .resource-card-gallery .resource-card-image { height: 176px; overflow: hidden; border-bottom: 0; padding: 20px 36px; }
+.student-pages .resource-card-gallery .resource-card-image.is-detail img { transform: scale(1.65); }
+.student-pages .resource-card-gallery-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; background: var(--workspace-surface); }
+.student-pages .resource-card-gallery-controls > button { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--workspace-border); border-radius: 9px; background: #edf4fa; color: #245b85; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+.student-pages.dark-mode .resource-card-gallery-controls > button { background: #20334b; color: #9bd8ff; }
+.resource-card-gallery-position { text-align: center; min-width: 0; }
+.resource-card-gallery-position > span { display: block; color: var(--workspace-muted); font-size: 10px; line-height: 1.4; }
+.resource-card-gallery-dots { display: flex; justify-content: center; flex-wrap: wrap; }
+.student-pages .resource-card-gallery-dots button { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; background: transparent; border: 0; cursor: pointer; }
+.resource-card-gallery-dots i { width: 5px; height: 5px; border-radius: 10px; background: var(--workspace-muted); opacity: .45; }
+.resource-card-gallery-dots [aria-current] i { width: 14px; opacity: 1; background: #245b85; }
+.dark-mode .resource-card-gallery-dots [aria-current] i { background: #9bd8ff; }
+
+.student-pages .resource-request-dialog { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--workspace-border); border-radius: 20px; text-align: left; color: var(--ink); }
+.student-pages .resource-request-dialog::backdrop { background: #030916b3; backdrop-filter: blur(5px); }
+.student-pages .resource-request-dialog .modal-close { top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 8px; color: var(--workspace-muted); }
+.student-pages .request-dialog-kicker { display: block; padding-right: 32px; color: var(--workspace-muted); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }
+.student-pages .resource-request-dialog h2 { margin: 10px 30px 8px 0; font-size: 23px; line-height: 1.3; }
+.student-pages .request-dialog-summary { display: flex; align-items: center; gap: 12px; margin: 24px 0; padding: 16px; border: 1px solid var(--workspace-border); border-radius: 12px; background: #f0f5fa; flex-wrap: wrap; }
+.student-pages .request-dialog-summary .modal-icon { width: 44px; height: 44px; margin: 0; flex-shrink: 0; border-radius: 10px; font-size: 22px; }
+.student-pages .request-dialog-summary > div { flex: 1; min-width: 120px; }
+.student-pages .request-dialog-summary strong { display: block; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.student-pages .request-dialog-summary small { display: block; margin-top: 4px; font-size: 12px; color: var(--workspace-muted); }
+.student-pages .request-dialog-stock { font-size: 11px; color: #206347; font-weight: 700; }
+.student-pages .request-quantity-row { display: grid; gap: 10px; text-align: left; }
+.student-pages .request-quantity-row label { color: var(--ink); font-size: 13px; font-weight: 700; }
+.student-pages .request-quantity-row input { box-sizing: border-box; width: 100%; min-height: 46px; padding: 10px 14px; border: 1px solid var(--workspace-border); border-radius: 10px; font-size: 16px; }
+.student-pages .resource-request-dialog .request-quantity-help { margin-top: 8px; font-size: 11px; }
+.student-pages .resource-request-dialog .request-dialog-note { margin-top: 20px; padding: 12px 14px; border-radius: 10px; background: #f0f5fa; font-size: 12px; line-height: 1.7; }
+.student-pages .resource-request-dialog .modal-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--workspace-border); gap: 12px; }
+.student-pages .resource-request-dialog .modal-actions button { min-height: 44px; border-radius: 10px; font-size: 13px; }
+.student-pages.dark-mode .resource-request-dialog :is(.request-dialog-summary, .request-dialog-note) { background: #20334b; }
+.student-pages.dark-mode .resource-request-dialog .request-dialog-stock { color: #a5e8c7; }
+.student-pages.organized-workspace.dark-mode .resource-request-dialog .modal-primary { background: #9bd8ff; color: #10243a; }
+.student-pages.organized-workspace.dark-mode .resource-request-dialog .modal-primary:hover { background: #c4e8ff; }
+.student-pages .resource-request-dialog .auth-error { margin-top: 12px; }
+@media (max-width: 480px) {
+  .student-pages .resource-request-dialog { padding: 24px 20px; }
+}

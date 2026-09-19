@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import useStudentTheme from "../../hooks/useStudentTheme";
+import "./StudentDashboard.css";
+import "./StudentPages.css";
 import StatusBadge from "../../components/StatusBadge";
 import { requestAPI, resourceAPI } from "../../services/api";
 
 function Requests() {
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const [requests, setRequests] = useState([]);
   const [resourceNames, setResourceNames] = useState({});
   const [error, setError] = useState("");
@@ -32,13 +36,13 @@ function Requests() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className={`dashboard-shell student-shell organized-workspace student-pages ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
-        <Navbar />
+      <div className="dashboard-content flex flex-1 flex-col">
+        <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
 
-        <main className="p-6 lg:p-8">
+        <main className="student-animated-page requests-page p-6 lg:p-8">
 
           <h1 className="text-2xl font-bold text-slate-900">
             My Requests

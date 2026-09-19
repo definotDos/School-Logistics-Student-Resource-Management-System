@@ -357,3 +357,343 @@
   background-position: right 14px center;
 }
 .student-shell .profile-form-grid select:disabled { cursor: default; opacity: .7; }
+
+/* A consistent overview layout in both themes. */
+.student-shell.organized-workspace .dashboard-welcome {
+  padding: 22px 24px;
+  border: 1px solid var(--workspace-border);
+  border-radius: 20px;
+  background: linear-gradient(120deg, #fff, #edf6fc);
+}
+.student-shell.organized-workspace .dashboard-welcome > div:first-child { flex: 1 1 300px; min-width: 0; }
+.student-shell.organized-workspace .dashboard-welcome h1 { overflow-wrap: anywhere; }
+.student-shell.organized-workspace .dashboard-welcome-actions { align-items: stretch; flex-direction: column; }
+.student-shell.organized-workspace .dashboard-profile-trigger { width: 100%; max-width: none; }
+.student-shell.organized-workspace .dashboard-primary-action { justify-content: center; border-radius: 12px; }
+.student-shell.organized-workspace .dashboard-stat { border-radius: 16px; min-height: 130px; padding: 16px 18px; }
+.student-shell.organized-workspace .dashboard-stat::after { display: none; }
+.student-shell .student-stat-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.student-shell .student-stat-heading .dashboard-icon { width: 32px; height: 32px; flex-shrink: 0; padding: 7px; border-radius: 10px; background: #edf3f9; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.student-shell.organized-workspace .dashboard-stat strong { margin-top: 10px; letter-spacing: -1px; }
+.student-shell.organized-workspace .dashboard-stat small { line-height: 1.5; }
+.student-shell.organized-workspace .dashboard-grid { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; }
+.student-shell.organized-workspace .dashboard-panel { border-radius: 18px; overflow: hidden; }
+.student-shell.organized-workspace .panel-heading { align-items: center; }
+.student-shell.organized-workspace .panel-heading a { flex-shrink: 0; }
+.student-shell.organized-workspace .request-row > div { min-width: 0; }
+.student-shell .student-empty-state { display: flex; flex-direction: column; align-items: center; padding: 36px 24px; text-align: center; }
+.student-shell .student-empty-state > .dashboard-icon { width: 48px; height: 48px; padding: 12px; margin-bottom: 16px; border: 1px solid var(--workspace-border); border-radius: 15px; background: #eef5fc; color: #35739c; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.student-shell .student-empty-state strong { font-size: 14px; }
+.student-shell .student-empty-state p { max-width: 280px; margin: 8px 0 0; color: var(--workspace-muted); font-size: 12px; line-height: 1.7; }
+.student-shell .student-empty-state a { margin-top: 20px; color: #245b85; font-size: 12px; font-weight: 700; }
+
+/* Opaque fallbacks remain readable when backdrop filtering is unavailable. */
+.student-shell.organized-workspace.dark-mode {
+  --student-bg: #0b1220;
+  --student-surface: #162438;
+  --student-raised: #20334b;
+  --student-border: #ffffff24;
+  --student-muted: #afc1d5;
+  --border: var(--student-border);
+  --muted: var(--student-muted);
+  background:
+    radial-gradient(ellipse at 25% 0%, #245c854a, transparent 55%),
+    radial-gradient(ellipse at 95% 65%, #137f7830, transparent 50%),
+    var(--student-bg);
+}
+.student-shell.organized-workspace.dark-mode .dashboard-welcome {
+  background: linear-gradient(120deg, #233f5de0, #152c3ee8);
+  border-color: #a4d9ff29;
+  box-shadow: inset 0 1px 0 #ffffff0d, 0 16px 40px #02081724;
+}
+.student-shell.organized-workspace.dark-mode :is(.dashboard-panel, .dashboard-stat) {
+  box-shadow: inset 0 1px 0 #ffffff0c, 0 12px 32px #02081726;
+}
+.student-shell.organized-workspace.dark-mode .app-sidebar { background: #0e1b2c; border-right: 1px solid var(--student-border); }
+.student-shell.organized-workspace.dark-mode .sidebar-link { border: 1px solid transparent; border-radius: 10px; }
+.student-shell.organized-workspace.dark-mode .sidebar-link.active { background: #74bcf21f; border-color: #91caff30; color: #d5efff; box-shadow: inset 3px 0 #9bd8ff; }
+.student-shell.organized-workspace.dark-mode .sidebar-link:hover { background: #ffffff0d; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger, .header-profile, .header-theme-toggle, .header-icon) { background: #b7dcff0a; border: 1px solid var(--student-border); border-radius: 12px; }
+.student-shell.organized-workspace.dark-mode .student-stat-heading .dashboard-icon { background: #ffffff0a; }
+.student-shell.organized-workspace.dark-mode .dashboard-stat.gold { color: #f5ce83; border-top-color: #f5ce83; }
+.student-shell.organized-workspace.dark-mode .dashboard-stat.green { color: #85dbb8; border-top-color: #85dbb8; }
+.student-shell.organized-workspace.dark-mode .dashboard-stat.blue { color: #a9bfff; border-top-color: #a9bfff; }
+.student-shell.organized-workspace.dark-mode .student-empty-state > .dashboard-icon { background: #9bd8ff0a; color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .student-empty-state a { color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .request-row:hover { background: #ffffff05; }
+.student-shell.organized-workspace.dark-mode .request-picture { border: 1px solid var(--student-border); border-radius: 10px; }
+.student-shell.organized-workspace.dark-mode .profile-modal-backdrop { background: #030916b3; }
+
+@supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
+  .student-shell.organized-workspace.dark-mode :is(.dashboard-panel, .dashboard-stat, .app-header, .app-sidebar, .dashboard-welcome) {
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  .student-shell.organized-workspace.dark-mode :is(.dashboard-panel, .dashboard-stat) { background: linear-gradient(140deg, #20354c99, #142235b3); }
+  .student-shell.organized-workspace.dark-mode .app-header { background: #101d2dba; }
+  .student-shell.organized-workspace.dark-mode .app-sidebar { background: #0e1b2cd9; }
+}
+
+@media (max-width: 1100px) {
+  .student-shell.organized-workspace .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .student-shell.organized-workspace .dashboard-welcome { padding: 22px 18px; gap: 20px; }
+  .student-shell.organized-workspace .dashboard-welcome > div:first-child { flex-basis: auto; }
+  .student-shell.organized-workspace .dashboard-stat { padding: 16px; }
+  .student-shell .student-stat-heading { align-items: flex-start; }
+  .student-shell .student-stat-heading .dashboard-icon { width: 28px; height: 28px; padding: 6px; }
+  .student-shell.organized-workspace .panel-heading { padding: 18px; }
+  .student-shell.organized-workspace .request-row { padding: 16px; gap: 10px; flex-wrap: wrap; }
+  .student-shell.organized-workspace .request-row > div { flex: 1 1 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-shell.organized-workspace .dashboard-stat:hover { transform: none; }
+}
+
+/* Keep navigation compact instead of distributing links across the sidebar. */
+/* Desktop keeps navigation stationary while each page scrolls independently. */
+@media (min-width: 761px) {
+  .dashboard-shell.student-shell.organized-workspace { height: 100dvh; min-height: 0; overflow: hidden; }
+  .dashboard-shell.student-shell.organized-workspace > .app-sidebar { height: 100dvh; min-height: 0; max-height: 100dvh; overflow: hidden; }
+  .dashboard-shell.student-shell.organized-workspace > .dashboard-content { height: 100dvh; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-nav { overflow: visible; }
+}
+/* Compact the menu on shorter desktop windows so its links remain reachable. */
+@media (min-width: 761px) and (max-height: 800px) {
+  .dashboard-shell.student-shell.organized-workspace .sidebar-brand { padding: 12px 16px; }
+  .dashboard-shell.student-shell.organized-workspace .campus-switch { margin: 10px 14px; padding: 10px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-nav { padding: 0 14px 8px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-nav > p { margin: 4px 12px 8px; }
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group { margin-bottom: 6px; gap: 2px; }
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link { min-height: 36px; padding: 8px 12px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-logout { margin-top: 4px; min-height: 36px; padding: 8px 12px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-footer { padding-top: 8px; }
+}
+/* Prioritize navigation links over secondary sidebar details on short screens. */
+@media (min-width: 761px) and (max-height: 600px) {
+  .dashboard-shell.student-shell.organized-workspace > .app-sidebar { flex-basis: 220px; }
+  .dashboard-shell.student-shell.organized-workspace .campus-switch,
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-label { display: none; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-brand { padding-block: 8px; }
+}
+.student-shell.organized-workspace .student-navigation-group { display: grid; gap: 4px; margin-bottom: 14px; }
+.student-shell.organized-workspace .student-navigation-label { margin: 4px 12px 6px; color: #a9bed3; font-size: 10px; line-height: 1.5; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; }
+.student-shell.organized-workspace .student-navigation-group .sidebar-link { min-height: 46px; padding: 12px; border-radius: 10px; gap: 12px; }
+.student-shell.organized-workspace .student-navigation-group .sidebar-link.active { background: #22496c; color: #eff8ff; box-shadow: inset 3px 0 #9bd8ff; }
+.student-shell.organized-workspace .student-navigation-group .sidebar-link.active .nav-icon { color: #b9e3ff; }
+.student-shell.organized-workspace .student-navigation-group .sidebar-link:hover { background: #ffffff12; }
+@media (max-width: 760px) {
+  .student-shell.organized-workspace .navigation-open .sidebar-nav { grid-template-columns: minmax(0, 1fr); }
+  .student-shell.organized-workspace .student-navigation-group { margin-bottom: 8px; }
+  .student-shell.organized-workspace .student-navigation-label { margin-top: 12px; }
+}
+/* Glass surfaces create stacking contexts: lift the entire header above cards. */
+.student-shell.organized-workspace .app-header {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+.student-shell.organized-workspace .notification-menu.student-notifications {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(560px, calc(100dvh - 180px));
+  border-radius: 18px;
+  background: var(--notice-surface);
+  color: var(--notice-text);
+  border-color: var(--notice-border);
+  box-shadow: 0 24px 64px #02081755, inset 0 1px 0 #ffffff0a;
+}
+.student-shell.organized-workspace .student-notifications-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.student-shell.organized-workspace .student-notifications-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--notice-border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--notice-muted);
+  font-size: 22px;
+  cursor: pointer;
+}
+.student-shell.organized-workspace .student-notifications-close:hover { background: var(--notice-soft); color: var(--notice-text); }
+.student-shell.organized-workspace .student-notifications-heading { padding: 18px; flex-shrink: 0; }
+.student-shell.organized-workspace .student-notification-item { padding: 18px; gap: 12px; }
+.student-shell.organized-workspace .student-notification-item.is-unread { background: var(--notice-soft); box-shadow: inset 3px 0 var(--notice-accent); }
+.student-shell.organized-workspace .student-notification-meta { justify-content: flex-start; gap: 8px 12px; }
+.student-shell.organized-workspace .student-notification-meta time { font-size: 10px; }
+.student-shell.organized-workspace .student-notifications .student-notification-meta button { min-height: 32px; padding: 6px 10px; border-radius: 7px; }
+.student-shell.organized-workspace .student-notifications .student-notification-copy p { color: var(--notice-muted); }
+.student-shell.organized-workspace .student-notifications .student-notifications-footer { padding: 16px 18px; }
+@media (max-width: 760px) {
+  /* Anchor to the header so the panel stays inside either edge of the screen. */
+  .student-shell.organized-workspace .notification-wrap { position: static; }
+  .student-shell.organized-workspace .notification-wrap .header-icon { position: relative; }
+  .student-shell.organized-workspace .notification-menu.student-notifications { top: calc(100% + 8px); right: 16px; }
+}
+
+.student-shell.organized-workspace .sidebar-nav {
+  flex: 0 0 auto;
+  align-content: start;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 8px 14px 20px;
+}
+.student-shell.organized-workspace :is(.sidebar-link, .sidebar-logout) {
+  flex: 0 0 auto;
+  min-height: 44px;
+  height: auto;
+  margin: 0;
+  padding: 12px;
+  gap: 12px;
+  line-height: 1.4;
+  justify-content: flex-start;
+}
+.student-shell.organized-workspace .sidebar-nav > p { margin: 8px 12px 14px; }
+.student-shell.organized-workspace .sidebar-label { white-space: normal; font-size: 12px; }
+.student-shell.organized-workspace .nav-icon { flex: 0 0 18px; }
+.student-shell.organized-workspace .sidebar-logout { margin-top: 16px; border-top: 1px solid #ffffff16; }
+.student-shell.organized-workspace .sidebar-footer { padding-top: 16px; }
+.student-shell.organized-workspace .app-header { min-height: 68px; padding: 12px 28px; }
+.student-shell.organized-workspace.dark-mode .header-context > span { color: var(--student-muted); }
+.student-shell.organized-workspace .student-dashboard { padding: 24px 28px; }
+.student-shell.organized-workspace .dashboard-welcome { margin-bottom: 20px; align-items: center; }
+.student-shell.organized-workspace .dashboard-welcome-actions { gap: 10px; }
+.student-shell.organized-workspace .dashboard-primary-action { gap: 8px; }
+.student-shell.organized-workspace .dashboard-stats { margin-bottom: 20px; }
+.student-shell.organized-workspace .panel-heading { padding: 18px 20px; }
+.student-shell.organized-workspace .request-row { min-height: 70px; padding: 12px 20px; }
+.student-shell.organized-workspace .request-row > span:last-child { white-space: nowrap; font-size: 11px; }
+.student-shell.organized-workspace.dark-mode .request-row > span:is(.text-green-700, .text-emerald-700) { background: #1e463a; color: #a5e8c7; }
+.student-shell.organized-workspace.dark-mode .request-row > span.text-yellow-700 { background: #493d22; color: #ffe099; }
+.student-shell.organized-workspace.dark-mode .request-row > span.text-red-700 { background: #4b2934; color: #ffb7c2; }
+.student-shell.organized-workspace.dark-mode .request-row > span.text-purple-700 { background: #3d3155; color: #decbff; }
+.student-shell.organized-workspace.dark-mode .request-row > span.text-blue-700 { background: #243f5b; color: #b8ddff; }
+@media (min-width: 761px) {
+  .student-shell.organized-workspace > .app-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+    align-self: flex-start;
+    overflow-y: auto;
+  }
+  .student-shell.organized-workspace .sidebar-nav { display: flex; flex-direction: column; }
+}
+@media (max-width: 760px) {
+  .student-shell.organized-workspace .student-dashboard { padding: 20px 16px; }
+  .student-shell.organized-workspace .app-header { padding: 12px 16px; }
+  .student-shell.organized-workspace .dashboard-welcome { padding: 20px; }
+  .student-shell.organized-workspace .navigation-open .sidebar-nav { padding: 8px 0; }
+  .student-shell.organized-workspace .sidebar-logout { margin-top: 0; border: 0; }
+}
+
+/* Reserve footer space inside the stationary desktop sidebar. */
+/* A shared icon column keeps labels aligned across every student menu group. */
+@keyframes student-nav-select {
+  from { opacity: .25; transform: scaleX(.6); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+@keyframes student-nav-icon-pop {
+  0% { transform: scale(.8); }
+  55% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+@keyframes student-nav-label-enter {
+  from { opacity: .4; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link { position: relative; isolation: isolate; }
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #9bd8ff28, #9bd8ff04);
+  transform-origin: left;
+  animation: student-nav-select 380ms cubic-bezier(.2, .8, .2, 1);
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active .nav-icon {
+  animation: student-nav-icon-pop 420ms cubic-bezier(.2, .8, .2, 1);
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active .sidebar-label {
+  animation: student-nav-label-enter 320ms ease-out;
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active::before,
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active :is(.nav-icon, .sidebar-label) { animation: none; }
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link:active { transform: none; }
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link {
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .nav-icon {
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group :is(.sidebar-link, .nav-icon) { transition: none; }
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .nav-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #b8d8f018;
+  border-radius: 8px;
+  background: #b8d8f008;
+  color: #aecae2;
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .nav-icon .dashboard-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link { gap: 10px; }
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link.active .nav-icon {
+  background: #9bd8ff22;
+  border-color: #9bd8ff40;
+  color: #bce6ff;
+}
+.dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link:hover .nav-icon { color: #e2f3ff; border-color: #9bd8ff40; }
+@media (min-width: 761px) and (max-height: 800px) {
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .nav-icon { width: 24px; height: 24px; flex-basis: 24px; border-radius: 7px; }
+  .dashboard-shell.student-shell.organized-workspace .student-navigation-group .sidebar-link { padding-block: 6px; }
+}
+@media (min-width: 761px) {
+  .dashboard-shell.student-shell.organized-workspace .sidebar-footer { flex: 0 0 auto; margin-top: auto; padding: 12px 14px; background: #0e1b2c; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-footer > button { display: inline-block; width: auto; margin: 0 10px 10px 0; padding: 4px 0; font-size: 10px; line-height: 1.5; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user { gap: 10px; margin: 0; padding: 12px 0 0; min-height: 56px; align-items: center; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user > :is(img, b) { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user > span { flex: 1; min-width: 0; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user strong,
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.5; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user strong { font-size: 12px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user small { font-size: 10px; }
+}
+@media (min-width: 761px) and (max-height: 800px) {
+  .dashboard-shell.student-shell.organized-workspace .campus-current { padding: 4px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-brand { height: 62px; }
+}
+@media (min-width: 761px) and (max-height: 600px) {
+  .dashboard-shell.student-shell.organized-workspace .sidebar-footer > button { display: none; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-footer { padding: 8px 14px; }
+  .dashboard-shell.student-shell.organized-workspace .sidebar-user { padding: 0; border: 0; min-height: 40px; }
+}

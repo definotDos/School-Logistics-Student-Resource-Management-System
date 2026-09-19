@@ -1,0 +1,40 @@
+.claim-schedule-page { --claim-text: #173452; --claim-muted: #536b82; --claim-soft: #edf4fa; --claim-accent: #245b85; }
+.dark-mode .claim-schedule-page { --claim-text: #f1f5fb; --claim-muted: #b8c9dc; --claim-soft: #ffffff07; --claim-accent: #9bd8ff; }
+.claim-schedule-page .claim-page-kicker { display: block; margin-bottom: 8px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--claim-muted); }
+.claim-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 20px; padding: 8px; border: 1px solid var(--workspace-border); border-radius: 14px; background: var(--workspace-surface); }
+.student-pages .claim-filter-bar button { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 9px 14px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--claim-muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.student-pages .claim-filter-bar button:hover { background: var(--claim-soft); }
+.student-pages .claim-filter-bar button[aria-pressed="true"] { background: var(--claim-accent); color: #fff; }
+.student-pages.dark-mode .claim-filter-bar button[aria-pressed="true"] { color: #10243a; }
+.claim-filter-bar button span { padding: 2px 7px; border-radius: 6px; background: #80808020; font-size: 11px; }
+.claim-schedule-list { display: grid; gap: 16px; }
+.claim-schedule-card { display: flex; align-items: flex-start; gap: 24px; padding: 24px; border: 1px solid var(--workspace-border); border-radius: 18px; background: var(--workspace-surface); color: var(--claim-text); box-shadow: 0 8px 24px #0208170a; }
+.claim-date-tile { display: flex; flex: 0 0 76px; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border: 1px solid var(--workspace-border); border-radius: 12px; background: var(--claim-soft); color: var(--claim-accent); }
+.claim-date-tile > span { font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+.claim-date-tile strong { font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.claim-date-tile small { color: var(--claim-muted); font-size: 11px; }
+.claim-card-content { flex: 1; min-width: 0; }
+.claim-card-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--workspace-border); }
+.claim-schedule-page .claim-card-heading h2 { margin: 0; color: var(--claim-text); font-size: 19px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.claim-pickup-details { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin: 20px 0; }
+.claim-pickup-details dt { color: var(--claim-muted); font-size: 11px; margin-bottom: 7px; }
+.claim-pickup-details dd { margin: 0; color: var(--claim-text); font-size: 13px; line-height: 1.6; font-weight: 600; overflow-wrap: anywhere; }
+.claim-campus { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 9px; background: var(--claim-soft); color: var(--claim-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.claim-campus svg, .claim-state svg { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.claim-campus .claim-campus-logo { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; padding: 5px; border-radius: 10px; background: #fff; color: #245b85; border: 1px solid #dbe5ef; }
+.claim-campus-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.claim-campus-copy { min-width: 0; }
+.claim-campus-copy small { display: block; margin-bottom: 2px; color: var(--claim-muted); font-size: 10px; }
+.claim-campus-copy strong { display: block; color: var(--claim-text); font-size: 12px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.claim-state { margin-top: 24px; padding: 40px 24px; text-align: center; border: 1px dashed var(--workspace-border); border-radius: 16px; color: var(--claim-muted); background: var(--workspace-surface); }
+.claim-state svg { margin: 0 auto 16px; width: 32px; height: 32px; }
+.claim-state h2 { margin-bottom: 8px; font-size: 17px; color: var(--claim-text); }
+.claim-state p { font-size: 13px; line-height: 1.7; }
+@media (max-width: 1150px) { .claim-pickup-details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .claim-schedule-card { padding: 18px; gap: 16px; flex-direction: column; }
+  .claim-date-tile { flex-basis: auto; flex-direction: row; padding: 8px 12px; gap: 8px; }
+  .claim-date-tile strong { font-size: 22px; }
+  .claim-card-content { width: 100%; }
+  .student-pages .claim-filter-bar button { padding: 8px 10px; }
+}

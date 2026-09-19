@@ -1,10 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import useStudentTheme from "../../hooks/useStudentTheme";
+import "./StudentDashboard.css";
+import "./StudentPages.css";
 import ResourceCard from "../../components/ResourceCard";
+import ResourceCarousel from "../../components/ResourceCarousel";
 import { requestAPI, resourceAPI } from "../../services/api";
 
 function Resources() {
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
+  const requestDialogRef = useRef(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [selectedResource, setSelectedResource] = useState(null);
@@ -14,10 +20,17 @@ function Resources() {
   const [submitting, setSubmitting] = useState(false);
   const [resources, setResources] = useState([]);
   const [loadError, setLoadError] = useState("");
+  useEffect(() => {
+    if (!selectedResource) return;
+    const previousFocus = document.activeElement;
+    const dialog = requestDialogRef.current;
+    dialog.showModal();
+    return () => { dialog.close(); previousFocus?.focus(); };
+  }, [selectedResource]);
   const resourcePresentation = (resource) => ({
     ...resource,
     quantity: resource.stock.available,
-    image: resource.name === "Mathematics Book" ? "/mathematics-book.svg" : "",
+    image: resource.image || ({ "Mathematics Book": "/mathematics-book.svg", "Learning Modules": "/learning-modules.svg", "School Shoes": "/Shoes.jpg", "School Uniform": "/school-uniform.svg", "Student ID": "/student-id.svg" }[resource.name] || ""),
     icon: resource.category === "Uniform" ? "👕" : resource.category === "Footwear" ? "👟" : resource.category === "Books" ? "📚" : resource.category === "Modules" ? "📖" : "🪪",
   });
   const filteredResources = useMemo(() => resources.filter((resource) => {
@@ -61,16 +74,17 @@ function Resources() {
     setSelectedResource(resource);
     setRequestQuantity(1);
     setSubmitted(false);
+    setRequestError("");
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className={`dashboard-shell student-shell organized-workspace student-pages ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
-        <Navbar />
+      <div className="dashboard-content flex flex-1 flex-col">
+        <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
 
-        <main className="p-6 lg:p-8">
+        <main className="resource-browser-page p-6 lg:p-8">
 
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-slate-900">
@@ -83,23 +97,26 @@ function Resources() {
           </div>
 
           {/* Search */}
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+          <div className="resource-browser-filters mb-6 flex flex-col gap-3 sm:flex-row">
             <input
               type="text"
+              aria-label="Search resources"
               placeholder="Search resources..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
 
-            <select value={category} onChange={(event) => setCategory(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-600 outline-none">
+            <select aria-label="Filter by category" value={category} onChange={(event) => setCategory(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-600 outline-none">
               <option>All Categories</option>
               {[...new Set(resources.map(resource => resource.category))].sort().map(value => <option key={value}>{value}</option>)}
             </select>
           </div>
 
           {loadError && <p className="text-red-600" role="alert">{loadError}</p>}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ResourceCarousel key={`${category}:${query}`} resources={filteredResources} onRequest={handleRequest} />
+          <p className="resource-results-count" role="status">{filteredResources.length} resources{category !== "All Categories" ? ` in ${category}` : " available to browse"}</p>
+          <div className="resource-browser-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredResources.map((resource) => (
               <ResourceCard
                 key={resource._id}
@@ -112,12 +129,14 @@ function Resources() {
 
         </main>
       </div>
-      {selectedResource && <div className="app-modal-backdrop"><section className="app-modal">
-        <button className="modal-close" onClick={() => setSelectedResource(null)} aria-label="Close">×</button>
+      {selectedResource && <dialog ref={requestDialogRef} className="app-modal resource-request-dialog" aria-labelledby="resource-request-title" onCancel={(event) => { if (submitting) event.preventDefault(); else setSelectedResource(null); }}>
+        <button type="button" className="modal-close" onClick={() => setSelectedResource(null)} disabled={submitting} aria-label="Close request dialog">×</button>
         {!submitted ? <>
-          <div className="modal-icon">{selectedResource.icon}</div>
-          <h2>Request {selectedResource.name}?</h2>
-          <p>Your request will be reviewed by Student Affairs. You can track its progress in My Requests.</p>
+          <span className="request-dialog-kicker">RESOURCE REQUEST</span>
+          <h2 id="resource-request-title">Request a resource</h2>
+          <p>Choose your quantity and submit it for review.</p>
+          <div className="request-dialog-summary"><span className="modal-icon" aria-hidden="true">{selectedResource.icon}</span><div><strong>{selectedResource.name}</strong><small>{selectedResource.category}</small></div><span className="request-dialog-stock">{selectedResource.quantity} in stock</span></div>
+          <form onSubmit={(event) => { event.preventDefault(); confirmRequest(); }}>
           <div className="request-quantity-row">
             <label htmlFor="request-quantity">Quantity</label>
             <input
@@ -125,17 +144,24 @@ function Resources() {
               type="number"
               min="1"
               max={selectedResource.quantity || 1}
+              step="1"
+              required
+              disabled={submitting}
+              aria-describedby="request-quantity-help"
               value={requestQuantity}
-              onChange={(event) => setRequestQuantity(Math.max(1, Number(event.target.value) || 1))}
+              onChange={(event) => setRequestQuantity(event.target.value)}
             />
           </div>
-          <div className="modal-actions"><button className="modal-secondary" onClick={() => setSelectedResource(null)}>Cancel</button><button className="modal-primary" onClick={confirmRequest} disabled={submitting}>{submitting ? "Submitting..." : "Submit Request"}</button></div>
+          <p id="request-quantity-help" className="request-quantity-help">Enter 1 to {selectedResource.quantity} units.</p>
+          <p className="request-dialog-note">Student Affairs will review your request. Follow its status in My Requests.</p>
           {requestError && <p className="auth-error" role="alert">{requestError}</p>}
+          <div className="modal-actions"><button type="button" className="modal-secondary" onClick={() => setSelectedResource(null)} disabled={submitting}>Cancel</button><button type="submit" className="modal-primary" disabled={submitting}>{submitting ? "Submitting..." : "Submit request"}</button></div>
+          </form>
         </> : <>
-          <div className="success-icon">✓</div><h2>Request submitted</h2><p>Your request for {selectedResource.name} is now pending review.</p>
+          <div className="success-icon">✓</div><h2 id="resource-request-title">Request submitted</h2><p>Your request for {selectedResource.name} is now pending review.</p>
           <button className="modal-primary full" onClick={() => setSelectedResource(null)}>Done</button>
         </>}
-      </section></div>}
+      </dialog>}
     </div>
   );
 }

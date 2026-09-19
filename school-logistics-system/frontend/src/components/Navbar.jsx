@@ -92,13 +92,13 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
             <section id="header-notifications" className="notification-menu student-notifications" aria-labelledby="student-notifications-title">
               <div className="student-notifications-heading">
                 <div><h2 id="student-notifications-title">Notifications</h2><p>Your latest resource updates</p></div>
-                <span className="student-unread-count">{unreadCount} unread</span>
+                <div className="student-notifications-controls"><span className="student-unread-count">{unreadCount} unread</span><button type="button" className="student-notifications-close" aria-label="Close notifications" onClick={() => { setShowNotifications(false); notificationButtonRef.current?.focus(); }}>&times;</button></div>
               </div>
               <div className="student-notifications-list" tabIndex={0} aria-label="Recent notifications">
                 {notificationError && <p className="student-notification-error" role="alert">{notificationError}</p>}
                 {notificationsLoading ? <p className="student-notification-empty" role="status">Loading notifications...</p> : notifications.length ? (
                   <ul>
-                    {notifications.slice(0, 5).map((notification) => (
+                    {[...notifications].sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)).map((notification) => (
                       <li key={notification._id} className={`student-notification-item ${notification.read ? "" : "is-unread"}`}>
                         <span className="student-notification-icon"><DashboardIcon name="notification" /></span>
                         <div className="student-notification-copy">
@@ -106,6 +106,7 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
                           <p>{notification.message}</p>
                           <div className="student-notification-meta">
                             <span>{notification.read ? "Read" : "Unread"}</span>
+                            {notification.createdAt && !Number.isNaN(Date.parse(notification.createdAt)) && <time dateTime={notification.createdAt}>{new Date(notification.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time>}
                             {!notification.read && <button type="button" onClick={() => markRead(notification)} aria-label={`Mark ${notification.title} as read`}>Mark as read</button>}
                           </div>
                         </div>
