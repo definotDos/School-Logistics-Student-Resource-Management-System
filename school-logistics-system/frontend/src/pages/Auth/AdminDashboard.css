@@ -1,3 +1,43 @@
+/* Request report totals: consistent status colors and a balanced nine-card grid. */
+.admin-shell.organized-workspace .reports-main > .record-panel > .request-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.admin-shell.organized-workspace .request-summary-grid .admin-stat {
+  --report-tone: 37 99 170;
+  --report-label: #245d96;
+}
+.admin-shell.organized-workspace .admin-main.reports-main .request-summary-grid .admin-stat {
+  border: 1px solid rgb(var(--report-tone) / 25%);
+  border-left: 4px solid rgb(var(--report-tone));
+  background: linear-gradient(120deg, rgb(var(--report-tone) / 12%), transparent), #f8fbff;
+  padding: 20px 22px;
+  min-height: 124px;
+  box-shadow: none;
+}
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="pending"] { --report-tone: 180 116 26; --report-label: #925a10; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="approved"] { --report-tone: 24 137 116; --report-label: #116c5b; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="readyforclaim"] { --report-tone: 121 86 190; --report-label: #7145ac; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="claimed"] { --report-tone: 25 130 157; --report-label: #146880; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="released"] { --report-tone: 36 134 104; --report-label: #196d52; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="completed"] { --report-tone: 43 138 72; --report-label: #216735; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="rejected"] { --report-tone: 188 65 92; --report-label: #a12d48; }
+.admin-shell.organized-workspace .request-summary-grid .admin-stat[data-status="cancelled"] { --report-tone: 110 127 148; --report-label: #506176; }
+.admin-shell.organized-workspace .admin-main.reports-main .request-summary-grid .admin-stat span { color: var(--report-label); font-size: 12px; font-weight: 700; }
+.admin-shell.organized-workspace .admin-main.reports-main .request-summary-grid .admin-stat strong { color: var(--glass-ink); font-size: 32px; font-variant-numeric: tabular-nums; margin-top: 12px; }
+.admin-shell.organized-workspace.dark-mode .admin-main.reports-main .request-summary-grid .admin-stat {
+  background: linear-gradient(120deg, rgb(var(--report-tone) / 22%), rgb(var(--report-tone) / 5%)), #16263b;
+  border-left-color: color-mix(in srgb, rgb(var(--report-tone)), white 25%);
+}
+.admin-shell.organized-workspace.dark-mode .admin-main.reports-main .request-summary-grid .admin-stat span { color: color-mix(in srgb, rgb(var(--report-tone)), white 65%); }
+@media (max-width: 900px) {
+  .admin-shell.organized-workspace .reports-main > .record-panel > .request-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-shell.organized-workspace .request-summary-grid .admin-stat:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .admin-shell.organized-workspace .reports-main > .record-panel > .request-summary-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Workspace layout and readable type scale, shared by both themes. */
 .admin-shell.organized-workspace .admin-main {
   padding: 32px clamp(18px, 3vw, 40px) 48px;
@@ -55,7 +95,7 @@
 }
 .admin-shell.organized-workspace .admin-main :is(.receive-strip b, .verification-note b) { font-size: 12px; }
 
-/* Overview: metrics, priorities, performance, then common workflows. */
+/* Overview: metrics, common workflows, then priorities and performance. */
 .admin-shell.organized-workspace .admin-overview { display: grid; gap: 24px; }
 .admin-shell.organized-workspace .admin-overview :is(.admin-stats, .admin-grid, .admin-quick) { margin: 0; }
 .admin-shell.organized-workspace .admin-overview .admin-stat {
@@ -535,6 +575,52 @@
   .admin-shell.organized-workspace .admin-main :is(.users-filters, .allocation-filters) label { min-width: 0; }
 }
 
+/* Center the bell independently of its unread badge and align header controls. */
+.admin-shell.organized-workspace .app-header .header-actions {
+  align-items: center;
+  gap: 16px;
+}
+.admin-shell.organized-workspace .app-header .notification-wrap {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.admin-shell.organized-workspace .app-header .notification-wrap .header-icon {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.admin-shell.organized-workspace .app-header .header-icon > .dashboard-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.admin-shell.organized-workspace .app-header .notification-wrap .header-icon i {
+  top: -4px;
+  right: -4px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.admin-shell.organized-workspace .app-header .header-theme-toggle {
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .admin-shell.organized-workspace .app-header .header-actions { gap: 10px; }
+}
+
 /* Administrator notification popover: fixed heading/footer, scrollable updates. */
 .admin-shell.organized-workspace .notification-menu.admin-notifications {
   --notice-surface: #ffffff;
@@ -779,7 +865,9 @@
 .admin-shell.organized-workspace .admin-campus-context {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
+  flex: 0 1 420px;
+  min-width: 0;
   max-width: 100%;
   padding: 14px 18px;
   border: 1px solid var(--glass-border);
@@ -787,19 +875,20 @@
   background: var(--glass-soft);
 }
 .admin-shell.organized-workspace .admin-campus-context small { display: block; margin-bottom: 4px; color: var(--glass-muted); font-size: 11px; }
-.admin-shell.organized-workspace .admin-campus-context strong { display: block; color: var(--glass-ink); font-size: 13px; overflow-wrap: anywhere; }
+.admin-shell.organized-workspace .admin-campus-context strong { display: block; color: var(--glass-ink); font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+.admin-shell.organized-workspace .admin-campus-context > div { min-width: 0; }
 .admin-shell.organized-workspace .admin-context-icon { display: grid; place-items: center; color: var(--glass-accent); }
 .admin-shell.organized-workspace .admin-context-icon svg { width: 24px; height: 24px; }
 .admin-shell.organized-workspace .admin-context-icon { flex-shrink: 0; }
 .admin-shell.organized-workspace .admin-context-logo {
   display: block;
-  width: 44px;
-  height: 44px;
-  padding: 3px;
+  width: 80px;
+  height: 80px;
+  padding: 0;
   object-fit: contain;
-  border: 1px solid var(--glass-border);
+  border: 0;
   border-radius: 50%;
-  background: #fff;
+  background: transparent;
 }
 .admin-shell.organized-workspace .admin-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
 .admin-shell.organized-workspace .admin-section-heading h2 { margin: 0; color: var(--glass-ink); font-size: 17px; }
@@ -816,6 +905,14 @@
 .admin-shell.organized-workspace .admin-overview .quick-action-grid a > svg { flex-shrink: 0; width: 24px; height: 24px; }
 .admin-shell.organized-workspace .admin-overview .quick-action-grid a > span { flex: 1; min-width: 0; }
 .admin-shell.organized-workspace .admin-overview .quick-action-grid a:hover { border-color: var(--glass-accent); box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%); }
+.admin-shell.organized-workspace .admin-overview .quick-action-grid a:focus-visible,
+.admin-shell.organized-workspace .admin-overview .attention-row a:focus-visible {
+  outline: 2px solid var(--glass-accent);
+  outline-offset: 3px;
+}
+@media (min-width: 1400px) {
+  .admin-shell.organized-workspace .admin-overview .quick-action-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .admin-shell.organized-workspace { --glass-surface: rgb(255 255 255 / 70%); }
   .admin-shell.organized-workspace.dark-mode { --glass-surface: rgb(23 40 62 / 74%); }
@@ -827,7 +924,8 @@
 }
 @media (max-width: 700px) {
   .admin-shell.organized-workspace .admin-topline { gap: 18px; padding: 20px; }
-  .admin-shell.organized-workspace .admin-campus-context { width: 100%; }
+  .admin-shell.organized-workspace .admin-campus-context { width: 100%; flex: 0 1 auto; box-sizing: border-box; gap: 14px; padding: 14px; }
+  .admin-shell.organized-workspace .admin-context-logo { width: 64px; height: 64px; }
   .admin-shell.organized-workspace .admin-overview .quick-action-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -910,6 +1008,22 @@
   stroke-linejoin: round;
 }
 
+/* Give each priority a consistent action column when there is room. */
+@media (min-width: 1400px) {
+  .admin-shell.organized-workspace .admin-overview .attention-row {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .admin-shell.organized-workspace .admin-overview .attention-row > b { grid-row: auto; }
+  .admin-shell.organized-workspace .admin-overview .attention-row a {
+    grid-column: 3;
+    padding: 9px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+}
+
 /* Keep catalog pictures aligned and fully visible regardless of source dimensions. */
 .admin-shell.organized-workspace .admin-main .resource-thumbnail {
   display: grid;
@@ -947,4 +1061,184 @@
     flex: 1 1 calc(100% - 80px);
     min-width: 0;
   }
+}
+
+/* Shared summary palette: amber work queues, blue stock/assignment,
+   emerald people/releases, and violet collection schedules. */
+.admin-shell.organized-workspace .admin-overview .admin-stat.orange,
+.admin-shell.organized-workspace .allocation-summary > [data-tone="pending"] { --summary-rgb: 180 116 26; }
+.admin-shell.organized-workspace .admin-overview .admin-stat.blue,
+.admin-shell.organized-workspace .allocation-summary > [data-tone="assigned"] { --summary-rgb: 42 113 180; }
+.admin-shell.organized-workspace .admin-overview .admin-stat.green,
+.admin-shell.organized-workspace .allocation-summary > [data-tone="released"] { --summary-rgb: 29 133 98; }
+.admin-shell.organized-workspace .admin-overview .admin-stat.navy { --summary-rgb: 124 88 182; }
+.admin-shell.organized-workspace .admin-main .admin-overview .admin-stat,
+.admin-shell.organized-workspace .admin-main .allocation-summary > div {
+  border: 1px solid rgb(var(--summary-rgb) / 28%);
+  border-top: 3px solid rgb(var(--summary-rgb));
+  background: linear-gradient(130deg, rgb(var(--summary-rgb) / 13%), rgb(var(--summary-rgb) / 3%)), #f8fbff;
+  box-shadow: 0 6px 18px rgb(var(--summary-rgb) / 6%);
+}
+.admin-shell.organized-workspace.dark-mode .admin-main .admin-overview .admin-stat,
+.admin-shell.organized-workspace.dark-mode .admin-main .allocation-summary > div {
+  border-color: rgb(var(--summary-rgb) / 38%);
+  border-top-color: color-mix(in srgb, rgb(var(--summary-rgb)), white 28%);
+  background: linear-gradient(130deg, rgb(var(--summary-rgb) / 25%), rgb(var(--summary-rgb) / 7%)), #15243a;
+}
+.admin-shell.organized-workspace .admin-main .admin-overview .admin-stat-heading > span:first-child,
+.admin-shell.organized-workspace .admin-main .allocation-summary > div > span {
+  color: color-mix(in srgb, rgb(var(--summary-rgb)), #122136 28%);
+  font-weight: 700;
+}
+.admin-shell.organized-workspace.dark-mode .admin-main .admin-overview .admin-stat-heading > span:first-child,
+.admin-shell.organized-workspace.dark-mode .admin-main .allocation-summary > div > span {
+  color: color-mix(in srgb, rgb(var(--summary-rgb)), white 65%);
+}
+.admin-shell.organized-workspace .admin-main .allocation-summary > div {
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+  border-radius: 14px;
+}
+.admin-shell.organized-workspace .admin-main .allocation-summary strong { color: var(--glass-ink); font-size: 32px; font-variant-numeric: tabular-nums; }
+.admin-shell.organized-workspace .admin-main .allocation-summary small { display: block; color: var(--glass-muted); line-height: 1.5; }
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace .allocation-summary { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .admin-shell.organized-workspace .admin-main .allocation-summary > div { padding: 16px; }
+}
+/* User and audit summaries share semantic colors across both themes. */
+.admin-shell.organized-workspace [data-summary-tone="blue"] { --summary-color: 42 113 180; }
+.admin-shell.organized-workspace [data-summary-tone="green"] { --summary-color: 29 133 98; }
+.admin-shell.organized-workspace [data-summary-tone="rose"] { --summary-color: 188 65 92; }
+.admin-shell.organized-workspace [data-summary-tone="teal"] { --summary-color: 22 130 139; }
+.admin-shell.organized-workspace [data-summary-tone="violet"] { --summary-color: 124 88 182; }
+.admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) { gap: 16px; }
+.admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgb(var(--summary-color) / 28%);
+  border-top: 3px solid rgb(var(--summary-color));
+  border-radius: 14px;
+  background: linear-gradient(130deg, rgb(var(--summary-color) / 13%), rgb(var(--summary-color) / 3%)), #f8fbff;
+}
+.admin-shell.organized-workspace.dark-mode .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] {
+  border-color: rgb(var(--summary-color) / 38%);
+  border-top-color: color-mix(in srgb, rgb(var(--summary-color)), white 28%);
+  background: linear-gradient(130deg, rgb(var(--summary-color) / 25%), rgb(var(--summary-color) / 7%)), #15243a;
+}
+.admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] > span {
+  color: color-mix(in srgb, rgb(var(--summary-color)), #122136 28%);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.admin-shell.organized-workspace.dark-mode .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] > span {
+  color: color-mix(in srgb, rgb(var(--summary-color)), white 65%);
+}
+.admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] > strong {
+  color: var(--glass-ink);
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .admin-shell.organized-workspace .admin-main :is(.users-summary, .audit-summary) > [data-summary-tone] { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
+  .admin-shell.organized-workspace .admin-main .audit-summary strong { margin-top: 0; }
+}
+/* Quick actions use the same workflow colors as the overview metrics. */
+.admin-shell.organized-workspace .quick-action-grid a[href="/admin/requests"] { --action-rgb: 180 116 26; }
+.admin-shell.organized-workspace .quick-action-grid a[href="/admin/inventory"] { --action-rgb: 42 113 180; }
+.admin-shell.organized-workspace .quick-action-grid a[href="/admin/distribution"] { --action-rgb: 124 88 182; }
+.admin-shell.organized-workspace .quick-action-grid a[href="/admin/reports"] { --action-rgb: 22 130 117; }
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a {
+  --action-ink: color-mix(in srgb, rgb(var(--action-rgb)), #122136 28%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 96px;
+  padding: 18px;
+  border: 1px solid rgb(var(--action-rgb) / 30%);
+  border-top: 3px solid rgb(var(--action-rgb));
+  border-radius: 12px;
+  background: linear-gradient(130deg, rgb(var(--action-rgb) / 13%), rgb(var(--action-rgb) / 3%)), #f8fbff;
+  color: var(--action-ink);
+}
+.admin-shell.organized-workspace.dark-mode .admin-main .admin-overview .quick-action-grid a {
+  --action-ink: color-mix(in srgb, rgb(var(--action-rgb)), white 65%);
+  border-color: rgb(var(--action-rgb) / 38%);
+  border-top-color: color-mix(in srgb, rgb(var(--action-rgb)), white 28%);
+  background: linear-gradient(130deg, rgb(var(--action-rgb) / 25%), rgb(var(--action-rgb) / 7%)), #15243a;
+}
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a > .dashboard-icon {
+  box-sizing: content-box;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  padding: 10px;
+  border: 1px solid rgb(var(--action-rgb) / 30%);
+  border-radius: 11px;
+  background: rgb(var(--action-rgb) / 12%);
+  color: var(--action-ink);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a > span { color: var(--glass-ink); font-weight: 700; line-height: 1.5; }
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a small { display: block; margin-top: 5px; color: var(--glass-muted); font-weight: 400; }
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a:hover { border-color: var(--action-ink); box-shadow: 0 4px 16px rgb(var(--action-rgb) / 16%); }
+.admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a:focus-visible { outline: 2px solid var(--action-ink); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace .admin-main .admin-overview .quick-action-grid a { min-height: 84px; padding: 14px; }
+}
+/* Distribution filters: blue overview, violet planning, teal verification, green completion. */
+.admin-shell.organized-workspace .distribution-filters button[data-status="all"] { --filter-rgb: 42 113 180; }
+.admin-shell.organized-workspace .distribution-filters button[data-status="scheduled"] { --filter-rgb: 124 88 182; }
+.admin-shell.organized-workspace .distribution-filters button[data-status="confirmed"] { --filter-rgb: 22 130 117; }
+.admin-shell.organized-workspace .distribution-filters button[data-status="completed"] { --filter-rgb: 43 138 72; }
+.admin-shell.organized-workspace .distribution-filters { gap: 10px; }
+.admin-shell.organized-workspace .distribution-filters button {
+  --filter-ink: color-mix(in srgb, rgb(var(--filter-rgb)), #122136 25%);
+  min-height: 42px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 14px;
+  border: 1px solid rgb(var(--filter-rgb) / 30%);
+  border-radius: 10px;
+  background: linear-gradient(rgb(var(--filter-rgb) / 8%), rgb(var(--filter-rgb) / 8%)), #f8fbff;
+  color: var(--filter-ink);
+  font-weight: 600;
+}
+.admin-shell.organized-workspace.dark-mode .distribution-filters button {
+  --filter-ink: color-mix(in srgb, rgb(var(--filter-rgb)), white 65%);
+  background: linear-gradient(rgb(var(--filter-rgb) / 12%), rgb(var(--filter-rgb) / 12%)), #15243a;
+}
+.admin-shell.organized-workspace .distribution-filters button span {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: rgb(var(--filter-rgb) / 16%);
+  color: var(--filter-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.admin-shell.organized-workspace .distribution-filters button.is-active {
+  border-color: var(--filter-ink);
+  box-shadow: inset 0 -3px 0 var(--filter-ink);
+  background: linear-gradient(rgb(var(--filter-rgb) / 20%), rgb(var(--filter-rgb) / 20%)), #f8fbff;
+  color: var(--filter-ink);
+}
+.admin-shell.organized-workspace.dark-mode .distribution-filters button.is-active {
+  background: linear-gradient(rgb(var(--filter-rgb) / 30%), rgb(var(--filter-rgb) / 30%)), #15243a;
+}
+.admin-shell.organized-workspace .distribution-filters button:hover { border-color: var(--filter-ink); }
+.admin-shell.organized-workspace .distribution-filters button:focus-visible { outline: 2px solid var(--filter-ink); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .admin-shell.organized-workspace .distribution-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

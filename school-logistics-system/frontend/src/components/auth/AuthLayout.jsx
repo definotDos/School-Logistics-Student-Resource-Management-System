@@ -1,4 +1,5 @@
 import './LoginGlass.css'
+import './AuthWelcome.css'
 
 export function AuthLayout({ children, mode, onChangeMode, campus }) {
   const isLogin = mode === 'login'
@@ -8,11 +9,18 @@ export function AuthLayout({ children, mode, onChangeMode, campus }) {
     <main className={`auth-page ${isLogin ? 'is-login' : 'is-signup'}`} style={{ ...themeStyle, '--selected-campus-logo': campus?.logo ? `url("${campus.logo}")` : 'none' }}>
       <section className="auth-intro" aria-label="Account welcome">
         <div className="auth-intro-copy">
-          <h1>{isLogin ? 'Hello, Welcome!' : 'Hello, Welcome!'}</h1>
-          <p>{isLogin ? "Don't have an account?" : 'Already have an account?'}</p>
-          <button className="intro-action" type="button" onClick={() => onChangeMode(isLogin ? 'signup' : 'login')}>
-            {isLogin ? 'Register' : 'Login'}
-          </button>
+          <p className="auth-system-intro">This is</p>
+          <h1 className="auth-system-heading">
+            <span>School Logistics</span>{' '}
+            <span>Student Resource Management System</span>
+          </h1>
+          <div className="auth-welcome-action">
+            <h2>Hello, Welcome!</h2>
+            <p>{isLogin ? "Don't have an account?" : 'Already have an account?'}</p>
+            <button className="intro-action" type="button" onClick={() => onChangeMode(isLogin ? 'signup' : 'login')}>
+              {isLogin ? 'Register' : 'Login'}
+            </button>
+          </div>
         </div>
       </section>
       <section className={`auth-panel ${campus ? 'has-campus-theme' : ''}`}>

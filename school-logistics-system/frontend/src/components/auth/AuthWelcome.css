@@ -1,0 +1,88 @@
+.auth-page .auth-intro-copy {
+  width: min(100%, 460px);
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.auth-page .auth-system-intro {
+  margin: 0 0 14px;
+  color: #ddd9ff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .14em;
+}
+
+.auth-page .auth-intro .auth-system-heading {
+  margin: 0;
+  color: #fff;
+  font: 800 clamp(30px, 3.5vw, 54px)/1.12 'Segoe UI', sans-serif;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+.auth-system-heading > span { display: block; }
+
+.auth-page .auth-system-heading > span + span {
+  margin-top: 14px;
+  color: #e5e4ff;
+  font-size: clamp(20px, 2vw, 29px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -.015em;
+}
+
+.auth-page .auth-welcome-action {
+  margin-top: 32px;
+  padding-top: 26px;
+  border-top: 1px solid rgb(255 255 255 / 22%);
+}
+
+.auth-page .auth-welcome-action h2 {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+
+.auth-page .auth-welcome-action p {
+  margin: 0 0 18px;
+  color: #e5e4ff;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.auth-page .auth-welcome-action .intro-action {
+  width: min(100%, 200px);
+  min-height: 46px;
+  margin: 0;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.auth-page .auth-welcome-action .intro-action:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 5px;
+}
+
+@media (max-width: 700px) {
+  .auth-page.is-login,
+  .auth-page.is-signup {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-rows: auto 1fr;
+  }
+
+  .auth-page.is-login .auth-intro,
+  .auth-page.is-signup .auth-intro {
+    height: auto;
+    min-height: 0;
+    padding: 32px 24px;
+  }
+
+  .auth-page .auth-welcome-action {
+    margin-top: 22px;
+    padding-top: 20px;
+  }
+}

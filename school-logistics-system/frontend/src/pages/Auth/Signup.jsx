@@ -206,7 +206,6 @@ export function SignupPage({
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
         <button className="auth-submit form-wide" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Sign Up'}</button>
       </form>
-      <p className="auth-footer">Already have an account? <button type="button" onClick={() => onChangeMode('login')}>Login</button></p>
     </div>
   )
 }

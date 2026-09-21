@@ -8,6 +8,7 @@ import StatusBadge from "../../components/StatusBadge";
 import DashboardIcon from "../../components/DashboardIcon";
 import { campuses } from "../../data/campuses";
 import "./ClaimSchedule.css";
+import "./StudentStatusPalette.css";
 import { distributionAPI } from "../../services/api";
 
 function ClaimSchedule() {
@@ -68,7 +69,7 @@ function ClaimSchedule() {
           </div>
 
           {error && <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700" role="alert"><p>{error}</p><button type="button" onClick={() => loadSchedules()} className="mt-2 font-medium underline">Try again</button></div>}
-          {!loading && <div className="claim-filter-bar" role="group" aria-label="Filter claims by status">{filterOptions.map((option) => <button key={option.value} type="button" aria-pressed={filter === option.value} onClick={() => setFilter(option.value)}>{option.label}<span>{option.count}</span></button>)}</div>}
+          {!loading && <div className="claim-filter-bar" role="group" aria-label="Filter claims by status">{filterOptions.map((option) => <button key={option.value} type="button" data-status={option.value} aria-pressed={filter === option.value} onClick={() => setFilter(option.value)}>{option.label}<span>{option.count}</span></button>)}</div>}
           {!error && loading && <p className="claim-state" role="status">Loading your claim schedules...</p>}
           {!error && !loading && !visibleSchedules.length && <div className="claim-state"><DashboardIcon name="calendar" /><h2>{schedules.length ? "No claims in this category" : "No collections scheduled yet"}</h2><p>{schedules.length ? "Choose another filter to see your other claims." : "Your pickup details will appear here when a schedule is assigned."}</p></div>}
           <div className="claim-schedule-list" aria-busy={loading || refreshing}>

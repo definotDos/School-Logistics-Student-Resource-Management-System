@@ -1,0 +1,60 @@
+/* Shared navigation palette. Keep selection colors together for every role. */
+.app-sidebar {
+  --nav-text: #c5d5e6;
+  --nav-hover-bg: #20364d;
+  --nav-hover-border: #36536e;
+  --nav-selected-bg: #24445f;
+  --nav-selected-hover-bg: #2b506e;
+  --nav-selected-border: #527c99;
+  --nav-selected-text: #f1f8ff;
+  --nav-accent: #91d5f5;
+  --nav-icon-bg: #172d43;
+  --nav-icon-border: #344d65;
+  --nav-icon-text: #a9c8e4;
+  --nav-selected-icon-bg: #305b78;
+  --nav-selected-icon-text: #c5edff;
+}
+
+/* Scope through navigation so page-specific styles cannot split the palette. */
+.app-sidebar .sidebar-nav .sidebar-link.sidebar-link {
+  color: var(--nav-text);
+  border: 1px solid transparent;
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link:hover {
+  background: var(--nav-hover-bg);
+  border-color: var(--nav-hover-border);
+  color: var(--nav-selected-text);
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link .nav-icon {
+  background: var(--nav-icon-bg);
+  border-color: var(--nav-icon-border);
+  color: var(--nav-icon-text);
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link[aria-current="page"] {
+  background: var(--nav-selected-bg);
+  border-color: var(--nav-selected-border);
+  color: var(--nav-selected-text);
+  box-shadow: inset 3px 0 var(--nav-accent);
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link[aria-current="page"]:hover {
+  background: var(--nav-selected-hover-bg);
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link[aria-current="page"] .nav-icon {
+  background: var(--nav-selected-icon-bg);
+  border-color: var(--nav-selected-border);
+  color: var(--nav-selected-icon-text);
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link[aria-current="page"]::before {
+  background: none;
+}
+
+:is(.organized-workspace, .dashboard-shell).organized-workspace .app-sidebar .sidebar-nav .sidebar-link:focus-visible {
+  outline: 2px solid var(--nav-accent);
+  outline-offset: 2px;
+}

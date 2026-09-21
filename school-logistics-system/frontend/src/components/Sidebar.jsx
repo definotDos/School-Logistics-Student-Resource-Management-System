@@ -97,7 +97,13 @@ function Sidebar({ type = "student" }) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg><span>{navigationOpen ? "Close navigation" : "Navigation menu"}</span>
       </button>
       <div className="sidebar-brand">
-        <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
+        {type === "admin" || type === "student" ? (
+          <span className="sidebar-brand-emblem">
+            <img src="/Logo.jpg" alt="School Logistics System logo" width="44" height="44" />
+          </span>
+        ) : (
+          <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
+        )}
         <div><strong>SRMS</strong><small>Student Resource Management</small></div>
       </div>
       <div className="campus-switch">

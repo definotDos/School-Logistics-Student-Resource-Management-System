@@ -17,6 +17,7 @@ function StatusBadge({ status }) {
 
   return (
     <span
+      data-status={status?.toLowerCase()}
       className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${style}`}
     >
       {status?.replaceAll("_", " ")}

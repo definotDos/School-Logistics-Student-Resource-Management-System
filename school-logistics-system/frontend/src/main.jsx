@@ -8,6 +8,8 @@ import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 import "./App.css";
 import "./dashboard-layout.css";
+import "./light-theme.css";
+import "./sidebar-palette.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -1,0 +1,106 @@
+/* Blue personal details, teal email verification, violet account access. */
+.admin-shell.organized-workspace .admin-main.profile-main {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.admin-shell.organized-workspace .profile-main > .admin-topline,
+.admin-shell.organized-workspace .profile-main > .admin-account {
+  width: 100%;
+  max-width: 1440px;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+.admin-account {
+  --account-surface: #fff;
+  --account-input: #f8fafc;
+  --account-border: #d7e2ee;
+  --account-text: #20354d;
+  --account-muted: #52677e;
+  --account-blue: #245eab;
+  --account-blue-soft: #edf4ff;
+  --account-teal: #116b60;
+  --account-teal-soft: #eaf8f4;
+  --account-violet: #6d46a2;
+  --account-violet-soft: #f3effb;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  color: var(--account-text);
+}
+.dark-mode .admin-account {
+  --account-surface: #192b40;
+  --account-input: #102034;
+  --account-border: #354d66;
+  --account-text: #e7effa;
+  --account-muted: #b0c1d5;
+  --account-blue: #a8ceff;
+  --account-blue-soft: #233c59;
+  --account-teal: #98e6d4;
+  --account-teal-soft: #1c3d40;
+  --account-violet: #d6bdff;
+  --account-violet-soft: #342f4e;
+  color-scheme: dark;
+}
+.admin-account :is(.account-identity-card, .account-card) { min-width: 0; border: 1px solid var(--account-border); border-radius: 18px; background: var(--account-surface); overflow: hidden; box-shadow: 0 8px 28px #081c3010; }
+.admin-account .account-identity-card { display: flex; flex-direction: column; align-items: center; padding: 28px 24px; background: linear-gradient(160deg, var(--account-blue-soft), var(--account-surface) 50%); text-align: center; }
+/* Global aside rules belong to navigation; this card stays in the profile grid. */
+.admin-account > .account-identity-card {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+.admin-account .account-eyebrow { color: var(--account-blue); font-size: 10px; letter-spacing: .12em; font-weight: 800; }
+.admin-account .account-avatar { display: grid; place-items: center; width: 108px; height: 108px; margin: 24px 0 16px; overflow: hidden; border: 4px solid var(--account-surface); border-radius: 50%; background: var(--account-blue-soft); color: var(--account-blue); box-shadow: 0 0 0 2px var(--account-border); font-size: 32px; font-weight: 700; }
+.admin-account .account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.admin-account .account-identity-card h2 { margin: 0 0 14px; color: var(--account-text); font-size: 23px; line-height: 1.4; overflow-wrap: anywhere; }
+.admin-account .account-role-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 20px; color: var(--account-violet); background: var(--account-violet-soft); font-size: 12px; font-weight: 700; }
+.admin-account .dashboard-icon { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; flex-shrink: 0; }
+.admin-account .account-email { max-width: 100%; margin: 16px 0 24px; color: var(--account-muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-account .account-photo-button { position: relative; display: inline-flex; padding: 11px 18px; border: 1px solid var(--account-border); border-radius: 9px; background: var(--account-blue-soft); color: var(--account-blue); font-size: 12px; font-weight: 700; overflow: hidden; cursor: pointer; }
+.admin-account .account-photo-button input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.admin-account small { display: block; margin-top: 10px; color: var(--account-muted); font-size: 12px; line-height: 1.6; }
+.admin-account .account-access { align-self: stretch; margin-top: 28px; padding: 20px; border: 1px solid var(--account-border); border-radius: 12px; background: var(--account-violet-soft); text-align: left; }
+.admin-account .account-access h3 { display: flex; align-items: center; gap: 9px; margin: 0 0 18px; color: var(--account-violet); font-size: 14px; }
+.admin-account .account-access dl { display: grid; gap: 14px; margin: 0; }
+.admin-account .account-access dt { margin-bottom: 5px; color: var(--account-muted); font-size: 11px; }
+.admin-account .account-access dd { margin: 0; color: var(--account-text); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.admin-account .account-access p { margin: 18px 0 0; color: var(--account-muted); font-size: 11px; line-height: 1.6; }
+.admin-account .account-settings { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; width: 100%; }
+.admin-account .account-card { border-top: 3px solid var(--account-blue); }
+.admin-account .account-email-card { border-top-color: var(--account-teal); }
+.admin-account .account-card header { display: flex; align-items: center; gap: 14px; padding: 24px; border-bottom: 1px solid var(--account-border); }
+.admin-account .account-section-icon { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px; color: var(--account-blue); background: var(--account-blue-soft); }
+.admin-account .account-email-card :is(.account-section-icon, .account-eyebrow) { color: var(--account-teal); }
+.admin-account .account-email-card .account-section-icon { background: var(--account-teal-soft); }
+.admin-account .account-card h3 { margin: 5px 0; color: var(--account-text); font-size: 18px; }
+.admin-account .account-card header p { margin: 0; color: var(--account-muted); font-size: 12px; line-height: 1.6; }
+.admin-account .account-card-body { padding: 24px; }
+.admin-account label { color: var(--account-text); font-size: 13px; font-weight: 600; }
+.admin-shell.organized-workspace .admin-account input:not([type="file"]) { box-sizing: border-box; width: 100%; min-height: 46px; margin-top: 8px; padding: 12px 14px; border: 1px solid var(--account-border); border-radius: 9px; background: var(--account-input); color: var(--account-text); font: inherit; font-size: 14px; }
+.admin-account .account-card footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border-top: 1px solid var(--account-border); background: var(--account-blue-soft); }
+.admin-account .account-save-state { color: var(--account-teal); font-size: 12px; line-height: 1.6; }
+.admin-account .account-save-state.is-pending { color: #935e13; }
+.dark-mode .admin-account .account-save-state.is-pending { color: #f7d08b; }
+.admin-account button { min-height: 42px; padding: 10px 18px; border: 1px solid transparent; border-radius: 9px; background: #245eab; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.admin-account .email-change button { background: #146b61; align-self: start; }
+.admin-account button:hover:not(:disabled) { filter: brightness(1.12); }
+.admin-account :disabled { opacity: .55; cursor: not-allowed; }
+.admin-account .email-change { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.admin-account .email-change > strong { color: var(--account-muted); font-size: 12px; }
+.admin-account .email-change > span { padding: 12px 14px; border: 1px solid var(--account-border); border-radius: 9px; background: var(--account-teal-soft); color: var(--account-teal); overflow-wrap: anywhere; font-size: 14px; }
+.admin-account .email-change small { margin: 0; }
+.admin-account .email-change [role="status"] { padding: 12px; border-radius: 8px; background: var(--account-teal-soft); color: var(--account-teal); font-size: 13px; }
+.admin-account :is(.account-error, .email-change [role="alert"]) { padding: 12px; border-radius: 8px; background: #fff1f2; color: #9f1239; font-size: 13px; }
+.dark-mode .admin-account :is(.account-error, .email-change [role="alert"]) { background: #482b3b; color: #fecdd3; }
+.admin-account :is(button, input):focus-visible, .admin-account .account-photo-button:focus-within { outline: 2px solid var(--account-blue); outline-offset: 3px; }
+@media (max-width: 1100px) { .admin-account { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+  .admin-account { gap: 18px; }
+  .admin-account :is(.account-card header, .account-card-body) { padding: 20px 16px; }
+  .admin-account .account-card footer { flex-direction: column; align-items: stretch; padding: 18px 16px; }
+  .admin-account .email-change button { align-self: stretch; }
+}

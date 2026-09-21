@@ -106,6 +106,25 @@ body {
   overflow: hidden;
 }
 
+.landing-header .landing-brand-mark {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.landing-brand-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Crop the JPG's outer margin so only the circular emblem is visible. */
+  transform: scale(1.22);
+}
+
 .brand-ripple {
   position: absolute;
   border-radius: 50%;
@@ -1244,6 +1263,15 @@ body {
   letter-spacing: 1.5px;
 }
 
+.auth-intro-copy > .auth-system-title {
+  margin: 0 0 22px;
+  color: #ffffff;
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
 .auth-intro h1 {
   margin: 13px 0 18px;
   color: inherit;
@@ -1356,6 +1384,22 @@ body {
 .sidebar-brand { display: flex; align-items: center; gap: 11px; height: 78px; padding: 0 23px; border-bottom: 1px solid #ffffff16; }
 .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 2px solid #8bb4dd; border-radius: 8px; color: white; font-size: 12px; font-weight: 800; }
 .sidebar-brand-logo { width: 44px; height: 44px; border-radius: 8px; object-fit: contain; flex: 0 0 auto; }
+.sidebar-brand-emblem {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.sidebar-brand-emblem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Match the front-page crop of the circular emblem. */
+  transform: scale(1.22);
+}
 .sidebar-brand strong { display: block; color: white; font-size: 17px; letter-spacing: .8px; }
 .sidebar-brand small, .campus-switch small, .sidebar-user small { display: block; margin-top: 3px; color: #91aac5; font-size: 10px; }
 .campus-switch { position: relative; display: flex; align-items: center; gap: 9px; margin: 21px 14px 18px; padding: 10px; border: 1px solid #ffffff18; border-radius: 7px; font-size: 10px; cursor: pointer; transition: border-color .2s ease, background .2s ease; }
@@ -5353,14 +5397,14 @@ main > header > div:first-child > b {
 
 @media (max-width: 700px) {
   .auth-page {
-    grid-template-rows: 145px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .auth-intro,
   .auth-page.is-login .auth-intro,
   .auth-page.is-signup .auth-intro {
-    height: 145px;
-    min-height: 0;
+    height: auto;
+    min-height: 260px;
   }
 
   .auth-intro::after {

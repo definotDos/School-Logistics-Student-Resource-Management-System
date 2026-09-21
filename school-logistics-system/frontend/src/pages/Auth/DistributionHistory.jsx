@@ -4,6 +4,7 @@ import Navbar from "../../components/Navbar";
 import useStudentTheme from "../../hooks/useStudentTheme";
 import "./StudentDashboard.css";
 import "./StudentPages.css";
+import "./StudentStatusPalette.css";
 import StatusBadge from "../../components/StatusBadge";
 import { getResourceImage } from "../../utils/resourceImages";
 import { distributionAPI } from "../../services/api";
@@ -90,7 +91,7 @@ function DistributionHistory() {
             Review all resources that were released, picked up, or completed for your student account.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="history-stats mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm text-slate-500">Total items received</p>
               <h2 className="mt-2 text-3xl font-bold text-slate-900">{totalItems}</h2>
@@ -111,18 +112,16 @@ function DistributionHistory() {
 
           {lastUpdated && !loading && <p className="mt-3 text-right text-xs text-slate-400">Updated {lastUpdated.toLocaleTimeString()}</p>}
 
-          <div className="mt-7 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="history-filter-bar mt-7 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" role="group" aria-label="Filter distribution history by status">
             <div className="flex flex-wrap gap-2">
               {filterOptions.map((option) => (
                 <button
                   key={option}
                   type="button"
+                  data-status={option}
+                  aria-pressed={filter === option}
                   onClick={() => setFilter(option)}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                    filter === option
-                      ? "bg-violet-600 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                  className="status-filter"
                 >
                   {option === "all" ? "All" : option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

@@ -1,0 +1,120 @@
+/* Shared semantic palette for distribution history and claim schedules. */
+.student-pages {
+  --status-blue: #245b85;
+  --status-blue-soft: #eaf3fb;
+  --status-green: #196044;
+  --status-green-soft: #e8f5ed;
+  --status-teal: #12666a;
+  --status-teal-soft: #e5f5f3;
+  --status-violet: #6844a3;
+  --status-violet-soft: #f1ecfa;
+  --status-amber: #835609;
+  --status-amber-soft: #fff4d9;
+  --status-selected-text: #ffffff;
+}
+
+.student-pages.dark-mode {
+  --status-blue: #9bd8ff;
+  --status-blue-soft: #243f5b;
+  --status-green: #a5e8c7;
+  --status-green-soft: #1e463a;
+  --status-teal: #8de0da;
+  --status-teal-soft: #193f43;
+  --status-violet: #d5baff;
+  --status-violet-soft: #3d3155;
+  --status-amber: #ffe099;
+  --status-amber-soft: #493d22;
+  --status-selected-text: #10243a;
+}
+
+.student-pages :is(.distribution-history-page, .claim-schedule-page) [data-status] {
+  --status-color: var(--status-blue);
+  --status-soft: var(--status-blue-soft);
+}
+.student-pages :is(.distribution-history-page, .claim-schedule-page) :is([data-status="completed"], [data-status="claimed"]) {
+  --status-color: var(--status-green);
+  --status-soft: var(--status-green-soft);
+}
+.student-pages :is(.distribution-history-page, .claim-schedule-page) [data-status="received"] {
+  --status-color: var(--status-teal);
+  --status-soft: var(--status-teal-soft);
+}
+.student-pages :is(.distribution-history-page, .claim-schedule-page) :is([data-status="prepared"], [data-status="active"], [data-status="scheduled"], [data-status="confirmed"], [data-status="ready_for_claim"]) {
+  --status-color: var(--status-violet);
+  --status-soft: var(--status-violet-soft);
+}
+.student-pages :is(.distribution-history-page, .claim-schedule-page) [data-status="pending"] {
+  --status-color: var(--status-amber);
+  --status-soft: var(--status-amber-soft);
+}
+
+.student-pages.organized-workspace :is(.history-filter-bar, .claim-filter-bar) button[data-status] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--status-soft);
+  color: var(--status-color);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.student-pages.organized-workspace :is(.history-filter-bar, .claim-filter-bar) button[data-status]:hover {
+  border-color: var(--status-color);
+}
+.student-pages.organized-workspace :is(.history-filter-bar, .claim-filter-bar) button[aria-pressed="true"] {
+  background: var(--status-color);
+  color: var(--status-selected-text);
+  border-color: var(--status-color);
+  box-shadow: inset 0 -3px 0 #00000026;
+}
+.student-pages.organized-workspace :is(.history-filter-bar, .claim-filter-bar) button:focus-visible {
+  outline: 3px solid var(--status-color);
+  outline-offset: 3px;
+}
+.student-pages.organized-workspace .claim-filter-bar button span {
+  min-width: 24px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--workspace-surface);
+  color: var(--status-color);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.student-pages.organized-workspace :is(.distribution-history-page, .claim-schedule-page) span[data-status]:is([data-status="released"], [data-status="completed"], [data-status="claimed"], [data-status="received"], [data-status="prepared"], [data-status="scheduled"], [data-status="confirmed"], [data-status="ready_for_claim"], [data-status="pending"]) {
+  background: var(--status-soft);
+  color: var(--status-color);
+}
+
+.student-pages.organized-workspace .history-stats > div {
+  --stat-color: var(--status-blue);
+  --stat-soft: var(--status-blue-soft);
+  padding: 20px;
+  border-color: var(--workspace-border);
+  border-top: 3px solid var(--stat-color);
+  background: var(--stat-soft);
+}
+.student-pages.organized-workspace .history-stats > div:nth-child(2) {
+  --stat-color: var(--status-violet);
+  --stat-soft: var(--status-violet-soft);
+}
+.student-pages.organized-workspace .history-stats > div:nth-child(3) {
+  --stat-color: var(--status-green);
+  --stat-soft: var(--status-green-soft);
+}
+.student-pages.organized-workspace .history-stats > div > p {
+  color: var(--stat-color);
+  font-weight: 600;
+}
+.student-pages.organized-workspace .history-stats h2 { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .student-pages.organized-workspace :is(.history-filter-bar, .claim-filter-bar) button[data-status] { transition: none; }
+}

@@ -175,8 +175,8 @@ export function LandingPage() {
     <main id="top" className={`landing-page ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="landing-header">
         <div className="brand-wrap" onClick={handleBrandClick} role="button" tabIndex={0}>
-          <div className="brand-mark">
-            S
+          <div className="brand-mark landing-brand-mark">
+            <img className="landing-brand-logo" src="/Logo.jpg" alt="School Logistics System logo" width="48" height="48" />
             {ripples.map((ripple) => (
               <span
                 key={ripple.id}

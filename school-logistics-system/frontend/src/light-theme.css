@@ -1,0 +1,98 @@
+/* Shared light mode. Keep palette and surfaces together, after page styles. */
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode),
+.landing-page:not(.dark-mode) {
+  color-scheme: light;
+  --light-ink: #19324d;
+  --light-muted: #52657c;
+  --light-accent: #205f89;
+  --light-soft: #f0f5fa;
+  --light-border: #d5e0eb;
+  --workspace-surface: #fff;
+  --workspace-border: var(--light-border);
+  --workspace-muted: var(--light-muted);
+  --glass-surface: #fff;
+  --glass-border: var(--light-border);
+  --glass-soft: var(--light-soft);
+  --glass-ink: var(--light-ink);
+  --glass-muted: var(--light-muted);
+  --glass-accent: var(--light-accent);
+  --glass-shadow: 0 4px 16px #19324d08;
+  --muted: var(--light-muted);
+  --border: var(--light-border);
+  background: #f3f6fa;
+  color: var(--light-ink);
+}
+
+/* White surfaces and tinted section headings establish a clear hierarchy. */
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.app-header, .admin-panel, .dashboard-panel, .admin-stat, .dashboard-stat, .profile-modal, .notification-menu, .search-results) {
+  background: #fff;
+  border-color: var(--light-border);
+  color: var(--light-ink);
+  box-shadow: 0 4px 16px #19324d08;
+  backdrop-filter: none;
+}
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.admin-topline, .dashboard-welcome) {
+  background: linear-gradient(110deg, #fff 35%, #eaf3fa);
+  border: 1px solid var(--light-border);
+  border-radius: 18px;
+  padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 4px 16px #19324d08;
+}
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.panel-heading, .admin-panel-heading, .record-toolbar) {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--light-border);
+}
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(h1, h2, .dashboard-stat strong, .admin-stat strong, .record-copy strong, .request-row strong, .header-profile strong, .dashboard-profile-trigger strong) { color: var(--light-ink); }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.dashboard-stat small, .admin-stat small, .record-copy small, .request-row small, .header-context, .header-profile small, .dashboard-profile-trigger small, .attention-row small, .quick-action-grid small) { color: var(--light-muted); }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.request-row, .attention-row, .record-row, .panel-action) { border-color: var(--light-border); }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.request-row:hover, .record-row:hover) { background: #f5f9fd; }
+
+/* Controls remain distinct from both the canvas and the surrounding cards. */
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.header-theme-toggle, .header-icon, .header-profile, .dashboard-profile-trigger, .admin-secondary, .profile-cancel, .row-action) {
+  background: #fff;
+  border: 1px solid #c5d4e3;
+  color: var(--light-accent);
+  box-shadow: none;
+}
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.header-theme-toggle, .header-icon, .header-profile, .dashboard-profile-trigger, .admin-secondary, .profile-cancel, .row-action):hover { background: #eaf3fa; border-color: #759ab7; }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.record-toolbar input, .record-toolbar select, .resource-form input, .resource-form select, .profile-form-grid input) {
+  background: #fff;
+  color: var(--light-ink);
+  border-color: #b8cadd;
+}
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) input::placeholder { color: #60748b; opacity: 1; }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.dashboard-primary-action, .admin-primary, .profile-save) { background: #205f89; color: #fff; }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.dashboard-primary-action, .admin-primary, .profile-save):enabled:hover { background: #174b70; }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(.progress, .request-symbol, .record-icon, .student-stat-heading .dashboard-icon) { background: #e8f0f7; }
+:is(.dashboard-shell, .admin-shell).organized-workspace:not(.dark-mode) :is(a, button, input, select, textarea):focus-visible,
+.landing-page:not(.dark-mode) :is(a, button):focus-visible {
+  outline: 3px solid #2874a6;
+  outline-offset: 3px;
+}
+.student-shell.organized-workspace:not(.dark-mode) .notification-wrap .header-icon i { background: #205f89; color: #fff; border-color: #fff; }
+
+/* Landing page: carry the same light palette into the preview and content. */
+.landing-page:not(.dark-mode) { background: linear-gradient(180deg, #edf5fc, #f8fafc 650px); }
+.landing-page:not(.dark-mode) .landing-header { background: #fffffffa; border-color: var(--light-border); box-shadow: 0 6px 24px #19324d0d; }
+.landing-page:not(.dark-mode) :is(.benefit-card, .audience-card, .feature-tile, .contact-card, .dashboard-preview) {
+  background: #fff;
+  color: var(--light-ink);
+  border: 1px solid var(--light-border);
+  box-shadow: 0 6px 22px #19324d09;
+}
+.landing-page:not(.dark-mode) :is(.benefit-card, .audience-card) { padding: 28px; }
+.landing-page:not(.dark-mode) :is(.hero-copy p, .benefit-card p, .audience-card p, .contact-card p, .brand-copy small, .stat-card small) { color: var(--light-muted); }
+.landing-page:not(.dark-mode) :is(.preview-header, .stat-card strong, .benefit-card h3, .audience-card h3, .contact-card h3) { color: var(--light-ink); }
+.landing-page:not(.dark-mode) :is(.stat-card, .chart-card, .contact-details) { background: var(--light-soft); border-color: var(--light-border); }
+.landing-page:not(.dark-mode) .preview-icons span { background: #8ca8c1; }
+.landing-page:not(.dark-mode) .chart-bars span { background: linear-gradient(180deg, #3978ac, #66b5ce); box-shadow: none; }
+.landing-page:not(.dark-mode) :is(.benefit-icon, .contact-icon, .feature-check, .landing-badge) { background: #e8f2fa; color: #205f89; border-color: #cbdfee; }
+.landing-page:not(.dark-mode) :is(.nav-theme-toggle, .secondary-btn) { background: #fff; color: #205f89; border: 1px solid #b8cadd; }
+.landing-page:not(.dark-mode) :is(.nav-theme-toggle, .secondary-btn):hover { background: #e8f2fa; }
+.landing-page:not(.dark-mode) .primary-btn { background: #205f89; color: #fff; box-shadow: 0 4px 12px #205f8926; }
+.landing-page:not(.dark-mode) .primary-btn:hover { background: #174b70; }
+.landing-page:not(.dark-mode) :is(.landing-audience, .landing-key-features, .landing-contact) { border-top: 1px solid var(--light-border); padding-top: 40px; scroll-margin-top: 120px; }
+@media (max-width: 480px) {
+  .landing-page:not(.dark-mode) .preview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .landing-page:not(.dark-mode) :is(.benefit-card, .audience-card) { padding: 22px; }
+}

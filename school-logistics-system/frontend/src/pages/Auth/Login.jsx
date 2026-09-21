@@ -78,7 +78,6 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
         {(validationError || error) && <p className={`auth-error ${error?.includes('successfully') ? 'auth-success' : ''}`} role="alert">{validationError || error}</p>}
       </form>
       <p className="auth-footer"><button type="button" onClick={() => { if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setValidationError('Enter your email address to resume verification.'); sessionStorage.setItem('srmsVerificationEmail', email.trim().toLowerCase()); onChangeMode('signup') }}>Resume email verification</button></p>
-      <p className="auth-footer">Don't have an account? <button type="button" onClick={() => onChangeMode('signup')}>Register</button></p>
       {forgotOpen && <div className="forgot-modal-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setForgotOpen(false)}>
         <section className="forgot-modal" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
           <button className="forgot-modal-close" type="button" aria-label="Close password recovery" onClick={() => setForgotOpen(false)}>×</button>

@@ -1,3 +1,5 @@
+import RequestPanel from "../../components/AdminRequestPanel";
+import AuditLogPanel from "../../components/AuditLogPanel";
 import StudentIdEditor from "../../components/StudentIdEditor";
 import ProfilePanel from "../../components/ProfilePanel";
 import { useEffect, useState } from "react";
@@ -37,17 +39,6 @@ const emptyRows = {
   audit: [],
 };
 
-const resourceImageByName = (name = "") => {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("mathematics")) return "/mathematics-book.svg";
-  return "";
-};
-
-const resourceInitials = (name = "Resource") => {
-  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
-  return words.map((word) => word[0]).join("").toUpperCase() || "RS";
-};
-
 function AdminDashboard() {
   const { user } = useAuth();
   const { section: requestedSection } = useParams();
@@ -66,6 +57,7 @@ function AdminDashboard() {
   const [workflowRows, setWorkflowRows] = useState({ allocation: [], distribution: [] });
   const [staffMembers, setStaffMembers] = useState([]);
   const [requestError, setRequestError] = useState("");
+  const [requestsLoading, setRequestsLoading] = useState(true);
   const [userError, setUserError] = useState("");
   const [accountCreationReady, setAccountCreationReady] = useState(true);
   const [notice, setNotice] = useState("");
@@ -78,28 +70,13 @@ function AdminDashboard() {
     }
   }, [activeSection]);
 
-  useEffect(() => {
-    if (activeSection !== "audit") return;
-    reportsAPI.getAuditLogReport()
-      .then((result) => {
-        const logs = result?.logs || [];
-        setRows((current) => ({
-          ...current,
-          audit: logs.map((log, index) => ({
-            databaseId: log.entityId || `${log.action}-${index}`,
-            name: log.action,
-            detail: `${log.actor || "Unknown"} · ${log.entity || "System"} · ${new Date(log.timestamp).toLocaleString()}`,
-            status: log.statusChange && log.statusChange !== "N/A" ? log.statusChange : "Recorded",
-            action: "View",
-          })),
-        }));
-      })
-      .catch((error) => setNotice(error.message));
-  }, [activeSection]);
+
 
   useEffect(() => {
     if (activeSection !== "requests") return;
-    requestAPI.getAll().then((result) => setRequests(result.requests)).catch((error) => setRequestError(error.message));
+    let cancelled = false;
+    requestAPI.getAll().then((result) => { if (!cancelled) { setRequests(result.requests || []); setRequestError(""); } }).catch((error) => { if (!cancelled) setRequestError(error.message); }).finally(() => { if (!cancelled) setRequestsLoading(false); });
+    return () => { cancelled = true; };
   }, [activeSection]);
 
   useEffect(() => {
@@ -156,15 +133,18 @@ function AdminDashboard() {
     } catch (error) { setNotice(error.message); }
   };
   const approveRequest = async (request) => {
+    setRequestError("");
     try {
       if (request.eligibilityStatus !== "eligible") {
-        await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
+        await requestAPI.verifyEligibility(request.databaseId, { eligible: true, notes: request.notes || "" });
       }
       const result = await requestAPI.approve(request.databaseId, {});
       setRequests((current) => current.map((item) => item.databaseId === request.databaseId ? result.request : item));
       setNotice("Request approved and moved to allocation.");
+      return result.request;
     } catch (error) {
       setRequestError(error.message);
+      return null;
     }
   };
   const addResource = async (resource) => {
@@ -206,7 +186,7 @@ function AdminDashboard() {
   return <div className={`admin-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div className="admin-title-copy"><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><div className="admin-campus-context"><span className="admin-context-icon">{activeCampus?.logo ? <img className="admin-context-logo" src={activeCampus.logo} alt={`${activeCampus.shortName} logo`} /> : <DashboardIcon name="school" />}</span><div><small>Campus workspace</small><strong>{user?.activeCampus || "All campuses"}</strong></div></div></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
-    {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel accountCreationReady={accountCreationReady} onIdUpdated={result => { setAccountCreationReady(result.accountCreationReady); setRows(current => ({ ...current, users: current.users.map(item => item.databaseId === result.user.id ? { ...item, studentId: result.user.studentId } : item) })); }} onCreated={user => setRows(current => ({ ...current, users: [...current.users, { databaseId: user.id, name: user.name, email: user.email, studentId: user.studentId, avatar: user.avatar || "", role: user.role, campus: user.campus, detail: `${user.email} ? ${user.role} ? ${user.campus}`, status: user.status, action: "Suspend" }] }))} users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "distribution" ? <DistributionPanel /> : activeSection === "campuses" ? <CampusPanel /> : activeSection === "notifications" ? <NotificationsPanel /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
+    {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "audit" ? <AuditLogPanel /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel loading={requestsLoading} requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel accountCreationReady={accountCreationReady} onIdUpdated={result => { setAccountCreationReady(result.accountCreationReady); setRows(current => ({ ...current, users: current.users.map(item => item.databaseId === result.user.id ? { ...item, studentId: result.user.studentId } : item) })); }} onCreated={user => setRows(current => ({ ...current, users: [...current.users, { databaseId: user.id, name: user.name, email: user.email, studentId: user.studentId, avatar: user.avatar || "", role: user.role, campus: user.campus, detail: `${user.email} ? ${user.role} ? ${user.campus}`, status: user.status, action: "Suspend" }] }))} users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "distribution" ? <DistributionPanel /> : activeSection === "campuses" ? <CampusPanel /> : activeSection === "notifications" ? <NotificationsPanel /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
   </main></div></div>;
 }
 
@@ -222,8 +202,8 @@ function Overview({ overview }) {
 
   return <div className="admin-overview">
   <section className="admin-metrics" aria-labelledby="admin-metrics-title"><div className="admin-section-heading"><div><h2 id="admin-metrics-title">At a glance</h2><p>Your resource operations in one place</p></div><span>Overview</span></div><div className="admin-stats"><AdminStat label="Pending requests" value={pendingRequests} change="Live from system" tone="orange" /><AdminStat label="Available resources" value={availableResources} change="Current inventory" tone="blue" /><AdminStat label="Active users" value={activeUsers} change="Registered accounts" tone="green" /><AdminStat label="Scheduled claims" value={scheduledClaims} change="Live schedule count" tone="navy" /></div></section>
-  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="studentRequests" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="inventory" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="claimCalendar" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{fulfillmentRate}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div></div><div className="progress-block"><div><span>Approval rate</span><strong>{approvalRate}%</strong></div><div className="progress green"><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div></div><div className="progress-block"><div><span>Resources released</span><strong>{resourcesReleased}</strong></div><div className="progress orange"><i style={{ width: `${resourcesReleased ? 100 : 0}%` }} /></div></div></section></div>
   <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="inventory" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="reports" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
+  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="studentRequests" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="inventory" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="claimCalendar" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{fulfillmentRate}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div></div><div className="progress-block"><div><span>Approval rate</span><strong>{approvalRate}%</strong></div><div className="progress green"><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div></div><div className="progress-block"><div><span>Resources released</span><strong>{resourcesReleased}</strong></div><div className="progress orange"><i style={{ width: `${resourcesReleased ? 100 : 0}%` }} /></div></div></section></div>
 </div>; }
 function AdminStat({ label, value, change, tone }) {
   const icon = { orange: "studentRequests", blue: "inventory", green: "users", navy: "claimCalendar" }[tone];
@@ -261,7 +241,7 @@ function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, a
   return <section className="admin-panel record-panel user-management-panel users-organized">
     <div className="users-heading"><div><h2>Registered users <span>{users.length}</span></h2><p>Manage accounts and access across your school.</p></div></div>
     <div className="users-summary" aria-label="Account summary">
-      {[['Total users', users.length], ['Active', users.filter(user => user.status === 'active').length], ['Suspended', users.filter(user => user.status === 'suspended').length]].map(([label, count]) => <div key={label}><span>{label}</span><strong>{count}</strong></div>)}
+      {[['Total users', users.length, 'blue'], ['Active', users.filter(user => user.status === 'active').length, 'green'], ['Suspended', users.filter(user => user.status === 'suspended').length, 'rose']].map(([label, count, tone]) => <div key={label} data-summary-tone={tone}><span>{label}</span><strong>{count}</strong></div>)}
     </div>
     <div className="users-create">{accountCreationReady ? <CreateUserForm onCreated={onCreated} /> : <p className="account-review-notice" role="status">New accounts are paused while existing student IDs are reviewed. Correct duplicate IDs below using the school roster. Select All campuses to review every account. Login remains available.</p>}</div>
     <div className="users-filters">
@@ -309,8 +289,6 @@ function InventoryPanel({ setNotice }) {
   return <section className="admin-panel record-panel inventory-panel"><div className="record-toolbar"><div><h2>Stock overview</h2><p>{items.length} resources synchronized from MongoDB.</p></div><button className="admin-secondary" onClick={() => setShowReceive((visible) => !visible)}>{showReceive ? "Close" : "+ Receive resources"}</button></div>{showReceive && <form className="resource-form" onSubmit={receive}><label>Resource<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} required><option value="">Choose resource</option>{items.map((item) => <option key={item.resource._id} value={item.resource._id}>{item.resource.name}</option>)}</select></label><label>Quantity<input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label><button className="admin-primary" type="submit">Save intake</button></form>}{error && <p className="auth-error" role="alert">{error}</p>}<div className="inventory-table"><div className="inventory-head"><span>Resource</span><span>Category</span><span>Available</span><span>Reserved</span><span>Total</span></div>{items.map((item) => <div className="inventory-row" key={item.id || item._id}><strong>{item.resource.name}</strong><span>{item.resource.category}</span><b className={item.available < 35 ? "low-stock" : ""}>{item.available}</b><span>{item.reserved}</span><span>{item.available + item.reserved + item.issued}</span></div>)}</div><div className="receive-strip"><b>Resource receiving</b><span>Received quantities are written to MongoDB and reflected across the catalog.</span></div></section>;
 }
 
-function RequestPanel({ requests, requestError, approveRequest }) { const [status, setStatus] = useState(""); const filtered = requests.filter(r => !status || r.status === status); return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>Requests awaiting action</h2><p>{requests.length} database request{requests.length === 1 ? "" : "s"} awaiting review.</p></div><select aria-label="Filter requests" value={status} onChange={e => setStatus(e.target.value)}><option value="">All statuses</option>{["pending", "approved", "rejected", "cancelled", "ready_for_claim", "claimed", "released", "completed"].map(s => <option key={s} value={s}>{s.replaceAll("_", " ")}</option>)}</select></div>{requestError && <p className="auth-error" role="alert">{requestError}</p>}{!requestError && !requests.length && <p className="request-empty">No student requests yet.</p>}<div className="record-list">{filtered.map((row) => { const resourceName = row.resourceName || row.resource || "Resource"; const resourceImage = resourceImageByName(resourceName); return <div className="record-row" key={row.databaseId}><div className="record-avatar">{resourceImage ? <img src={resourceImage} alt={resourceName} /> : <span>{resourceInitials(resourceName)}</span>}</div><div className="record-copy"><strong>{resourceName}</strong><small>{row.student?.name || "Student"} · ID: {row.studentId || row.student?.studentId || row.student?.id || "N/A"} · {row.id}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.status !== "pending"} onClick={() => approveRequest(row)}>{row.status === "pending" ? "Approve" : "View"}</button></div>; })}</div><div className="verification-note"><b>Verification checklist</b><span>Confirm student identity, campus eligibility, stock availability, and requested quantity before approval.</span></div></section>; }
-
 function AllocationPanel({ rows, staffMembers, onAssign }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All statuses");
@@ -324,9 +302,9 @@ function AllocationPanel({ rows, staffMembers, onAssign }) {
   return <section className="admin-panel allocation-panel">
     <div className="allocation-heading"><div><h2>Resource allocations</h2><p>Review approved resources and assign a distributor.</p></div><span className="allocation-total">{rows.length} total</span></div>
     <div className="allocation-summary">
-      <div><span>Assigned</span><strong>{assignedCount}</strong><small>Distributor selected</small></div>
-      <div><span>Awaiting assignment</span><strong>{rows.length - assignedCount}</strong><small>Needs a distributor</small></div>
-      <div><span>Released</span><strong>{rows.filter((row) => row.status.toLowerCase() === "released").length}</strong><small>Resources handed over</small></div>
+      <div data-tone="assigned"><span>Assigned</span><strong>{assignedCount}</strong><small>Distributor selected</small></div>
+      <div data-tone="pending"><span>Awaiting assignment</span><strong>{rows.length - assignedCount}</strong><small>Needs a distributor</small></div>
+      <div data-tone="released"><span>Released</span><strong>{rows.filter((row) => row.status.toLowerCase() === "released").length}</strong><small>Resources handed over</small></div>
     </div>
     <div className="allocation-filters">
       <label className="allocation-search"><span>Search allocations</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search student, ID, or resource…" /></label>
