@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DashboardIcon from '../components/DashboardIcon'
 
 const THEME_KEY = 'srmsLandingTheme'
 
@@ -17,15 +18,15 @@ const navItems = [
   { label: 'Home', target: 'top' },
   { label: 'Features', target: 'features' },
   { label: 'For Users', target: 'users' },
-  { label: 'About', target: 'about' },
+  { label: 'Overview', target: 'about' },
   { label: 'Contact', target: 'contact' },
 ]
 
 const benefitItems = [
-  { icon: '✓', title: 'Reduce delays', text: 'Track requests and resources efficiently across the campus.' },
-  { icon: '✦', title: 'Centralized management', text: 'Manage inventory, requests, and allocations from one place.' },
-  { icon: '⚡', title: 'Fast & efficient', text: 'Save time with quick approvals and real-time campus updates.' },
-  { icon: '▣', title: 'Reports & insights', text: 'Make better decisions using easy-to-read operational data.' },
+  { icon: 'clock', title: 'Reduce delays', text: 'Track requests and resources efficiently across the campus.' },
+  { icon: 'allocation', title: 'Centralized management', text: 'Manage inventory, requests, and allocations from one place.' },
+  { icon: 'speed', title: 'Fast & efficient', text: 'Save time with quick approvals and real-time campus updates.' },
+  { icon: 'reports', title: 'Reports & insights', text: 'Make better decisions using easy-to-read operational data.' },
 ]
 
 const audienceCards = [
@@ -33,86 +34,96 @@ const audienceCards = [
     title: 'Students',
     description: 'Request resources, track status, and stay updated with campus essentials.',
     tone: 'student',
+    icon: 'graduate',
   },
   {
     title: 'Administrators',
     description: 'Manage users, monitor requests, and approve or reject needs efficiently.',
     tone: 'admin',
+    icon: 'audit',
   },
   {
     title: 'Logistics Staff',
     description: 'Coordinate allocation, distribution, and inventory movement with clarity.',
     tone: 'staff',
+    icon: 'distribution',
   },
   {
     title: 'Student Affairs',
     description: 'Review trends, support students, and keep operations organized and smooth.',
     tone: 'affairs',
+    icon: 'users',
   },
 ]
 
 
 const keyFeatureTiles = [
-  'Resource Requests',
-  'Inventory Management',
-  'Claim Scheduling',
-  'Reports & Analytics',
-  'Status Tracking',
-  'Notifications',
+  { title: 'Resource Requests', icon: 'studentRequests' },
+  { title: 'Inventory Management', icon: 'inventory' },
+  { title: 'Claim Scheduling', icon: 'claimCalendar' },
+  { title: 'Reports & Analytics', icon: 'reports' },
+  { title: 'Status Tracking', icon: 'history' },
+  { title: 'Notifications', icon: 'notification' },
 ]
 
 const contactMembers = [
-  { name: 'Ramos, Markbrexsphere O.', 
-    role: 'Fullstack, Project Manager', 
-    image: '/ramos-markbrexsphere.jpg', 
-    number:'09273249308',
-     email:'dosramos2004@gmail.com'
-     },
-
-    { name: 'Navarte, Grace Ann', 
-    role: 'Project Manager', 
-    email: 'grar.narvarte.up@phinmaed.com' , 
-    number:'09102663154',
-    image:'/Narvarte.png'
+  {
+    name: 'Ramos, Markbrexsphere O.',
+    role: 'Fullstack, Project Manager',
+    image: '/ramos-markbrexsphere.jpg',
+    number: '09273249308',
+    email: 'dosramos2004@gmail.com',
   },
-
-   { name: 'Cabrales, Phevy Cyra',
-     role: 'UI/UX Designer' , 
-      email:'phce.cabrales.up@phinmaed.com',
-       number:'0993 761 0887',
-        image: '/Cabrales.jpg.jpg', 
-       },
-
-      { name: 'Meneses, Ashley Kate', 
-    role: 'UI Designer', 
-    email:'aspe.meneses.up@phinmaed.com', 
-    number:'09923690954',
-    image:'/Ashley.jpg',
-
-   },
-
-  { name: 'Fernandez, Brendan',
-     role: 'System Analyst', 
-     email:'brbl.fernandez.up@phinmaed.com',
-      number:'0915 507 3379',
-      image:'/Fernandez.jpg',
-    
-    },
-
-  { name: 'Junio, Alexa Grace',
-     role: 'Documentation',
-      email:'alsi.junio.up@phinmaed.com',
-       number:'09127757237',
-       image:'/Junio.jpg',
-      },
-
- 
+  {
+    name: 'Navarte, Grace Ann',
+    role: 'Project Manager',
+    email: 'grar.narvarte.up@phinmaed.com',
+    number: '09102663154',
+    image: '/Narvarte.png',
+  },
+  {
+    name: 'Cabrales, Phevy Cyra',
+    role: 'UI/UX Designer',
+    email: 'phce.cabrales.up@phinmaed.com',
+    number: '0993 761 0887',
+    image: '/Cabrales.jpg.jpg',
+  },
+  {
+    name: 'Meneses, Ashley Kate',
+    role: 'UI Designer',
+    email: 'aspe.meneses.up@phinmaed.com',
+    number: '09923690954',
+    image: '/Ashley.jpg',
+  },
+  {
+    name: 'Fernandez, Brendan',
+    role: 'System Analyst',
+    email: 'brbl.fernandez.up@phinmaed.com',
+    number: '0915 507 3379',
+    image: '/Fernandez.jpg',
+  },
+  {
+    name: 'Junio, Alexa Grace',
+    role: 'Documentation',
+    email: 'alsi.junio.up@phinmaed.com',
+    number: '09127757237',
+    image: '/Junio.jpg',
+  },
 ]
+
+function SectionHeading({ eyebrow, title, description }) {
+  return (
+    <div className="landing-section-heading">
+      <span className="landing-eyebrow">{eyebrow}</span>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </div>
+  )
+}
 
 export function LandingPage() {
   const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(readTheme)
-  const [ripples, setRipples] = useState([])
   const [activeNav, setActiveNav] = useState('top')
 
   useEffect(() => {
@@ -144,55 +155,33 @@ export function LandingPage() {
     return () => window.removeEventListener('scroll', updateActiveNav)
   }, [])
 
-  const handleBrandClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const id = Date.now()
-    
-    setRipples((prev) => [...prev, { id, x, y }])
-    
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== id))
-    }, 600)
-  }
-
   const scrollToSection = (target) => {
     setActiveNav(target)
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
 
     if (target === 'top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior })
       return
     }
 
     const section = document.getElementById(target)
     if (section) {
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      section.scrollIntoView({ behavior, block: 'start' })
     }
   }
 
   return (
-    <main id="top" className={`landing-page ${isDarkMode ? 'dark-mode' : ''}`}>
+    <main id="top" className={`landing-page landing-palette ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="landing-header">
-        <div className="brand-wrap" onClick={handleBrandClick} role="button" tabIndex={0}>
-          <div className="brand-mark landing-brand-mark">
-            <img className="landing-brand-logo" src="/Logo.jpg" alt="School Logistics System logo" width="48" height="48" />
-            {ripples.map((ripple) => (
-              <span
-                key={ripple.id}
-                className="brand-ripple"
-                style={{
-                  left: `${ripple.x}px`,
-                  top: `${ripple.y}px`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="brand-copy">
+        <button type="button" className="brand-wrap" onClick={() => scrollToSection('top')} aria-label="School Logistics System home">
+          <span className="brand-mark landing-brand-mark">
+            <img className="landing-brand-logo" src="/Logo.jpg" alt="" width="48" height="48" />
+          </span>
+          <span className="brand-copy">
             <strong>School Logistics System</strong>
             <small>Student Resource Management</small>
-          </div>
-        </div>
+          </span>
+        </button>
 
         <nav className="landing-nav" aria-label="Main navigation">
           {navItems.map((item) => (
@@ -209,7 +198,7 @@ export function LandingPage() {
         </nav>
 
         <div className="landing-header-actions">
-          <button type="button" className="nav-theme-toggle" onClick={() => setIsDarkMode((prev) => !prev)}>
+          <button type="button" className="nav-theme-toggle" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setIsDarkMode((prev) => !prev)}>
             {isDarkMode ? 'Light' : 'Dark'}
           </button>
         </div>
@@ -240,8 +229,9 @@ export function LandingPage() {
         <div className="hero-visual" aria-label="Dashboard preview">
           <div className="dashboard-preview">
             <div className="preview-header">
-              <span>Dashboard</span>
-              <div className="preview-icons">
+              <span>Campus overview</span>
+              <small className="preview-label">Sample dashboard</small>
+              <div className="preview-icons" aria-hidden="true">
                 <span />
                 <span />
                 <span />
@@ -255,7 +245,7 @@ export function LandingPage() {
               </div>
               <div className="stat-card">
                 <small>Requests</small>
-                <strong>24</strong>
+                <strong>50</strong>
               </div>
               <div className="stat-card">
                 <small>Approved</small>
@@ -267,7 +257,8 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="chart-card">
+            <p className="preview-chart-title">Resource activity</p>
+            <div className="chart-card" aria-label="Illustrative resource activity chart">
               <div className="chart-bars">
                 <span style={{ height: '42%' }} />
                 <span style={{ height: '58%' }} />
@@ -282,23 +273,26 @@ export function LandingPage() {
       </section>
 
       <section id="features" className="landing-benefits">
-        {benefitItems.map((item) => (
-          <article key={item.title} className="benefit-card">
-            <div className="benefit-icon">{item.icon}</div>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </article>
-        ))}
+        <SectionHeading eyebrow="Why use it" title="Less effort. More clarity." description="Keep everyday campus requests moving with a shared view of resources and updates." />
+        <div className="benefits-grid">
+          {benefitItems.map((item) => (
+            <article key={item.title} className="benefit-card">
+              <div className="landing-icon-badge"><DashboardIcon name={item.icon} /></div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section id="users" className="landing-audience">
-        <h2>Who’s It For</h2>
+        <SectionHeading eyebrow="For the campus" title="One place for every role" description="Students and campus teams stay connected throughout each request." />
 
         <div className="audience-grid">
           
           {audienceCards.map((card) => (
             <article key={card.title} className={`audience-card ${card.tone}`}>
-              <div className="audience-avatar" aria-hidden="true" />
+              <div className="landing-icon-badge"><DashboardIcon name={card.icon} /></div>
               <h3>{card.title}</h3>
               <p>{card.description}</p>
             </article>
@@ -307,26 +301,26 @@ export function LandingPage() {
       </section>
 
       <section id="about" className="landing-key-features">
-        <h2>Key Features</h2>
+        <SectionHeading eyebrow="Platform overview" title="Everything you need, together" description="Manage each step, from the first resource request to collection and reporting." />
 
         <div className="feature-grid">
           {keyFeatureTiles.map((feature) => (
-            <div key={feature} className="feature-tile">
-              <span className="feature-check">✓</span>
-              <span>{feature}</span>
+            <div key={feature.title} className="feature-tile">
+              <span className="landing-icon-badge"><DashboardIcon name={feature.icon} /></span>
+              <span>{feature.title}</span>
             </div>
           ))}
         </div>
       </section>
 
       <section id="contact" className="landing-contact">
-        <h2>Contact</h2>
+        <SectionHeading eyebrow="Get in touch" title="Meet the team" description="Have a question about the system? Reach out to the people behind it." />
 
         <div className="contact-grid">
           {contactMembers.map((member) => (
             <article key={member.name} className="contact-card">
               {member.image ? (
-                <img src={member.image} alt={member.name} className="contact-photo" />
+                <img src={member.image} alt={member.name} className="contact-photo" loading="lazy" width="90" height="90" />
               ) : (
                 <div className="contact-avatar" aria-hidden="true" />
               )}
@@ -335,16 +329,16 @@ export function LandingPage() {
               {member.number || member.email ? (
                 <div className="contact-details">
                   {member.number ? (
-                    <span className="contact-detail-item">
+                    <a className="contact-detail-item" href={`tel:${member.number.replace(/\s/g, '')}`}>
                       <span className="contact-icon" aria-hidden="true">☎</span>
-                      {member.number}
-                    </span>
+                      <span>{member.number}</span>
+                    </a>
                   ) : null}
                   {member.email ? (
-                    <span className="contact-detail-item">
+                    <a className="contact-detail-item" href={`mailto:${member.email}`}>
                       <span className="contact-icon" aria-hidden="true">✉</span>
-                      {member.email}
-                    </span>
+                      <span>{member.email}</span>
+                    </a>
                   ) : null}
                 </div>
               ) : null}
@@ -353,6 +347,10 @@ export function LandingPage() {
         </div>
       </section>
 
+      <footer className="landing-footer">
+        <div><strong>School Logistics System</strong><p>Campus resources, thoughtfully organized.</p></div>
+        <button type="button" className="secondary-btn" onClick={() => scrollToSection('top')}>Back to top <span aria-hidden="true">&uarr;</span></button>
+      </footer>
     </main>
   )
 }

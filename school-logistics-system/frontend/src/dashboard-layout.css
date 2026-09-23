@@ -49,6 +49,154 @@
 .organized-workspace .record-toolbar input, .organized-workspace .record-toolbar select { min-width: 0; max-width: 100%; }
 .organized-workspace :is(button, a, input, select):focus-visible { outline: 3px solid #64aee1; outline-offset: 3px; }
 .sidebar-mobile-toggle { display: none; }
+
+.organized-workspace .admin-topline.staff-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.organized-workspace .staff-topline > div:first-child { flex: 1 1 360px; min-width: 0; }
+.organized-workspace .staff-heading-campus {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 0 1 340px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 20px 22px;
+  border: 1px solid var(--workspace-border);
+  border-radius: 18px;
+  background: linear-gradient(120deg, #dcebf54d, transparent 75%), var(--workspace-surface);
+  box-shadow: 0 4px 16px #142c4608;
+}
+.organized-workspace.dark-mode .staff-heading-campus {
+  border-color: #9bbddd30;
+  background: radial-gradient(circle at 48px 50%, #d4bd6526, transparent 78px), linear-gradient(120deg, #20354b, #19283d);
+  box-shadow: inset 0 1px 0 #ffffff08, 0 6px 20px #07111e18;
+}
+.staff-heading-campus img,
+.staff-heading-campus-mark {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #245b85;
+  object-fit: contain;
+}
+.staff-heading-campus > div { min-width: 0; }
+.staff-heading-campus img[src="/phinma-upang-logo.png"] {
+  clip-path: inset(4% 7%);
+}
+.organized-workspace .staff-sidebar .sidebar-nav { padding-top: 18px; }
+.staff-heading-campus small {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--workspace-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.staff-heading-campus strong {
+  display: block;
+  color: #19344f;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.dark-mode .staff-heading-campus strong { color: #e6eef9; }
+@media (max-width: 768px) {
+  .organized-workspace .admin-topline.staff-topline { align-items: stretch; }
+  .organized-workspace .staff-topline > div:first-child,
+  .organized-workspace .staff-heading-campus { flex: auto; }
+}
+@media (max-width: 420px) {
+  .organized-workspace .staff-heading-campus { gap: 14px; padding: 16px; }
+  .staff-heading-campus img,
+  .staff-heading-campus-mark { width: 56px; height: 56px; flex-basis: 56px; }
+  .staff-heading-campus strong { font-size: 14px; }
+}
+
+.organized-workspace .staff-navigation-group + .staff-navigation-group {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #a6c8e52b;
+}
+.organized-workspace .staff-navigation-label {
+  margin: 0 12px 6px;
+  color: #a9bfd5;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.organized-workspace .staff-navigation-group .sidebar-link {
+  margin: 2px 0;
+  min-height: 44px;
+}
+.organized-workspace .staff-sidebar .sidebar-logout { margin-top: 16px; }
+.organized-workspace .staff-sidebar .campus-switch {
+  margin: 16px 12px 20px;
+  padding: 14px 12px;
+  border: 1px solid #a6c8e52b;
+  border-radius: 12px;
+  background: #ffffff05;
+  cursor: default;
+}
+.organized-workspace .staff-sidebar .campus-current {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  cursor: default;
+}
+.organized-workspace .staff-sidebar .campus-current-logo,
+.organized-workspace .staff-sidebar .campus-mark {
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  padding: 4px;
+  border: 1px solid #ffffff40;
+  border-radius: 10px;
+  object-fit: contain;
+  box-shadow: 0 2px 8px #0000001a;
+}
+.organized-workspace .staff-sidebar .campus-info b {
+  max-width: none;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.organized-workspace .staff-sidebar .campus-info small {
+  max-width: none;
+  margin-top: 5px;
+  color: #a9bfd5;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: normal;
+}
+@media (max-width: 760px) {
+  .organized-workspace .staff-sidebar.navigation-open .sidebar-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .organized-workspace .staff-sidebar .sidebar-mobile-toggle:focus-visible {
+    outline: 2px solid #9bd8ff;
+    outline-offset: 4px;
+  }
+}
 /* Keep the student navigation background as tall as the dashboard content. */
 @media (min-width: 761px) {
   .dashboard-shell.organized-workspace > .app-sidebar {

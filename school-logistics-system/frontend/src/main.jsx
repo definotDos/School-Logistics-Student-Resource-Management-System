@@ -10,6 +10,7 @@ import "./App.css";
 import "./dashboard-layout.css";
 import "./light-theme.css";
 import "./sidebar-palette.css";
+import "./landing-palette.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

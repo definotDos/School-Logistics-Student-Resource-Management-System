@@ -1,5 +1,7 @@
 /* Shared navigation palette. Keep selection colors together for every role. */
 .app-sidebar {
+  --nav-heading: #b8cee3;
+  --nav-divider: #a6c8e540;
   --nav-text: #c5d5e6;
   --nav-hover-bg: #20364d;
   --nav-hover-border: #36536e;
@@ -15,7 +17,58 @@
   --nav-selected-icon-text: #c5edff;
 }
 
+/* The sidebar stays navy in light mode, so its headings need their own ink.
+   Scope beyond the page-wide h2 rule in light-theme.css. */
+.organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
+  margin: 0 12px 8px;
+  padding: 0;
+  color: var(--nav-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.organized-workspace .app-sidebar .sidebar-nav > p {
+  margin: 0 12px 16px;
+  color: var(--nav-heading);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.organized-workspace .app-sidebar .sidebar-nav > :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.organized-workspace .app-sidebar .sidebar-nav > :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) + :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nav-divider);
+}
+
 /* Scope through navigation so page-specific styles cannot split the palette. */
+.organized-workspace:not(.dark-mode) .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
+  display: block;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #ffffff0d;
+  color: #d9e8f5;
+  font-size: 12px;
+  letter-spacing: .02em;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+/* Keep each section and its links together when the mobile menu opens. */
+@media (max-width: 760px) {
+  .organized-workspace:not(.dark-mode) .app-sidebar.navigation-open .sidebar-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .app-sidebar .sidebar-nav .sidebar-link.sidebar-link {
   color: var(--nav-text);
   border: 1px solid transparent;

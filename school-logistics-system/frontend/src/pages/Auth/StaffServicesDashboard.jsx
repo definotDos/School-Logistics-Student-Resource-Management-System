@@ -6,6 +6,8 @@ import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { allocationAPI, distributionAPI, notificationAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
+import { useAuth } from "../../context/useAuth";
+import { campuses } from "../../data/campuses";
 import "./StaffServicesDashboard.css";
 
 const sections = {
@@ -36,6 +38,8 @@ const emptyRows = {
 };
 
 function StaffServicesDashboard() {
+  const { user } = useAuth();
+  const assignedCampus = campuses.find((campus) => campus.name === user?.campus);
   const { section: requestedSection } = useParams();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("srmsStaffDashboardTheme");
@@ -281,12 +285,25 @@ function StaffServicesDashboard() {
         <main className={`admin-main ${activeSection === "reports" ? "reports-main" : activeSection === "profile" ? "profile-main staff-profile-main" : ""}`}>
 
 
-          <div className="admin-topline">
+          <div className="admin-topline staff-topline">
             <div>
               <span className="dashboard-kicker">Staff Services / {sections[activeSection].label}</span>
               <h1>{sections[activeSection].title}</h1>
               <p>{sections[activeSection].description}</p>
             </div>
+            {user?.campus && (
+              <div className="staff-heading-campus" aria-label="Assigned campus">
+                {assignedCampus?.logo ? (
+                  <img src={assignedCampus.logo} alt={`${assignedCampus.shortName} logo`} width="60" height="60" />
+                ) : (
+                  <span className="staff-heading-campus-mark" aria-hidden="true">{user.campus.slice(0, 2).toUpperCase()}</span>
+                )}
+                <div>
+                  <small>Assigned campus</small>
+                  <strong>{user.campus}</strong>
+                </div>
+              </div>
+            )}
           </div>
 
           {notice && (

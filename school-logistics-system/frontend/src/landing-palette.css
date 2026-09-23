@@ -1,0 +1,470 @@
+/* Landing page palette: edit semantic tokens here to keep every section aligned.
+   Navy = structure, blue = actions, teal = highlights. */
+.landing-page.landing-palette {
+  color-scheme: light;
+  --landing-bg: #f4f7fb;
+  --landing-surface: #ffffff;
+  --landing-soft: #eaf0f7;
+  --landing-border: #cbd7e5;
+  --landing-text: #14243b;
+  --landing-muted: #52647a;
+  --landing-primary: #245dcc;
+  --landing-primary-hover: #194aa8;
+  --landing-on-primary: #ffffff;
+  --landing-accent: #087e83;
+  --landing-accent-soft: #e0f2f1;
+  --landing-action-soft: #e6efff;
+  --landing-shadow: 0 12px 30px #14243b0d;
+  background: var(--landing-bg);
+  color: var(--landing-text);
+}
+
+.landing-page.landing-palette.dark-mode {
+  color-scheme: dark;
+  --landing-bg: #0b1424;
+  --landing-surface: #142238;
+  --landing-soft: #1c2d45;
+  --landing-border: #334761;
+  --landing-text: #edf3fc;
+  --landing-muted: #aabbd1;
+  --landing-primary: #9bbdff;
+  --landing-primary-hover: #bdd3ff;
+  --landing-on-primary: #102347;
+  --landing-accent: #69d6cc;
+  --landing-accent-soft: #193c42;
+  --landing-action-soft: #243b60;
+  --landing-shadow: 0 12px 30px #02081733;
+}
+
+/* Surfaces and readable text hierarchy. */
+.landing-page.landing-palette :is(.landing-header, .dashboard-preview, .benefit-card, .audience-card, .feature-tile, .contact-card) {
+  background: var(--landing-surface);
+  border-color: var(--landing-border);
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-page.landing-palette :is(h1, h2, h3, .brand-copy strong, .preview-header, .stat-card strong, .feature-tile, .contact-details) {
+  color: var(--landing-text);
+  text-shadow: none;
+}
+
+.landing-page.landing-palette :is(.hero-copy p, .benefit-card p, .audience-card p, .contact-card p, .brand-copy small, .stat-card small) {
+  color: var(--landing-muted);
+}
+
+.landing-page.landing-palette :is(.landing-nav, .stat-card, .chart-card) {
+  background: var(--landing-soft);
+  border-color: var(--landing-border);
+}
+
+.landing-page.landing-palette .contact-details {
+  background: transparent;
+}
+
+.landing-page.landing-palette :is(.landing-audience, .landing-key-features, .landing-contact) {
+  border-top: 1px solid var(--landing-border);
+  padding-top: 40px;
+  scroll-margin-top: 120px;
+}
+
+/* Blue consistently identifies navigation and actions. */
+.landing-page.landing-palette .nav-link-btn {
+  color: var(--landing-text);
+}
+
+.landing-page.landing-palette .nav-link-btn:is(:hover, .is-active) {
+  color: var(--landing-primary);
+  background: var(--landing-action-soft);
+  box-shadow: none;
+}
+
+.landing-page.landing-palette .nav-link-btn::after {
+  background: var(--landing-primary);
+  box-shadow: none;
+}
+
+.landing-page.landing-palette .primary-btn {
+  background: var(--landing-primary);
+  color: var(--landing-on-primary);
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-page.landing-palette .primary-btn:hover {
+  background: var(--landing-primary-hover);
+}
+
+.landing-page.landing-palette :is(.secondary-btn, .nav-theme-toggle) {
+  background: var(--landing-surface);
+  color: var(--landing-primary);
+  border: 1px solid var(--landing-border);
+  box-shadow: none;
+}
+
+.landing-page.landing-palette :is(.secondary-btn, .nav-theme-toggle):hover {
+  background: var(--landing-action-soft);
+  border-color: var(--landing-primary);
+}
+
+.landing-page.landing-palette :is(a, button, [tabindex]):focus-visible {
+  outline: 3px solid var(--landing-primary);
+  outline-offset: 4px;
+}
+
+/* Teal ties the headline, icons, and illustration together. */
+.landing-page.landing-palette .hero-copy h1 span {
+  color: var(--landing-accent);
+}
+
+.landing-page.landing-palette :is(.landing-badge, .benefit-icon, .feature-check, .contact-icon, .audience-avatar, .contact-avatar) {
+  color: var(--landing-accent);
+  background: var(--landing-accent-soft);
+  border-color: var(--landing-accent);
+  box-shadow: none;
+}
+
+.landing-page.landing-palette .feature-check {
+  animation: none;
+}
+
+.landing-page.landing-palette :is(.audience-avatar, .contact-avatar)::before,
+.landing-page.landing-palette :is(.audience-avatar, .contact-avatar)::after {
+  background: var(--landing-accent);
+}
+
+.landing-page.landing-palette .preview-icons span {
+  background: var(--landing-muted);
+}
+
+.landing-page.landing-palette .chart-bars span {
+  background: linear-gradient(180deg, var(--landing-primary), var(--landing-accent));
+  box-shadow: none;
+}
+
+.landing-page.landing-palette .contact-photo {
+  border-color: var(--landing-border);
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-page.landing-palette .contact-card::before {
+  background: linear-gradient(135deg, var(--landing-accent-soft), transparent 65%);
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card, .feature-tile, .contact-card):hover {
+  border-color: var(--landing-accent);
+  box-shadow: var(--landing-shadow);
+}
+/* Consistent content width, section rhythm, and responsive card grids. */
+.landing-page.landing-palette {
+  padding: 120px clamp(20px, 4vw, 56px) 32px;
+}
+
+.landing-page.landing-palette .landing-header {
+  top: 20px;
+  width: min(calc(100% - 40px), 1240px);
+  box-sizing: border-box;
+  padding: 12px 18px;
+}
+
+.landing-page.landing-palette .brand-wrap {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.landing-page.landing-palette .brand-copy small {
+  font-size: 0.68rem;
+}
+
+.landing-page.landing-palette .landing-hero {
+  gap: clamp(28px, 5vw, 72px);
+  padding: 48px 0 64px;
+}
+
+.landing-page.landing-palette .hero-copy h1 {
+  font-size: clamp(2.5rem, 4.7vw, 4.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.landing-page.landing-palette .landing-badge {
+  align-self: auto;
+}
+
+.landing-page.landing-palette :is(.primary-btn, .secondary-btn, .nav-theme-toggle) {
+  min-height: 44px;
+}
+
+.landing-page.landing-palette .landing-actions :is(.primary-btn, .secondary-btn) {
+  padding: 14px 24px;
+}
+
+.landing-page.landing-palette :is(.hero-visual, .contact-photo, .contact-avatar) {
+  animation: none;
+}
+
+.landing-page.landing-palette .preview-label {
+  margin-left: auto;
+  padding: 5px 9px;
+  border-radius: 6px;
+  color: var(--landing-accent);
+  background: var(--landing-accent-soft);
+  font-size: 0.65rem;
+}
+
+.landing-page.landing-palette .preview-icons {
+  display: none;
+}
+
+.landing-page.landing-palette .preview-chart-title {
+  color: var(--landing-muted);
+  font-size: 0.8rem;
+  margin: 0 0 12px;
+}
+
+.landing-page.landing-palette :is(.landing-benefits, .landing-audience, .landing-key-features, .landing-contact) {
+  display: block;
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  padding: 56px 0;
+  border-top: 1px solid var(--landing-border);
+  scroll-margin-top: 112px;
+}
+
+.landing-page.landing-palette .landing-section-heading {
+  max-width: 660px;
+  margin-bottom: 28px;
+}
+
+.landing-page.landing-palette .landing-eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--landing-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.landing-page.landing-palette .landing-section-heading h2 {
+  display: block;
+  margin: 0 0 12px;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.landing-page.landing-palette .landing-section-heading p {
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 0.97rem;
+  line-height: 1.7;
+}
+
+.landing-page.landing-palette :is(.benefits-grid, .audience-grid) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.landing-page.landing-palette :is(.feature-grid, .contact-grid) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card, .contact-card) {
+  padding: 26px;
+  border-radius: 18px;
+  min-width: 0;
+}
+
+.landing-page.landing-palette .audience-card {
+  text-align: left;
+}
+
+.landing-page.landing-palette .audience-avatar {
+  margin: 0 0 20px;
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card) h3 {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  min-height: 0;
+}
+
+.landing-page.landing-palette .feature-tile {
+  padding: 22px;
+  font-size: 0.92rem;
+}
+
+.landing-page.landing-palette .feature-check {
+  flex-shrink: 0;
+}
+
+.landing-page.landing-palette .contact-card {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.landing-page.landing-palette .contact-card h3 {
+  font-size: 1.12rem;
+}
+
+.landing-page.landing-palette .contact-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  margin-bottom: 8px;
+}
+
+.landing-page.landing-palette .contact-details {
+  box-sizing: border-box;
+  width: 100%;
+  padding-top: 18px;
+  margin-top: auto;
+  border-top: 1px solid var(--landing-border);
+}
+
+.landing-page.landing-palette .contact-detail-item {
+  color: var(--landing-muted);
+  text-decoration: none;
+  min-height: 36px;
+  border-radius: 4px;
+}
+
+.landing-page.landing-palette .contact-detail-item > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.landing-page.landing-palette .contact-detail-item:hover {
+  color: var(--landing-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-page.landing-palette .landing-footer {
+  width: min(100%, 1240px);
+  margin: 12px auto 0;
+  padding-top: 28px;
+  border-top: 1px solid var(--landing-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 0.85rem;
+}
+
+.landing-page.landing-palette .landing-footer p {
+  color: var(--landing-muted);
+  margin: 8px 0 0;
+}
+
+@media (max-width: 980px) {
+  .landing-page.landing-palette { padding-top: 170px; }
+  .landing-page.landing-palette .landing-header { gap: 12px; }
+  .landing-page.landing-palette .landing-header-actions { grid-column: 2; grid-row: 1; }
+  .landing-page.landing-palette .landing-nav { grid-row: 2; box-sizing: border-box; }
+  .landing-page.landing-palette .landing-hero { grid-template-columns: minmax(0, 1fr); }
+  .landing-page.landing-palette :is(.benefits-grid, .audience-grid, .feature-grid, .contact-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .landing-page.landing-palette :is(.landing-benefits, .landing-audience, .landing-key-features, .landing-contact) { scroll-margin-top: 170px; }
+}
+
+@media (max-width: 620px) {
+  .landing-page.landing-palette { padding: 156px 20px 24px; }
+  .landing-page.landing-palette .landing-header { top: 12px; padding: 12px; grid-template-columns: minmax(0, 1fr) auto; }
+  .landing-page.landing-palette .brand-wrap { justify-content: flex-start; gap: 8px; }
+  .landing-page.landing-palette .brand-copy strong { font-size: 0.7rem; }
+  .landing-page.landing-palette .brand-copy small { display: none; }
+  .landing-page.landing-palette .landing-brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
+  .landing-page.landing-palette .nav-theme-toggle { width: auto; padding: 10px; }
+  .landing-page.landing-palette .landing-nav { display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 2px; overflow-x: auto; padding: 4px; }
+  .landing-page.landing-palette .nav-link-btn { flex: 0 0 auto; width: auto; padding: 10px 9px; font-size: 0.73rem; }
+  .landing-page.landing-palette .landing-hero { padding: 24px 0 40px; }
+  .landing-page.landing-palette :is(.landing-benefits, .landing-audience, .landing-key-features, .landing-contact) { padding: 36px 0; scroll-margin-top: 150px; }
+  .landing-page.landing-palette :is(.benefits-grid, .audience-grid, .feature-grid, .contact-grid) { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .landing-page.landing-palette .preview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .landing-page.landing-palette .landing-footer { align-items: flex-start; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page.landing-palette *,
+  .landing-page.landing-palette *::before,
+  .landing-page.landing-palette *::after {
+    animation: none;
+    transition: none;
+  }
+  .landing-page.landing-palette :is(.benefit-card, .audience-card, .feature-tile, .contact-card) { opacity: 1; }
+}
+/* A shared outline icon treatment for benefits, roles, and platform features. */
+.landing-page.landing-palette .landing-icon-badge {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  box-sizing: border-box;
+  border: 1px solid var(--landing-border);
+  border-radius: 14px;
+  background: var(--landing-accent-soft);
+  color: var(--landing-accent);
+}
+
+.landing-page.landing-palette .landing-icon-badge .dashboard-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card) {
+  display: grid;
+  grid-template-rows: 48px auto 1fr;
+  align-content: start;
+  gap: 16px;
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card) h3 {
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.landing-page.landing-palette :is(.benefit-card, .audience-card) p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.landing-page.landing-palette .feature-tile {
+  gap: 16px;
+  min-height: 92px;
+  box-sizing: border-box;
+  line-height: 1.45;
+}
+
+.landing-page.landing-palette .feature-tile .landing-icon-badge {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  border-radius: 12px;
+}
+
+.landing-page.landing-palette .feature-tile .dashboard-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Shared rows align the descriptions even when a heading wraps. */
+@supports (grid-template-rows: subgrid) {
+  .landing-page.landing-palette :is(.benefit-card, .audience-card) {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 16px;
+  }
+}

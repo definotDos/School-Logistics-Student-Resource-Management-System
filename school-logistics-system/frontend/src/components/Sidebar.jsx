@@ -40,27 +40,37 @@ const adminNavigationGroups = [
   ] },
 ];
 
-const staffLinks = [
-  { name: "My Profile", path: "/staff/profile", icon: "profile" },
-  { name: "Dashboard", path: "/staff", icon: "home" },
-  { name: "Verify Eligibility", path: "/staff/verify_eligibility", icon: "users" },
-  { name: "Review Requests", path: "/staff/review_requests", icon: "requests" },
-  { name: "Approve/Reject", path: "/staff/approve_reject", icon: "requests" },
-  { name: "Claim Schedules", path: "/staff/manage_schedules", icon: "calendar" },
-  { name: "Verify Claims", path: "/staff/verify_claims", icon: "resources" },
-  { name: "Monitor Distribution", path: "/staff/monitor_distribution", icon: "calendar" },
-  { name: "Student History", path: "/staff/student_history", icon: "history" },
-  { name: "Update Status", path: "/staff/update_status", icon: "requests" },
-  { name: "Reports", path: "/staff/reports", icon: "history" },
+const staffNavigationGroups = [
+  { title: "Overview", items: [
+  { name: "Dashboard", path: "/staff", icon: "overview" },
   { name: "Notifications", path: "/staff/notifications", icon: "notification" },
+  ] },
+  { title: "Requests & Eligibility", items: [
+  { name: "Review Requests", path: "/staff/review_requests", icon: "studentRequests" },
+  { name: "Verify Eligibility", path: "/staff/verify_eligibility", icon: "users" },
+  { name: "Approve / Reject", path: "/staff/approve_reject", icon: "audit" },
+  { name: "Update Status", path: "/staff/update_status", icon: "requests" },
+  ] },
+  { title: "Claims & Distribution", items: [
+  { name: "Claim Schedules", path: "/staff/manage_schedules", icon: "claimCalendar" },
+  { name: "Verify Claims", path: "/staff/verify_claims", icon: "audit" },
+  { name: "Monitor Distribution", path: "/staff/monitor_distribution", icon: "distribution" },
+  ] },
+  { title: "Records & Reports", items: [
+  { name: "Student History", path: "/staff/student_history", icon: "distributionHistory" },
+  { name: "Reports", path: "/staff/reports", icon: "reports" },
+  ] },
+  { title: "Account", items: [
+  { name: "My Profile", path: "/staff/profile", icon: "profile" },
+  ] },
 ];
 
 function Sidebar({ type = "student" }) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
-  const links = type === "staff" ? staffLinks : studentLinks;
-  const navigationGroups = type === "admin" ? adminNavigationGroups : type === "student" ? [
+  const links = studentLinks;
+  const navigationGroups = type === "admin" ? adminNavigationGroups : type === "staff" ? staffNavigationGroups : type === "student" ? [
     { title: "Overview", items: links.slice(0, 1) },
     { title: "Resources & requests", items: links.slice(1, 3) },
     { title: "Collections", items: links.slice(3) },
@@ -92,31 +102,27 @@ function Sidebar({ type = "student" }) {
   };
 
   return (
-    <aside className={`app-sidebar ${navigationOpen ? "navigation-open" : ""}`}>
+    <aside className={`app-sidebar ${type === "staff" ? "staff-sidebar" : ""} ${navigationOpen ? "navigation-open" : ""}`}>
       <button type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg><span>{navigationOpen ? "Close navigation" : "Navigation menu"}</span>
       </button>
       <div className="sidebar-brand">
-        {type === "admin" || type === "student" ? (
           <span className="sidebar-brand-emblem">
             <img src="/Logo.jpg" alt="School Logistics System logo" width="44" height="44" />
           </span>
-        ) : (
-          <img src="/SLSRMS-LOGO.jpg" alt="SLSRMS Logo" className="sidebar-brand-logo" />
-        )}
         <div><strong>SRMS</strong><small>Student Resource Management</small></div>
       </div>
-      <div className="campus-switch">
+      {type !== "staff" && <div className="campus-switch">
         {user?.role === "admin" ? <label>Active campus<select aria-label="Active campus" value={user.activeCampus || ""} disabled={campusBusy} onChange={handleCampusChange}><option value="">All campuses</option>{availableCampuses.map(c => <option key={c._id} value={c.name}>{c.name}{c.status === "inactive" ? " (inactive)" : ""}</option>)}</select></label> : <div className="campus-current">{assignedCampus?.logo ? <img src={assignedCampus.logo} alt={`${assignedCampus.shortName} logo`} className="campus-logo campus-current-logo" /> : <span className="campus-mark">{user?.campus?.slice(0, 2).toUpperCase()}</span>}<span className="campus-info"><b>{user?.campus}</b><small>Assigned campus</small></span></div>}
         {campusError && <small role="alert">{campusError}</small>}
-      </div>
+      </div>}
       <nav className="sidebar-nav" id="workspace-navigation" aria-label={`${type} navigation`}>
         <p>
-          {type === "staff" ? "Staff Services" : "Navigation menu"}
+          Navigation menu
         </p>
 
-          {navigationGroups.map((group) => <div className={type === "admin" ? "admin-navigation-group" : type === "student" ? "student-navigation-group" : undefined} key={group.title}>
-          {group.title && <h2 className={type === "admin" ? "admin-navigation-label" : "student-navigation-label"}>{group.title}</h2>}
+          {navigationGroups.map((group) => <div className={`${type}-navigation-group`} key={group.title}>
+          {group.title && <h2 className={`${type}-navigation-label`}>{group.title}</h2>}
           {group.items.map((link) => (
             <NavLink
               key={link.path}
