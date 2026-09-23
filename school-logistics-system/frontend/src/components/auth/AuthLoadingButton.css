@@ -1,0 +1,91 @@
+.auth-loading-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-loading-button .auth-loading-label {
+  position: relative;
+  z-index: 1;
+  font-size: inherit;
+  line-height: 1.3;
+}
+
+.auth-loading-spinner,
+.auth-loading-check {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.auth-loading-spinner { animation: auth-loading-spin 1.2s linear infinite; }
+.auth-spinner-track { opacity: .2; }
+.auth-spinner-arc {
+  stroke-dasharray: 15 57;
+  animation: auth-loading-arc 1.6s ease-in-out infinite;
+}
+
+/* Keep the richer effects on primary actions; text links use just the spinner. */
+.auth-loading-button.auth-submit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(110deg, transparent 20%, rgb(255 255 255 / 20%) 50%, transparent 80%);
+  transform: translateX(-100%);
+}
+
+.auth-loading-button.auth-submit[data-state='loading']::before {
+  opacity: 1;
+  animation: auth-loading-shimmer 2s ease-in-out infinite;
+}
+
+.auth-page .auth-loading-button.auth-submit[data-state='loading'] {
+  opacity: 1;
+  animation: none;
+  box-shadow: 0 0 0 3px rgb(167 139 250 / 18%), 0 8px 24px rgb(99 92 229 / 25%);
+}
+
+.auth-page .auth-loading-button.auth-submit[data-state='success'] {
+  opacity: 1;
+  background: #25805b;
+  box-shadow: 0 0 0 3px rgb(37 128 91 / 18%);
+}
+
+.auth-loading-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 0;
+  animation: auth-loading-check-in .35s ease-out both;
+}
+
+.auth-loading-button:disabled { cursor: default; }
+.auth-loading-button[data-state='loading'] { cursor: wait; }
+.auth-page .auth-loading-button:disabled { transform: none; }
+.auth-footer button:disabled { opacity: .65; cursor: wait; }
+
+@keyframes auth-loading-spin { to { transform: rotate(360deg); } }
+@keyframes auth-loading-arc {
+  0%, 100% { stroke-dasharray: 15 57; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 42 57; stroke-dashoffset: -12; }
+}
+@keyframes auth-loading-shimmer { to { transform: translateX(100%); } }
+@keyframes auth-loading-check-in { from { stroke-dashoffset: 24; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-loading-spinner,
+  .auth-spinner-arc,
+  .auth-loading-check path,
+  .auth-loading-button.auth-submit[data-state='loading']::before { animation: none; }
+  .auth-loading-button.auth-submit[data-state='loading']::before { opacity: 0; }
+}

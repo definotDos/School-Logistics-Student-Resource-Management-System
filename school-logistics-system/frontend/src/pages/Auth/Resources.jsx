@@ -1,3 +1,4 @@
+import { useTabState } from "../../hooks/useTabState";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -12,8 +13,8 @@ import { requestAPI, resourceAPI } from "../../services/api";
 function Resources() {
   const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const requestDialogRef = useRef(null);
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All Categories");
+  const [query, setQuery] = useTabState("Resources.query", "");
+  const [category, setCategory] = useTabState("Resources.category", "All Categories");
   const [selectedResource, setSelectedResource] = useState(null);
   const [requestQuantity, setRequestQuantity] = useState(1);
   const [submitted, setSubmitted] = useState(false);

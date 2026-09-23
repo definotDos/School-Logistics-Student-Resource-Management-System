@@ -25,12 +25,14 @@ test('public signup rejects administrator roles before creating an account', asy
  expect(res.status).toHaveBeenCalledWith(403); expect(create).not.toHaveBeenCalled();
 });
 test.each([false, true])('remember me %s controls token duration', async rememberMe => {
+ jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', emailVerified: true, role: 'student' }) });
  jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', password: await bcrypt.hash('password123', 4), emailVerified: true, role: 'student' }) });
  const res = response(); await auth.login({ body: { email: 'a@example.com', password: 'password123', rememberMe } }, res);
  const token = jwt.decode(res.json.mock.calls[0][0].token);
  expect(token.exp - token.iat).toBe(rememberMe ? 604800 : 28800);
 });
 test('unverified login provides resumable email after password validation', async () => {
+ jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@example.com', emailVerified: false }) });
  jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@example.com', password: await bcrypt.hash('password123', 4), emailVerified: false }) });
  const res = response(); await auth.login({ body: { email: 'a@example.com', password: 'password123' } }, res);
  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ requiresVerification: true, email: 'a@example.com' }));

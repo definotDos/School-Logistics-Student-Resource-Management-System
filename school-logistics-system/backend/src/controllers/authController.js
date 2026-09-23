@@ -69,8 +69,27 @@ async function signup(req, res) {
 async function login(req, res) {
 	try {
 		const { email, password } = req.body;
-		const user = await User.findOne({ email: email?.toLowerCase().trim() }).select("+password");
-		if (!user || !(await bcrypt.compare(password || "", user.password))) return res.status(401).json({ message: "Invalid email or password." });
+		if (typeof email !== "string" || typeof password !== "string" || !password) return res.status(401).json({ message: "Invalid email or password." });
+		let user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password +failedLoginAttempts +loginLockedUntil");
+		if (!user) return res.status(401).json({ message: "Invalid email or password." });
+		const lockedResponse = account => {
+			const retryAfterSeconds = Math.max(1, Math.ceil((new Date(account.loginLockedUntil).getTime() - Date.now()) / 1000));
+			res.set("Retry-After", String(retryAfterSeconds));
+			return res.status(423).json({ message: "Account locked after 3 incorrect attempts. Please wait before trying again.", lockedUntil: account.loginLockedUntil, retryAfterSeconds });
+		};
+		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
+		const validPassword = await bcrypt.compare(password, user.password);
+		// One atomic update serializes concurrent attempts and never extends an active lock.
+		const activeLock = { $gt: [{ $ifNull: ["$loginLockedUntil", new Date(0)] }, "$$NOW"] };
+		const previousAttempts = { $cond: [{ $and: [{ $ne: [{ $ifNull: ["$loginLockedUntil", null] }, null] }, { $lte: ["$loginLockedUntil", "$$NOW"] }] }, 0, { $ifNull: ["$failedLoginAttempts", 0] }] };
+		const nextAttempts = validPassword ? 0 : { $add: [previousAttempts, 1] };
+		user = await User.findOneAndUpdate({ _id: user._id }, [
+			{ $set: { failedLoginAttempts: { $cond: [activeLock, "$failedLoginAttempts", nextAttempts] } } },
+			{ $set: { loginLockedUntil: { $cond: [activeLock, "$loginLockedUntil", { $cond: [{ $gte: ["$failedLoginAttempts", 3] }, { $add: ["$$NOW", 3 * 60 * 1000] }, "$$REMOVE"] }] } } },
+		], { new: true, updatePipeline: true }).select("+failedLoginAttempts +loginLockedUntil");
+		if (!user) return res.status(401).json({ message: "Invalid email or password." });
+		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
+		if (!validPassword) return res.status(401).json({ message: "Invalid email or password." });
 		if (user.emailVerified === false) return res.status(403).json({ message: "Please verify your email before logging in.", requiresVerification: true, email: user.email });
 		if (user.status === "suspended") return res.status(403).json({ message: "This account has been suspended. Contact an administrator." });
 		res.json({ user: publicUser(user), token: createToken(user, req.body.rememberMe) });

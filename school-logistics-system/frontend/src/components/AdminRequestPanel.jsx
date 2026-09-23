@@ -1,3 +1,4 @@
+import { useTabState } from "../hooks/useTabState";
 import { useRef, useState } from "react";
 import "./AdminRequestPanel.css";
 
@@ -9,9 +10,9 @@ const timestamp = row => Date.parse(row.date || row.createdAt) || 0;
 const dateLabel = value => value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Not recorded";
 
 export default function AdminRequestPanel({ requests, loading, requestError, approveRequest }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("pending");
-  const [sort, setSort] = useState("oldest");
+  const [search, setSearch] = useTabState("AdminRequestPanel.search", "");
+  const [status, setStatus] = useTabState("AdminRequestPanel.status", "pending");
+  const [sort, setSort] = useTabState("AdminRequestPanel.sort", "oldest");
   const [selectedId, setSelectedId] = useState(null);
   const [busy, setBusy] = useState(false);
   const [confirmed, setConfirmed] = useState(false);

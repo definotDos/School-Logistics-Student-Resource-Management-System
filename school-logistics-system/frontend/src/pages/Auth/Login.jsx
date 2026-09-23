@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { authAPI } from '../../services/api'
+import { AuthLoadingButton } from '../../components/auth/AuthLoadingButton'
+import { useLoginLockout } from '../../hooks/useLoginLockout'
+import { LoginLockoutNotice } from '../../components/auth/LoginLockoutNotice'
+import { LoginFeedback } from '../../components/auth/LoginFeedback'
 
 
 export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }) {
@@ -16,15 +20,19 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotMessage, setForgotMessage] = useState('')
+  const { secondsRemaining, hasExpired, recordLock } = useLoginLockout(email)
+  const isLocked = secondsRemaining > 0
 
-  const submit = event => {
+  const submit = async event => {
     event.preventDefault()
+    if (isSubmitting || isLocked) return
     const normalizedEmail = email.trim()
     if (!normalizedEmail) return setValidationError('Enter your email address.')
     if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) return setValidationError('Enter a valid email address.')
     if (!password) return setValidationError('Enter your password.')
     setValidationError('')
-    onLogin(normalizedEmail, password, rememberMe)
+    const result = await onLogin(normalizedEmail, password, rememberMe)
+    recordLock(normalizedEmail, result?.error)
   }
 
   const openForgotPassword = () => {
@@ -71,11 +79,12 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
           </span>
         </label>
         <div className="auth-options">
-          <label><input type="checkbox" checked={rememberMe} onChange={event => setRememberMe(event.target.checked)} /> Remember me</label>
+          <label><input type="checkbox" checked={rememberMe} onChange={event => setRememberMe(event.target.checked)} /> Keep me signed in in this tab</label>
           <button type="button" onClick={openForgotPassword}>Forgot password?</button>
         </div>
-        <button className="auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? "Signing in..." : "Login"}</button>
-        {(validationError || error) && <p className={`auth-error ${error?.includes('successfully') ? 'auth-success' : ''}`} role="alert">{validationError || error}</p>}
+        <AuthLoadingButton className="auth-submit" loading={isSubmitting} disabled={isLocked} loadingText="Signing in...">Login</AuthLoadingButton>
+        <LoginLockoutNotice secondsRemaining={secondsRemaining} hasExpired={hasExpired && !error && !isSubmitting} />
+        {!isLocked && !isSubmitting && <LoginFeedback key={validationError || error} message={validationError || error} isValidation={Boolean(validationError)} />}
       </form>
       <p className="auth-footer"><button type="button" onClick={() => { if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setValidationError('Enter your email address to resume verification.'); sessionStorage.setItem('srmsVerificationEmail', email.trim().toLowerCase()); onChangeMode('signup') }}>Resume email verification</button></p>
       {forgotOpen && <div className="forgot-modal-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && setForgotOpen(false)}>
@@ -91,7 +100,7 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
               <label className="auth-field compact-field"><span>New password</span><input type="password" value={newPassword} onChange={event => setNewPassword(event.target.value)} minLength={8} autoComplete="new-password" required /></label>
               <label className="auth-field compact-field"><span>Confirm password</span><input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} minLength={8} autoComplete="new-password" required /></label>
             </>}
-            <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait...' : resetStage ? 'Reset password' : 'Send reset code'}</button>
+            <AuthLoadingButton className="auth-submit" loading={busy} loadingText={resetStage ? 'Resetting password...' : 'Sending code...'}>{resetStage ? 'Reset password' : 'Send reset code'}</AuthLoadingButton>
             <button type="button" disabled={busy} onClick={() => { setResetStage(!resetStage); setForgotMessage('') }}>{resetStage ? 'Request a new code' : 'I already have a reset code'}</button>
             {forgotMessage && <p className="forgot-message" role="status">{forgotMessage}</p>}
           </form>

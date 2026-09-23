@@ -1,3 +1,4 @@
+import { useTabState } from "../../hooks/useTabState";
 import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -14,7 +15,7 @@ const filterOptions = ["all", "released", "completed", "received", "prepared", "
 function DistributionHistory() {
   const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const [history, setHistory] = useState([]);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useTabState("DistributionHistory.filter", "all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");

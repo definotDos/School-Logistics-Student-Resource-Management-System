@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema(
 		email: { type: String, required: true, unique: true, lowercase: true, trim: true },
 		emailVerified: { type: Boolean, default: true },
 		sessionVersion: { type: Number, default: 0 },
+		failedLoginAttempts: { type: Number, default: 0, select: false },
+		loginLockedUntil: { type: Date, select: false },
 		passwordResetHash: { type: String, select: false },
 		passwordResetExpiresAt: { type: Date, select: false },
 		verificationCode: { type: String, select: false },

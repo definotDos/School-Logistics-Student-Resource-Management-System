@@ -8,6 +8,7 @@ afterEach(() => { jest.restoreAllMocks(); delete app.locals.accountCreationReady
 
 test('existing users can log in while duplicate IDs pause signup', async () => {
   app.locals.accountCreationReady = false;
+  jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active' }) });
   jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active', password: await bcrypt.hash('test-password', 4) }) });
   const result = await request(app).post('/api/auth/login').send({ email: 'test@example.com', password: 'test-password' });
   expect(result.status).toBe(200); expect(result.body.token).toBeTruthy();

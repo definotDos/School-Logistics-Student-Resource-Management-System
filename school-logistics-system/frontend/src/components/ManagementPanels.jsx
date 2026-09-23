@@ -1,3 +1,4 @@
+import { useTabState } from "../hooks/useTabState";
 import { useEffect, useState } from "react";
 import DashboardIcon from "./DashboardIcon";
 import { campuses as campusBranding } from "../data/campuses";
@@ -32,7 +33,7 @@ export function DistributionPanel() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useTabState("DistributionPanel.filter", "All");
   const load = async () => {
     const [a, s] = await Promise.all([allocationAPI.getAll(), distributionAPI.getAllSchedules()]);
     setAllocations(a.allocations); setSchedules(s.schedules);
@@ -93,8 +94,8 @@ export function CampusPanel() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [search, setSearch] = useTabState("CampusPanel.search", "");
+  const [status, setStatus] = useTabState("CampusPanel.status", "all");
   const load = () => campusAPI.getAll().then(r => setCampuses(r.campuses));
   useEffect(() => {
     let cancelled = false;
@@ -166,10 +167,10 @@ export function CampusPanel() {
 }
 
 export function NotificationsPanel() {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useTabState("NotificationsPanel.search", "");
+  const [status, setStatus] = useTabState("NotificationsPanel.status", "all");
+  const [typeFilter, setTypeFilter] = useTabState("NotificationsPanel.typeFilter", "all");
+  const [page, setPage] = useTabState("NotificationsPanel.page", 1);
   const [records, setRecords] = useState([]);
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ user: "", title: "", message: "", type: "general" });
@@ -247,7 +248,7 @@ export function ReportsPanel() {
   const [report, setReport] = useState(null);
   const [inventory, setInventory] = useState(null);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState({ startDate: "", endDate: "", status: "" });
+  const [filters, setFilters] = useTabState("ReportsPanel.filters", { startDate: "", endDate: "", status: "" });
   useEffect(() => {
     let cancelled = false;
     const query = Object.fromEntries(Object.entries(filters).filter(([, value]) => value));

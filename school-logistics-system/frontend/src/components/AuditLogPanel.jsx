@@ -1,3 +1,4 @@
+import { useTabState } from "../hooks/useTabState";
 import { useEffect, useRef, useState } from "react";
 import { reportsAPI } from "../services/api";
 import { auditStatusTone, filterAuditLogs, formatAuditLabel, formatAuditTime } from "../utils/auditLogs";
@@ -10,9 +11,9 @@ export default function AuditLogPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
-  const [filters, setFilters] = useState(initialFilters);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useTabState("AuditLogPanel.filters", initialFilters);
+  const [page, setPage] = useTabState("AuditLogPanel.page", 1);
+  const [pageSize, setPageSize] = useTabState("AuditLogPanel.pageSize", 10);
   const [selected, setSelected] = useState(null);
   const dialog = useRef(null);
 

@@ -7,7 +7,7 @@ const THEME_KEY = 'srmsLandingTheme'
 
 function readTheme() {
   try {
-    return JSON.parse(localStorage.getItem(THEME_KEY) ?? 'true')
+    return JSON.parse(sessionStorage.getItem(THEME_KEY) ?? 'true')
   } catch {
     return true
   }
@@ -127,7 +127,7 @@ export function LandingPage() {
   const [activeNav, setActiveNav] = useState('top')
 
   useEffect(() => {
-    localStorage.setItem(THEME_KEY, JSON.stringify(isDarkMode))
+    sessionStorage.setItem(THEME_KEY, JSON.stringify(isDarkMode))
   }, [isDarkMode])
 
   useEffect(() => {

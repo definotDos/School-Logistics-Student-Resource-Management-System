@@ -1,3 +1,4 @@
+import { useTabState } from "../../hooks/useTabState";
 import ProfilePanel from "../../components/ProfilePanel";
 import { NotificationsPanel, ReportsPanel } from "../../components/ManagementPanels";
 import { useEffect, useState } from "react";
@@ -42,12 +43,12 @@ function StaffServicesDashboard() {
   const assignedCampus = campuses.find((campus) => campus.name === user?.campus);
   const { section: requestedSection } = useParams();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("srmsStaffDashboardTheme");
+    const savedTheme = sessionStorage.getItem("srmsStaffDashboardTheme");
     return savedTheme ? savedTheme === "dark" : false;
   });
 
   useEffect(() => {
-    localStorage.setItem("srmsStaffDashboardTheme", isDarkMode ? "dark" : "light");
+    sessionStorage.setItem("srmsStaffDashboardTheme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
@@ -547,7 +548,7 @@ function Attention({ icon, title, detail, action, href }) {
 }
 
 function EligibilityPanel({ rows, onAction }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("EligibilityPanel.search", "");
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -604,7 +605,7 @@ const resourceInitials = (name = "Resource") => {
 };
 
 function ReviewRequestsPanel({ rows, requests, requestError }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("ReviewRequestsPanel.search", "");
   const displayRows = (requests.length > 0 ? requests : rows).filter((row) => row.status === "pending");
   const filteredRows = displayRows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
@@ -655,7 +656,7 @@ function ReviewRequestsPanel({ rows, requests, requestError }) {
 }
 
 function ApproveRejectPanel({ rows, onApprove, onReject }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("ApproveRejectPanel.search", "");
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -708,7 +709,7 @@ function ApproveRejectPanel({ rows, onApprove, onReject }) {
 }
 
 function SchedulesPanel({ rows, onSchedule }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("SchedulesPanel.search", "");
   const [scheduleIndex, setScheduleIndex] = useState(null);
   const [schedule, setSchedule] = useState({ pickupDate: "", startTime: "09:00", endTime: "11:00", location: "Student Affairs Office" });
   const filteredRows = rows.filter((row) =>
@@ -759,7 +760,7 @@ function SchedulesPanel({ rows, onSchedule }) {
 }
 
 function VerifyClaimsPanel({ rows, onAction }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("VerifyClaimsPanel.search", "");
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -840,7 +841,7 @@ function MonitorDistributionPanel({ rows }) {
 }
 
 function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("StudentHistoryPanel.search", "");
   const filteredRows = rows.filter((row) =>
     `${row.name}`.toLowerCase().includes(search.toLowerCase())
   );
@@ -890,7 +891,7 @@ function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
 }
 
 function UpdateStatusPanel({ rows, onUpdateStatus }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useTabState("UpdateStatusPanel.search", "");
   const [draftStatuses, setDraftStatuses] = useState({});
   const filteredRows = rows.filter((row) =>
     `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())

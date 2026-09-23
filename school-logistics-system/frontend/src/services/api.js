@@ -29,6 +29,8 @@ export async function apiRequest(endpoint, options = {}) {
     error.status = response.status;
     error.requiresVerification = data.requiresVerification;
     error.email = data.email;
+    error.retryAfterSeconds = data.retryAfterSeconds;
+    error.lockedUntil = data.lockedUntil;
     throw error;
   }
 

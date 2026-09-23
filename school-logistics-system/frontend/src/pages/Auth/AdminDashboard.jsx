@@ -1,3 +1,4 @@
+import { useTabState } from "../../hooks/useTabState";
 import RequestPanel from "../../components/AdminRequestPanel";
 import AuditLogPanel from "../../components/AuditLogPanel";
 import StudentIdEditor from "../../components/StudentIdEditor";
@@ -43,11 +44,11 @@ function AdminDashboard() {
   const { user } = useAuth();
   const { section: requestedSection } = useParams();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("srmsDashboardTheme");
+    const savedTheme = sessionStorage.getItem("srmsDashboardTheme");
     return savedTheme ? savedTheme === "dark" : false;
   });
   useEffect(() => {
-    localStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
+    sessionStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
   const activeCampus = campuses.find((campus) => campus.name === user?.activeCampus);
@@ -226,11 +227,11 @@ function ResourceThumbnail({ resource }) {
   </div>;
 }
 
-function RecordPanel({ section, rows, onAction, onAdd }) { const [search, setSearch] = useState(""); const [showForm, setShowForm] = useState(false); const [form, setForm] = useState({ name: "", category: "Academic materials", detail: "" }); const filteredRows = rows.filter((row) => `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())); const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value })); const submit = async (event) => { event.preventDefault(); if (!form.name.trim() || !form.detail.trim()) return; try { await onAdd({ name: form.name.trim(), detail: `${form.category} · ${form.detail.trim()}`, status: "Published", action: "Edit" }); setForm({ name: "", category: "Academic materials", detail: "" }); setShowForm(false); } catch (error) { window.alert(error.message); } }; return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>{sections[section].label}</h2><p>{rows.length} records in this workspace</p></div><div className="record-tools">{onAdd && <button className="admin-secondary" onClick={() => setShowForm((visible) => !visible)}>{showForm ? "Close" : "+ Add resource"}</button>}<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records..." aria-label="Search records" /></div></div>{showForm && <form className="resource-form" onSubmit={submit}><label>Resource name<input value={form.name} onChange={update("name")} placeholder="e.g. Science Laboratory Kit" required /></label><label>Category<select value={form.category} onChange={update("category")}><option>Academic materials</option><option>Uniforms</option><option>Footwear</option><option>Identification</option><option>Other</option></select></label><label>Description or eligibility<input value={form.detail} onChange={update("detail")} placeholder="e.g. Grades 10-12" required /></label><button className="admin-primary" type="submit">Add to catalog</button></form>}<div className="record-list">{filteredRows.map((row, index) => <div className="record-row" key={`${row.name}-${index}`}>{section === "catalog" ? <ResourceThumbnail resource={row} /> : <div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div>}<div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.action === "View"} onClick={() => onAction(row.databaseId, row.action)}>{row.action}</button></div>)}</div>{!filteredRows.length && <div className="empty-state">No matching records found.</div>}</section>; }
+function RecordPanel({ section, rows, onAction, onAdd }) { const [search, setSearch] = useTabState("RecordPanel.search", ""); const [showForm, setShowForm] = useState(false); const [form, setForm] = useState({ name: "", category: "Academic materials", detail: "" }); const filteredRows = rows.filter((row) => `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())); const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value })); const submit = async (event) => { event.preventDefault(); if (!form.name.trim() || !form.detail.trim()) return; try { await onAdd({ name: form.name.trim(), detail: `${form.category} · ${form.detail.trim()}`, status: "Published", action: "Edit" }); setForm({ name: "", category: "Academic materials", detail: "" }); setShowForm(false); } catch (error) { window.alert(error.message); } }; return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>{sections[section].label}</h2><p>{rows.length} records in this workspace</p></div><div className="record-tools">{onAdd && <button className="admin-secondary" onClick={() => setShowForm((visible) => !visible)}>{showForm ? "Close" : "+ Add resource"}</button>}<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records..." aria-label="Search records" /></div></div>{showForm && <form className="resource-form" onSubmit={submit}><label>Resource name<input value={form.name} onChange={update("name")} placeholder="e.g. Science Laboratory Kit" required /></label><label>Category<select value={form.category} onChange={update("category")}><option>Academic materials</option><option>Uniforms</option><option>Footwear</option><option>Identification</option><option>Other</option></select></label><label>Description or eligibility<input value={form.detail} onChange={update("detail")} placeholder="e.g. Grades 10-12" required /></label><button className="admin-primary" type="submit">Add to catalog</button></form>}<div className="record-list">{filteredRows.map((row, index) => <div className="record-row" key={`${row.name}-${index}`}>{section === "catalog" ? <ResourceThumbnail resource={row} /> : <div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div>}<div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.action === "View"} onClick={() => onAction(row.databaseId, row.action)}>{row.action}</button></div>)}</div>{!filteredRows.length && <div className="empty-state">No matching records found.</div>}</section>; }
 function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, accountCreationReady }) {
-  const [search, setSearch] = useState("");
-  const [role, setRole] = useState("");
-  const [status, setStatus] = useState("");
+  const [search, setSearch] = useTabState("UserPanel.search", "");
+  const [role, setRole] = useTabState("UserPanel.role", "");
+  const [status, setStatus] = useTabState("UserPanel.status", "");
   const filteredUsers = users.filter((user) =>
     `${user.name} ${user.email} ${user.studentId || ""} ${user.campus}`.toLowerCase().includes(search.trim().toLowerCase()) &&
     (!role || user.role === role) && (!status || user.status === status)
@@ -290,8 +291,8 @@ function InventoryPanel({ setNotice }) {
 }
 
 function AllocationPanel({ rows, staffMembers, onAssign }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("All statuses");
+  const [search, setSearch] = useTabState("AllocationPanel.search", "");
+  const [status, setStatus] = useTabState("AllocationPanel.status", "All statuses");
   const filteredRows = rows.filter((row) => {
     const matchesSearch = `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = status === "All statuses" || row.status === status;

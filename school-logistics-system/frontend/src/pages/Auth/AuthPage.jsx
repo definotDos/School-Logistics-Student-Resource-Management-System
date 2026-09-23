@@ -33,11 +33,12 @@ export function AuthPage() {
       const user = await login(email, password, rememberMe)
       navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student')
     } catch (error) {
-      setAuthError(error.message)
+      setAuthError(error.lockedUntil ? '' : error.message)
       if (error.requiresVerification) {
         sessionStorage.setItem('srmsVerificationEmail', error.email)
         navigate('/signup')
       }
+      return { error }
     } finally {
       setIsSubmitting(false)
     }

@@ -1,3 +1,4 @@
+import { useTabState } from "../../hooks/useTabState";
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -17,7 +18,7 @@ function ClaimSchedule() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useTabState("ClaimSchedule.filter", "all");
   const isActive = (schedule) => ["scheduled", "confirmed"].includes((schedule.status || "Scheduled").toLowerCase());
   const isCompleted = (schedule) => ["completed", "claimed", "released"].includes((schedule.status || "").toLowerCase());
   const visibleSchedules = schedules.filter((schedule) => filter === "all" || (filter === "active" ? isActive(schedule) : isCompleted(schedule)));

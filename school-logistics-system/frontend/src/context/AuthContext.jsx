@@ -7,6 +7,7 @@ const AuthContext = createContext(null);
 
 function readStoredUser() {
   try {
+    if (!getToken()) return null;
     return JSON.parse(sessionStorageForAuth().getItem("srmsUser") || "null");
   } catch {
     return null;
@@ -17,19 +18,24 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser);
 
   useEffect(() => {
-    if (!getToken()) return;
+    const token = getToken();
+    if (!token) return;
+    let cancelled = false;
     userAPI.getMe().then(result => {
+      if (cancelled || getToken() !== token) return;
       setUser(result.user);
       sessionStorageForAuth().setItem("srmsUser", JSON.stringify(result.user));
     }).catch(error => {
+      if (cancelled || getToken() !== token) return;
       if ([401, 403].includes(error.status)) { setUser(null); clearSession(); }
     });
+    return () => { cancelled = true; };
   }, []);
 
   const login = async (email, password, rememberMe = false) => {
     const result = await authAPI.login({ email, password, rememberMe });
+    saveSession(result);
     setUser(result.user);
-    saveSession(result, rememberMe);
     return result.user;
   };
 
@@ -52,7 +58,9 @@ export function AuthProvider({ children }) {
   };
 
   const updateUser = async (updates) => {
+    const token = getToken();
     const result = await userAPI.updateMe(updates);
+    if (getToken() !== token) return result.user;
     setUser(result.user);
     sessionStorageForAuth().setItem("srmsUser", JSON.stringify(result.user));
     return result.user;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { campusAPI } from '../../services/api'
 import { campuses as campusDirectory } from '../../data/campuses'
+import { AuthLoadingButton } from '../../components/auth/AuthLoadingButton'
 import './Signup.css'
 
 export function SignupPage({
@@ -23,6 +24,7 @@ export function SignupPage({
   const [verificationMessage, setVerificationMessage] = useState('')
   const [verificationError, setVerificationError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState('idle')
   const verificationInputs = useRef([])
   const selectedCampusRecord = availableCampuses.find(campus => campus.name === form.campus)
@@ -58,7 +60,7 @@ export function SignupPage({
 
   const submitVerification = async event => {
     event.preventDefault()
-    if (!verificationEmail || verificationCode.trim().length !== 6 || isVerifying) return
+    if (!verificationEmail || verificationCode.trim().length !== 6 || isVerifying || isResending) return
     setIsVerifying(true)
     setVerificationStatus('verifying')
     setVerificationError('')
@@ -98,6 +100,9 @@ export function SignupPage({
   }
 
   const resendCode = async () => {
+    if (isResending || isVerifying) return
+    setIsResending(true)
+    setVerificationStatus('idle')
     setVerificationError('')
     setVerificationMessage('')
     try {
@@ -105,6 +110,8 @@ export function SignupPage({
       setVerificationMessage(result.message)
     } catch (resendError) {
       setVerificationError(resendError.message)
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -114,7 +121,7 @@ export function SignupPage({
         <h2>Check your email</h2>
         <p>Enter the 6-digit code sent to {verificationEmail}, or request a new code below.</p>
       </div>
-      <form className="auth-form" onSubmit={submitVerification}>
+      <form className="auth-form" onSubmit={submitVerification} aria-busy={isVerifying || isResending}>
         <label className="auth-field form-wide">
           <span>Verification code</span>
           <div className={`verification-code-inputs verification-${verificationStatus}`} role="group" aria-label="6-digit verification code" onPaste={handleVerificationPaste}>
@@ -126,7 +133,7 @@ export function SignupPage({
                 value={verificationCode[index] || ''}
                 onChange={event => updateVerificationDigit(index, event.target.value.replace(/\D/g, ''))}
                 onKeyDown={event => handleVerificationKeyDown(index, event)}
-                disabled={isVerifying}
+                disabled={isVerifying || isResending}
                 inputMode="numeric"
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 maxLength={1}
@@ -136,12 +143,12 @@ export function SignupPage({
             ))}
           </div>
         </label>
-        <button className={`auth-submit form-wide verification-submit verification-${verificationStatus}`} type="submit" disabled={isVerifying}>{verificationStatus === 'success' ? 'Email verified' : isVerifying ? 'Checking code...' : 'Verify email'}</button>
+        <AuthLoadingButton className={`auth-submit form-wide verification-submit verification-${verificationStatus}`} loading={isVerifying && verificationStatus !== 'success'} success={verificationStatus === 'success'} loadingText="Checking code..." disabled={isVerifying || isResending}>{verificationStatus === 'success' ? 'Email verified' : 'Verify email'}</AuthLoadingButton>
         {verificationError && <p className="auth-error form-wide" role="alert">{verificationError}</p>}
         {verificationMessage && <p className="auth-success form-wide" role="status">{verificationMessage}</p>}
       </form>
-      <p className="auth-footer"><button type="button" onClick={() => { sessionStorage.removeItem('srmsVerificationEmail'); setVerificationEmail(''); onChangeMode('login') }}>Back to login</button></p>
-      <p className="auth-footer">Didn&apos;t receive it? <button type="button" onClick={resendCode}>Resend code</button></p>
+      <p className="auth-footer"><button type="button" disabled={isVerifying || isResending} onClick={() => { sessionStorage.removeItem('srmsVerificationEmail'); setVerificationEmail(''); onChangeMode('login') }}>Back to login</button></p>
+      <p className="auth-footer">Didn&apos;t receive it? <AuthLoadingButton type="button" onClick={resendCode} loading={isResending} loadingText="Sending code..." disabled={isVerifying}>Resend code</AuthLoadingButton></p>
     </div>
   )
 
@@ -152,7 +159,7 @@ export function SignupPage({
         <h2>Create account</h2>
         <p>Join your campus. Get the resources you need.</p>
       </div>
-      <form className="auth-form signup-form" onSubmit={submit}>
+      <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
         {error && <p className="auth-error form-wide" role="alert">{error}</p>}
         <fieldset className="account-type form-wide">
           <legend>Choose account type</legend>
@@ -204,7 +211,7 @@ export function SignupPage({
           {validationErrors.password && <small className="field-error">{validationErrors.password}</small>}
         </label>
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
-        <button className="auth-submit form-wide" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating account...' : 'Sign Up'}</button>
+        <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Creating account...">Sign Up</AuthLoadingButton>
       </form>
     </div>
   )
