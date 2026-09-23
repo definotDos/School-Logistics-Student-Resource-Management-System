@@ -119,11 +119,12 @@ export function SignupPage({
     <div className="auth-form-wrap verification-wrap">
       <div className="auth-heading">
         <h2>Check your email</h2>
-        <p>Enter the 6-digit code sent to {verificationEmail}, or request a new code below.</p>
+        <p>Enter the 6-digit verification code sent to</p>
+        <strong className="verification-email">{verificationEmail}</strong>
       </div>
       <form className="auth-form" onSubmit={submitVerification} aria-busy={isVerifying || isResending}>
-        <label className="auth-field form-wide">
-          <span>Verification code</span>
+        <div className="auth-field form-wide verification-field">
+          <span id="verification-code-label">Verification code</span>
           <div className={`verification-code-inputs verification-${verificationStatus}`} role="group" aria-label="6-digit verification code" onPaste={handleVerificationPaste}>
             {Array.from({ length: 6 }, (_, index) => (
               <input
@@ -138,17 +139,21 @@ export function SignupPage({
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 maxLength={1}
                 aria-label={`Verification digit ${index + 1}`}
+                aria-invalid={verificationStatus === 'error'}
+                aria-describedby={verificationError ? 'verification-error' : undefined}
                 required
               />
             ))}
           </div>
-        </label>
-        <AuthLoadingButton className={`auth-submit form-wide verification-submit verification-${verificationStatus}`} loading={isVerifying && verificationStatus !== 'success'} success={verificationStatus === 'success'} loadingText="Checking code..." disabled={isVerifying || isResending}>{verificationStatus === 'success' ? 'Email verified' : 'Verify email'}</AuthLoadingButton>
-        {verificationError && <p className="auth-error form-wide" role="alert">{verificationError}</p>}
+        </div>
+        {verificationError && <p id="verification-error" className="auth-error form-wide" role="alert">{verificationError}</p>}
         {verificationMessage && <p className="auth-success form-wide" role="status">{verificationMessage}</p>}
+        <AuthLoadingButton className={`auth-submit form-wide verification-submit verification-${verificationStatus}`} loading={isVerifying && verificationStatus !== 'success'} success={verificationStatus === 'success'} loadingText="Checking code..." disabled={isVerifying || isResending}>{verificationStatus === 'success' ? 'Email verified' : 'Verify email'}</AuthLoadingButton>
       </form>
-      <p className="auth-footer"><button type="button" disabled={isVerifying || isResending} onClick={() => { sessionStorage.removeItem('srmsVerificationEmail'); setVerificationEmail(''); onChangeMode('login') }}>Back to login</button></p>
+      <div className="verification-actions">
       <p className="auth-footer">Didn&apos;t receive it? <AuthLoadingButton type="button" onClick={resendCode} loading={isResending} loadingText="Sending code..." disabled={isVerifying}>Resend code</AuthLoadingButton></p>
+      <p className="auth-footer"><button type="button" disabled={isVerifying || isResending} onClick={() => { sessionStorage.removeItem('srmsVerificationEmail'); setVerificationEmail(''); onChangeMode('login') }}>Back to login</button></p>
+      </div>
     </div>
   )
 
