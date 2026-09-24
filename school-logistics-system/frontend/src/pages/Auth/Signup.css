@@ -99,10 +99,20 @@
 .auth-page.is-signup .verification-email { display: block; max-width: 100%; color: #ede9fe; font-size: 15px; font-weight: 600; line-height: 1.6; text-align: center; overflow-wrap: anywhere; }
 .auth-page.is-signup .verification-wrap .auth-form { gap: 18px; }
 .auth-page.is-signup .verification-field { gap: 12px; }
-.auth-page.is-signup .verification-field > span { color: #e3e8f6; font-size: 12px; font-weight: 600; text-align: center; }
-.auth-page.is-signup .verification-code-inputs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(5px, 2vw, 10px); width: min(100%, 344px); margin-inline: auto; }
-.auth-page.is-signup .verification-code-inputs input { width: 100%; min-width: 0; height: 52px; letter-spacing: 0; }
-.auth-page.is-signup .verification-code-inputs.verification-error input { border-color: #fb7185; }
+.auth-page.is-signup .verification-field { display: grid; grid-template-columns: minmax(0, 1fr); }
+.auth-page.is-signup .verification-field > label { color: #e3e8f6; font-size: 14px; font-weight: 600; text-align: center; }
+.auth-page.is-signup .verification-field .verification-code-entry {
+  width: 100%; min-width: 0; height: 60px; padding: 12px;
+  border: 1px solid #ffffff55; border-radius: 12px;
+  background: #090f2580; color: #fff;
+  font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums;
+  text-align: center; letter-spacing: .3em; direction: ltr;
+}
+.auth-page.is-signup .verification-code-entry::placeholder { color: #aab6cf; opacity: .7; }
+.auth-page.is-signup .verification-code-entry:focus { outline: 3px solid #b7a3ff; outline-offset: 3px; }
+.auth-page.is-signup .verification-code-entry[aria-invalid='true'] { border-color: #fb7185; }
+.auth-page.is-signup .verification-field > small { color: #bec8dd; font-size: 13px; text-align: center; line-height: 1.6; }
+.auth-page.is-signup .verification-wrap h2 { scroll-margin-top: 24px; }
 .auth-page.is-signup .verification-wrap .auth-error { margin: 0; padding: 12px 16px; border: 1px solid #fda4af; border-radius: 12px; background: #fff1f2; color: #9f1239; font-size: 13px; line-height: 1.6; text-align: center; }
 .auth-page.is-signup .verification-wrap .auth-success { margin: 0; padding: 12px 16px; border: 1px solid #86efac; border-radius: 12px; background: #f0fdf4; color: #166534; font-size: 13px; line-height: 1.6; text-align: center; }
 .auth-page.is-signup .verification-actions { display: grid; gap: 14px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #ffffff1a; }

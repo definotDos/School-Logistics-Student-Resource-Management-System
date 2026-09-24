@@ -170,3 +170,57 @@
   .auth-page.is-signup .auth-panel-inner { padding: 24px 16px; }
   .auth-page .account-type-options { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Signup and email verification share a single, naturally scrolling mobile column. */
+@media (max-width: 760px) {
+  .auth-page.is-signup {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+  .auth-page.is-signup .auth-intro {
+    height: auto;
+    min-height: 0;
+    padding: 24px 20px;
+  }
+  .auth-page.is-signup .auth-intro-copy { width: 100%; min-width: 0; }
+  .auth-page.is-signup .auth-system-heading { font-size: clamp(20px, 5vw, 28px); }
+  .auth-page.is-signup .auth-welcome-action { margin-top: 16px; padding-top: 16px; }
+  .auth-page.is-signup .auth-welcome-action h2 { display: none; }
+  .auth-page.is-signup .auth-welcome-action p { margin-bottom: 12px; font-size: 14px; }
+  .auth-page.is-signup .auth-panel {
+    height: auto;
+    min-height: 0;
+    padding: 20px max(12px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    align-items: flex-start;
+  }
+  .auth-page.is-signup .auth-panel-inner { padding: 24px 20px; border-radius: 20px; }
+  .auth-page.is-signup :is(.signup-form, .verification-wrap .auth-form) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .auth-page.is-signup :is(.auth-form-wrap, .account-type, .verification-field) { min-width: 0; max-width: 100%; }
+  .auth-page.is-signup .account-type { padding: 0 0 20px; }
+  .auth-page.is-signup .account-type-options { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .auth-page.is-signup .account-type-options label { min-height: 72px; padding: 14px; }
+  .auth-page.is-signup .account-type-options small { display: block; font-size: 12px; }
+  .auth-page.is-signup .auth-field > span:not(.password-control),
+  .auth-page.is-signup .account-type legend { font-size: 14px; line-height: 1.5; }
+  .auth-page.is-signup .signup-campus-select,
+  .auth-page.is-signup .signup-campus-menu button { height: auto; min-height: 52px; padding: 12px; gap: 10px; }
+  .auth-page.is-signup .signup-campus-select span,
+  .auth-page.is-signup .signup-campus-menu button span { min-width: 0; white-space: normal; overflow-wrap: anywhere; text-align: left; line-height: 1.5; }
+  .auth-page.is-signup .signup-campus-menu { max-height: min(280px, 45dvh); overscroll-behavior: contain; }
+  .auth-page.is-signup :is(.field-error, .signup-field-hint, .terms) { font-size: 13px; line-height: 1.6; }
+  .auth-page.is-signup .terms { min-width: 0; gap: 12px; }
+  .auth-page.is-signup .terms > span { min-width: 0; overflow-wrap: anywhere; }
+  .auth-page.is-signup .terms input { width: 20px; height: 20px; margin-top: 3px; }
+  .auth-page.is-signup .auth-submit { height: auto; min-height: 52px; padding: 12px 16px; font-size: 16px; white-space: normal; }
+  .auth-page.is-signup .verification-wrap .auth-heading { margin-bottom: 24px; }
+  .auth-page.is-signup .verification-actions { gap: 12px; }
+  .auth-page.is-signup .verification-actions .auth-footer { display: grid; gap: 8px; font-size: 14px; }
+  .auth-page.is-signup .verification-actions button { justify-content: center; width: 100%; min-height: 48px; padding: 10px 16px; border: 1px solid #ffffff40; border-radius: 10px; }
+}
+
+@media (max-width: 360px) {
+  .auth-page.is-signup .auth-panel-inner { padding-inline: 16px; }
+  .auth-page.is-signup .auth-heading h2 { font-size: 26px; }
+}

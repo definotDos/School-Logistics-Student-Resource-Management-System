@@ -26,7 +26,13 @@ export function SignupPage({
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState('idle')
-  const verificationInputs = useRef([])
+  const verificationHeading = useRef(null)
+  useEffect(() => {
+    if (verificationEmail) {
+      verificationHeading.current?.focus({ preventScroll: true })
+      verificationHeading.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    }
+  }, [verificationEmail])
   const selectedCampusRecord = availableCampuses.find(campus => campus.name === form.campus)
   const selectedCampus = selectedCampusRecord && {
     ...campusDirectory.find(campus => campus.name === selectedCampusRecord.name),
@@ -60,7 +66,7 @@ export function SignupPage({
 
   const submitVerification = async event => {
     event.preventDefault()
-    if (!verificationEmail || verificationCode.trim().length !== 6 || isVerifying || isResending) return
+    if (!verificationEmail || !/^\d{6}$/.test(verificationCode) || isVerifying || isResending) return
     setIsVerifying(true)
     setVerificationStatus('verifying')
     setVerificationError('')
@@ -78,25 +84,15 @@ export function SignupPage({
     }
   }
 
-  const updateVerificationDigit = (index, value) => {
-    const digits = verificationCode.split('')
-    digits[index] = value.slice(-1)
-    const nextCode = digits.join('').slice(0, 6)
-    setVerificationCode(nextCode)
-    if (value && index < 5) verificationInputs.current[index + 1]?.focus()
-  }
-
-  const handleVerificationKeyDown = (index, event) => {
-    if (event.key === 'Backspace' && !verificationCode[index] && index > 0) verificationInputs.current[index - 1]?.focus()
-    if (event.key === 'ArrowLeft' && index > 0) verificationInputs.current[index - 1]?.focus()
-    if (event.key === 'ArrowRight' && index < 5) verificationInputs.current[index + 1]?.focus()
+  const updateVerificationCode = value => {
+    setVerificationCode(value.replace(/\D/g, '').slice(0, 6))
+    setVerificationError('')
+    setVerificationStatus('idle')
   }
 
   const handleVerificationPaste = event => {
     event.preventDefault()
-    const pastedCode = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    setVerificationCode(pastedCode)
-    verificationInputs.current[Math.min(pastedCode.length, 5)]?.focus()
+    updateVerificationCode(event.clipboardData.getData('text'))
   }
 
   const resendCode = async () => {
@@ -118,33 +114,33 @@ export function SignupPage({
   if (verificationEmail) return (
     <div className="auth-form-wrap verification-wrap">
       <div className="auth-heading">
-        <h2>Check your email</h2>
+        <h2 ref={verificationHeading} tabIndex={-1}>Check your email</h2>
         <p>Enter the 6-digit verification code sent to</p>
         <strong className="verification-email">{verificationEmail}</strong>
       </div>
       <form className="auth-form" onSubmit={submitVerification} aria-busy={isVerifying || isResending}>
         <div className="auth-field form-wide verification-field">
-          <span id="verification-code-label">Verification code</span>
-          <div className={`verification-code-inputs verification-${verificationStatus}`} role="group" aria-label="6-digit verification code" onPaste={handleVerificationPaste}>
-            {Array.from({ length: 6 }, (_, index) => (
+          <label htmlFor="signup-verification-code">Verification code</label>
               <input
-                key={index}
-                ref={element => { verificationInputs.current[index] = element }}
-                className={verificationCode[index] ? 'filled' : ''}
-                value={verificationCode[index] || ''}
-                onChange={event => updateVerificationDigit(index, event.target.value.replace(/\D/g, ''))}
-                onKeyDown={event => handleVerificationKeyDown(index, event)}
+                id="signup-verification-code"
+                name="verificationCode"
+                className="verification-code-entry"
+                type="text"
+                value={verificationCode}
+                onChange={event => updateVerificationCode(event.target.value)}
+                onPaste={handleVerificationPaste}
                 disabled={isVerifying || isResending}
                 inputMode="numeric"
-                autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                maxLength={1}
-                aria-label={`Verification digit ${index + 1}`}
+                autoComplete="one-time-code"
+                enterKeyHint="done"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                placeholder="000000"
                 aria-invalid={verificationStatus === 'error'}
-                aria-describedby={verificationError ? 'verification-error' : undefined}
+                aria-describedby={`verification-code-help${verificationError ? ' verification-error' : ''}`}
                 required
               />
-            ))}
-          </div>
+          <small id="verification-code-help">Type or paste the 6-digit code from your email.</small>
         </div>
         {verificationError && <p id="verification-error" className="auth-error form-wide" role="alert">{verificationError}</p>}
         {verificationMessage && <p className="auth-success form-wide" role="status">{verificationMessage}</p>}
