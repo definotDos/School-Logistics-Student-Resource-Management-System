@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardIcon from '../components/DashboardIcon'
+import useMobileNavigation from '../hooks/useMobileNavigation'
 
 const THEME_KEY = 'srmsLandingTheme'
 
@@ -125,6 +126,7 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(readTheme)
   const [activeNav, setActiveNav] = useState('top')
+  const { navigationOpen, setNavigationOpen, navigationRef, toggleRef } = useMobileNavigation(760)
 
   useEffect(() => {
     sessionStorage.setItem(THEME_KEY, JSON.stringify(isDarkMode))
@@ -156,6 +158,7 @@ export function LandingPage() {
   }, [])
 
   const scrollToSection = (target) => {
+    setNavigationOpen(false)
     setActiveNav(target)
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
 
@@ -172,7 +175,7 @@ export function LandingPage() {
 
   return (
     <main id="top" className={`landing-page landing-palette ${isDarkMode ? 'dark-mode' : ''}`}>
-      <header className="landing-header">
+      <header className="landing-header" ref={navigationRef}>
         <button type="button" className="brand-wrap" onClick={() => scrollToSection('top')} aria-label="School Logistics System home">
           <span className="brand-mark landing-brand-mark">
             <img className="landing-brand-logo" src="/Logo.jpg" alt="" width="48" height="48" />
@@ -183,7 +186,16 @@ export function LandingPage() {
           </span>
         </button>
 
-        <nav className="landing-nav" aria-label="Main navigation">
+        <div className="landing-header-actions">
+          <button ref={toggleRef} id="landing-menu-toggle" type="button" className="landing-menu-toggle" aria-expanded={navigationOpen} aria-controls="landing-navigation" aria-label={navigationOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setNavigationOpen((open) => !open)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg>
+            <span>{navigationOpen ? 'Close' : 'Menu'}</span>
+          </button>
+          <button type="button" className="nav-theme-toggle" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setIsDarkMode((prev) => !prev)}>
+            {isDarkMode ? 'Light' : 'Dark'}
+          </button>
+        </div>
+        <nav id="landing-navigation" className={`landing-nav ${navigationOpen ? 'is-open' : ''}`} aria-label="Main navigation">
           {navItems.map((item) => (
             <button
               type="button"
@@ -196,12 +208,6 @@ export function LandingPage() {
             </button>
           ))}
         </nav>
-
-        <div className="landing-header-actions">
-          <button type="button" className="nav-theme-toggle" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setIsDarkMode((prev) => !prev)}>
-            {isDarkMode ? 'Light' : 'Dark'}
-          </button>
-        </div>
       </header>
 
       <section id="home" className="landing-hero">

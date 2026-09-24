@@ -4,6 +4,7 @@ import { useAuth } from "../context/useAuth";
 import { campusAPI } from "../services/api";
 import DashboardIcon from "./DashboardIcon";
 import { campuses as campusDirectory } from "../data/campuses";
+import useMobileNavigation from "../hooks/useMobileNavigation";
 
 const studentLinks = [
   { name: "Dashboard", path: "/student", icon: "home" },
@@ -66,7 +67,7 @@ const staffNavigationGroups = [
 ];
 
 function Sidebar({ type = "student" }) {
-  const [navigationOpen, setNavigationOpen] = useState(false);
+  const { navigationOpen, setNavigationOpen, navigationRef, toggleRef } = useMobileNavigation(760);
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const links = studentLinks;
@@ -102,8 +103,8 @@ function Sidebar({ type = "student" }) {
   };
 
   return (
-    <aside className={`app-sidebar ${type === "staff" ? "staff-sidebar" : ""} ${navigationOpen ? "navigation-open" : ""}`}>
-      <button type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
+    <aside ref={navigationRef} className={`app-sidebar ${type === "staff" ? "staff-sidebar" : ""} ${navigationOpen ? "navigation-open" : ""}`}>
+      <button ref={toggleRef} type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg><span>{navigationOpen ? "Close navigation" : "Navigation menu"}</span>
       </button>
       <div className="sidebar-brand">

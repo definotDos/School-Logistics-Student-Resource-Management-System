@@ -1,0 +1,172 @@
+/* Shared responsive rules load after page and theme styles. */
+.landing-menu-toggle { display: none; }
+.landing-page.landing-palette .landing-header-actions { order: 2; }
+
+.landing-page :is(.hero-copy, .hero-visual, .dashboard-preview, .brand-copy),
+.organized-workspace :is(.admin-panel, .dashboard-panel, .record-copy, .record-tools) {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .organized-workspace > .app-sidebar { min-width: 0; }
+  .organized-workspace .navigation-open .sidebar-nav {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 65dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .organized-workspace .navigation-open .campus-switch { display: block; }
+  .organized-workspace .app-header { flex-wrap: wrap; }
+  .organized-workspace :is(.panel-heading, .admin-panel-heading, .admin-topline) {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .organized-workspace :is(.record-toolbar, .record-tools, .record-actions) {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .organized-workspace .record-tools > :is(input, select) {
+    flex: 1 1 180px;
+    width: 100%;
+    min-width: 0;
+  }
+  .organized-workspace :is(.header-icon, .header-theme-toggle, .sidebar-mobile-toggle) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .organized-workspace .logout-notice { left: 16px; right: 16px; }
+  .organized-workspace :is(.users-table-wrap, .request-chart-scroll) { max-width: 100%; }
+
+  /* A 16px input font prevents focus zoom on mobile Safari. */
+  .auth-page .auth-panel :is(input, select, textarea),
+  .organized-workspace :is(input, select, textarea) { font-size: 16px; }
+  .auth-page :is(.auth-panel, .auth-panel-inner, .auth-field) { min-width: 0; }
+  .auth-page .signup-add-campus-fields { flex-wrap: wrap; }
+  .auth-page .signup-add-campus-fields input { flex-basis: 100%; }
+  .auth-page .password-toggle { width: 44px; height: 44px; }
+  .auth-page .password-control input { padding-right: 52px; }
+}
+
+@media (max-width: 760px) {
+  .landing-page.landing-palette { padding: 108px 16px 24px; }
+  .landing-page.landing-palette .landing-header {
+    display: grid;
+    top: 12px;
+    padding: 12px;
+    width: calc(100% - 24px);
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .landing-page.landing-palette .brand-copy strong {
+    font-size: 12px;
+    white-space: normal;
+    line-height: 1.35;
+  }
+  .landing-page.landing-palette .landing-header-actions { gap: 6px; width: auto; grid-column: 2; grid-row: 1; }
+  .landing-page.landing-palette .brand-copy small { display: none; }
+  .landing-page.landing-palette .landing-brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
+  .landing-page.landing-palette .brand-wrap { gap: 8px; }
+  .landing-page.landing-palette .nav-theme-toggle { width: auto; padding: 10px; font-size: 12px; }
+  .landing-page.landing-palette .landing-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px;
+    border: 1px solid var(--landing-border);
+    border-radius: 8px;
+    background: var(--landing-surface);
+    color: var(--landing-text);
+    font-size: 12px;
+    gap: 6px;
+  }
+  .landing-menu-toggle svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .landing-page.landing-palette .landing-nav { display: none; }
+  .landing-page.landing-palette .landing-nav.is-open {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 65dvh;
+    overflow-y: auto;
+  }
+  .landing-page.landing-palette .nav-link-btn { min-height: 44px; text-align: left; }
+  .landing-page.landing-palette .hero-copy h1 { font-size: clamp(2rem, 9vw, 3rem); }
+  .landing-page.landing-palette .landing-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .landing-page.landing-palette .landing-actions button { width: 100%; }
+  .landing-page.landing-palette .preview-header { flex-wrap: wrap; gap: 8px; }
+  .landing-page.landing-palette .preview-label { margin-left: 0; }
+  .landing-page.landing-palette .preview-icons { display: none; }
+  .landing-page.landing-palette .contact-detail-item { overflow-wrap: anywhere; }
+  .landing-page.landing-palette :is(.landing-benefits, .landing-audience, .landing-key-features, .landing-contact) { scroll-margin-top: 110px; }
+}
+
+/* Keep mobile records, forms, and overlays within their own available width. */
+@media (max-width: 760px) {
+  .organized-workspace { --mobile-gap: 16px; }
+  .organized-workspace :is(.admin-main, .student-dashboard) {
+    padding: 24px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left));
+  }
+  .organized-workspace .sidebar-mobile-toggle { width: 100%; justify-content: flex-start; }
+  .organized-workspace .sidebar-nav > div { padding: 12px 0; border-bottom: 1px solid #ffffff24; }
+  .organized-workspace .sidebar-nav h2 { margin: 0 10px 8px; font-size: 11px; line-height: 1.5; }
+  .organized-workspace .sidebar-link { min-height: 48px; border-radius: 8px; }
+  .organized-workspace .sidebar-label { font-size: 14px; }
+  .organized-workspace .header-search-wrap { display: none; }
+  .organized-workspace .header-context > span { display: block; font-size: 12px; overflow-wrap: anywhere; }
+  .organized-workspace .header-context { flex: 1 1 100px; }
+  .organized-workspace :is(.dashboard-grid, .admin-grid) { gap: var(--mobile-gap); }
+  .organized-workspace :is(.record-copy strong, .record-copy small, .request-row small) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+  .organized-workspace :is(.record-row, .verification-note, .receive-strip) { flex-wrap: wrap; gap: 12px; padding-block: 16px; }
+  .organized-workspace .record-copy { flex: 1 1 160px; }
+  .organized-workspace :is(.row-action, .record-actions button, .claim-filter-bar button, .resource-carousel-arrow, .resource-carousel-dots button) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .organized-workspace :is(.resource-form, .profile-form-grid, .distribution-form) :is(input, select),
+  .organized-workspace .record-toolbar :is(input, select) { min-height: 48px; }
+  .organized-workspace :is(.resource-form, .record-toolbar) label { min-width: 0; }
+  .organized-workspace :is(.status-pill, .status-badge) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .organized-workspace .notification-menu { max-height: 70dvh; overflow-y: auto; overscroll-behavior: contain; }
+  .organized-workspace :is(.student-notifications-heading, .admin-notifications-heading) { flex-wrap: wrap; gap: 12px; }
+  .organized-workspace :is(.student-notifications-close, .student-notification-meta button, .admin-notification-meta button) { min-height: 44px; min-width: 44px; }
+  .app-modal-backdrop, .profile-modal-backdrop { padding: 16px; overflow-y: auto; }
+  .app-modal, .profile-modal { min-width: 0; max-width: 100%; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+  .app-modal :is(h2, p), .profile-modal :is(h2, p) { overflow-wrap: anywhere; }
+  .auth-page .auth-panel :is(input:not([type='checkbox']):not([type='radio']), select) { min-height: 48px; }
+  .auth-page .auth-options { gap: 12px; flex-wrap: wrap; }
+  .auth-page .auth-options :is(label, button), .auth-page .auth-footer button { min-height: 44px; display: inline-flex; align-items: center; }
+  .auth-page .auth-footer { line-height: 1.7; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+  .landing-page.landing-palette :is(.benefit-card, .audience-card, .contact-card) { padding: 24px 20px; }
+  .landing-page.landing-palette .dashboard-preview { padding: 16px; }
+  .landing-page.landing-palette .landing-footer { gap: 20px; }
+  .landing-page.landing-palette .landing-footer button { width: 100%; }
+  .landing-page.landing-palette .contact-detail-item { min-height: 44px; }
+  .landing-page.landing-palette .contact-detail-item > span:last-child { min-width: 0; }
+  .organized-workspace :is(.record-toolbar, .record-list) { padding-inline: 16px; }
+  .organized-workspace .record-tools { flex-direction: column; align-items: stretch; }
+  .organized-workspace .record-tools > :is(input, select) { flex: auto; }
+  .organized-workspace .record-actions { display: flex; width: 100%; gap: 8px; }
+  .organized-workspace .record-actions button { flex: 1 1 120px; }
+  .organized-workspace .request-row > div { flex-basis: 150px; }
+  .organized-workspace .resource-carousel-controls { padding-inline: 12px; gap: 8px; }
+  .modal-actions, .profile-modal-actions { flex-direction: column; align-items: stretch; }
+  .modal-actions button, .profile-modal-actions button { flex: auto; width: 100%; min-height: 48px; }
+}
+
+@media (max-width: 420px) {
+  .organized-workspace :is(.dashboard-stats, .admin-stats) { grid-template-columns: minmax(0, 1fr); }
+  .organized-workspace :is(.panel-heading, .admin-panel-heading, .request-row) { padding-inline: 16px; }
+  .organized-workspace .request-row { flex-wrap: wrap; gap: 10px; }
+  .organized-workspace .claim-pickup-details { grid-template-columns: minmax(0, 1fr); }
+  .auth-page.is-login .auth-panel-inner,
+  .auth-page.is-signup .auth-panel-inner { padding: 24px 16px; }
+  .auth-page .account-type-options { grid-template-columns: minmax(0, 1fr); }
+}

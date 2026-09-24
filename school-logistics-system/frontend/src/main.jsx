@@ -11,6 +11,7 @@ import "./dashboard-layout.css";
 import "./light-theme.css";
 import "./sidebar-palette.css";
 import "./landing-palette.css";
+import "./responsive.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
