@@ -1,4 +1,6 @@
 import { useState } from "react";
+import UniformGallery from "./UniformGallery";
+import { isSchoolUniform } from "../utils/uniforms";
 
 function ResourceCard({ resource, onRequest }) {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -12,7 +14,7 @@ function ResourceCard({ resource, onRequest }) {
   return (
     <div className="resource-card overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-      <div className="resource-card-gallery" role="group" aria-roledescription="carousel" aria-label={`${resource.name} images`}>
+      {isSchoolUniform(resource) ? <UniformGallery /> : <div className="resource-card-gallery" role="group" aria-roledescription="carousel" aria-label={`${resource.name} images`}>
         <div className={`resource-card-image flex h-32 items-center justify-center bg-slate-100 text-5xl ${slide?.detail ? "is-detail" : ""}`}>
           {slide ? <img className="h-full w-full object-cover" src={slide.src} alt={`${resource.name} — ${slide.label}`} loading="lazy" onError={() => setFailedImages((current) => [...current, slide.src])} /> : <span aria-hidden="true">{resource.icon}</span>}
         </div>
@@ -21,7 +23,7 @@ function ResourceCard({ resource, onRequest }) {
           <div className="resource-card-gallery-position"><span aria-live="polite">{slide.label}</span><div className="resource-card-gallery-dots">{slides.map((item, index) => <button key={`${item.src}-${index}`} type="button" aria-label={`${resource.name}: ${item.label}`} aria-current={index === activeIndex ? "true" : undefined} onClick={() => setSlideIndex(index)}><i /></button>)}</div></div>
           <button type="button" aria-label={`Next image of ${resource.name}`} onClick={() => move(1)}>&rarr;</button>
         </div>}
-      </div>
+      </div>}
 
       <div className="resource-card-body p-5">
         <div className="flex items-start justify-between gap-3">

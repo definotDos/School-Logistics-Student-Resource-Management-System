@@ -1,3 +1,4 @@
+import { validateAccount } from '../../utils/accountValidation'
 import { useEffect, useRef, useState } from 'react'
 import { campusAPI } from '../../services/api'
 import { campuses as campusDirectory } from '../../data/campuses'
@@ -47,12 +48,7 @@ export function SignupPage({
   const submit = async event => {
     event.preventDefault()
     if (isSubmitting) return
-    const errors = {}
-    if (!form.campus) errors.campus = 'Choose your campus.'
-    if (form.name.trim().length < 2) errors.name = 'Enter your full name.'
-    if (form.role === 'student' && form.studentId.trim().length < 2) errors.studentId = `Enter your ${identityLabel.toLowerCase()}.`
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = 'Enter a valid school email address.'
-    if (form.password.length < 8) errors.password = 'Password must be at least 8 characters.'
+    const errors = validateAccount(form)
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
     try {
@@ -162,20 +158,6 @@ export function SignupPage({
       </div>
       <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
         {error && <p className="auth-error form-wide" role="alert">{error}</p>}
-        <fieldset className="account-type form-wide">
-          <legend>Choose account type</legend>
-          <div className="account-type-options">
-            {[
-              ['student', '♙', 'Student', 'Request school resources'],
-              ['staff', '♧', 'Staff', 'Manage requests/distribution'],
-            ].map(([role, , label, description]) => (
-              <label key={role} className={form.role === role ? 'selected' : ''}>
-                <input type="radio" name="role" value={role} checked={form.role === role} onChange={update('role')} />
-                <span className="account-type-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{role === 'student' ? <><path d="m2 9 10-5 10 5-10 5-10-5Z" /><path d="M6 11v6c4 3 8 3 12 0v-6M22 9v7" /></> : <><rect x="4" y="7" width="16" height="13" rx="3" /><path d="M9 7V4h6v3M4 12h16M10 12v3h4v-3" /></>}</svg></span><span>{label}<small>{description}</small></span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
         <label className="auth-field compact-field form-wide signup-campus-field">
           <span>Campus</span>
           <button className="signup-campus-select" type="button" aria-label={selectedCampus ? `Selected campus: ${selectedCampus.name}` : 'Please select your campus'} aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen(open => !open)}>
@@ -192,7 +174,7 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors.studentId ? 'input-invalid' : ''} placeholder={form.role === 'student' ? identityLabel : `${identityLabel} (optional)`} value={form.studentId} onChange={update('studentId')} required={form.role === 'student'} aria-invalid={Boolean(validationErrors.studentId)} />
+          <input className={validationErrors.studentId ? 'input-invalid' : ''} placeholder="STU-123456" value={form.studentId} onChange={update('studentId')} required={form.role === 'student'} aria-invalid={Boolean(validationErrors.studentId)} />
           {validationErrors.studentId && <small className="field-error">{validationErrors.studentId}</small>}
         </label>
         <label className="auth-field compact-field form-wide">
@@ -213,6 +195,7 @@ export function SignupPage({
         </label>
         <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
         <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Creating account...">Sign Up</AuthLoadingButton>
+        <p className="signup-account-note form-wide">For students. Staff accounts are created by an administrator.</p>
       </form>
     </div>
   )

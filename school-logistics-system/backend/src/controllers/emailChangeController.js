@@ -1,3 +1,4 @@
+const { emailValid } = require("../utils/accountValidation");
 const crypto = require("crypto");
 const User = require("../models/User");
 const { sendVerificationEmail } = require("../config/email");
@@ -7,7 +8,7 @@ const hash = code => crypto.createHash("sha256").update(code).digest("hex");
 async function requestEmailChange(req, res) {
   try {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
-    if (!/^\S+@\S+\.\S+$/.test(email) || email === req.user.email) return res.status(400).json({ message: "Enter a different, valid email address." });
+    if (!emailValid(email) || email === req.user.email) return res.status(400).json({ message: "Enter a different, valid @phinmaed.com email address." });
     if (await User.exists({ email })) return res.status(409).json({ message: "That email address is already in use." });
     const code = crypto.randomBytes(16).toString("hex");
     await sendVerificationEmail(email, code);
@@ -21,7 +22,7 @@ async function requestEmailChange(req, res) {
 async function confirmEmailChange(req, res) {
   try {
     const { email, code } = req.body;
-    if (typeof email !== "string" || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code)) return res.status(400).json({ message: "Enter the full verification code sent to your new email." });
+    if (!emailValid(email) || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code)) return res.status(400).json({ message: "Enter the full verification code sent to your new email." });
     const user = await User.findOneAndUpdate({ _id: req.user._id, pendingEmail: email.trim().toLowerCase(), emailChangeHash: hash(code), emailChangeExpiresAt: { $gt: new Date() } }, {
       $set: { email: email.trim().toLowerCase(), emailVerified: true },
       $unset: { pendingEmail: 1, emailChangeHash: 1, emailChangeExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1 },

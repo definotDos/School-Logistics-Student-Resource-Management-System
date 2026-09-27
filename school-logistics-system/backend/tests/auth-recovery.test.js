@@ -1,5 +1,4 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../src/models/User');
 jest.mock('../src/config/email', () => ({ sendVerificationEmail: jest.fn(), sendPasswordResetEmail: jest.fn() }));
 const auth = require('../src/controllers/authController');
@@ -8,45 +7,46 @@ const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() })
 afterEach(() => jest.restoreAllMocks());
 test.each(['EAUTH', 'ETIMEDOUT', 'ECONNECTION', undefined])('Email failure %s rolls back signup and returns a useful error', async code => {
  jest.spyOn(require('../src/models/Campus'), 'exists').mockResolvedValue({ _id: 'campus' });
- jest.spyOn(User, 'findOne').mockResolvedValue(null);
+ jest.spyOn(User, 'findOne').mockResolvedValueOnce(null).mockReturnValueOnce({ collation: jest.fn().mockResolvedValue(null) });
  jest.spyOn(User, 'create').mockResolvedValue({ _id: 'new-user' });
  const remove = jest.spyOn(User, 'deleteOne').mockResolvedValue({ deletedCount: 1 });
  jest.spyOn(console, 'error').mockImplementation(() => {});
  mail.sendVerificationEmail.mockRejectedValueOnce(Object.assign(new Error('Private SMTP details'), { code }));
  const res = response();
- await auth.signup({ body: { name: 'Staff', email: 'staff@example.com', password: 'password123', campus: 'Main', role: 'staff' } }, res);
+ await auth.signup({ body: { name: 'Student', email: 'student@phinmaed.com', password: 'password123', campus: 'Main', role: 'student', studentId: 'STU-123456', strand: 'BS Information Technology' } }, res);
  expect(remove).toHaveBeenCalledWith({ _id: 'new-user' });
  expect(res.status).toHaveBeenCalledWith(503);
  expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining('Your account was not created') });
 });
 test('public signup rejects administrator roles before creating an account', async () => {
  const create = jest.spyOn(User, 'create'); const res = response();
- await auth.signup({ body: { name: 'Admin', email: 'a@example.com', password: 'password123', campus: 'Main', role: 'admin' } }, res);
+ await auth.signup({ body: { name: 'Admin', email: 'a@phinmaed.com', password: 'password123', campus: 'Main', role: 'admin' } }, res);
  expect(res.status).toHaveBeenCalledWith(403); expect(create).not.toHaveBeenCalled();
 });
-test.each([false, true])('remember me %s controls token duration', async rememberMe => {
- jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', emailVerified: true, role: 'student' }) });
- jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', password: await bcrypt.hash('password123', 4), emailVerified: true, role: 'student' }) });
- const res = response(); await auth.login({ body: { email: 'a@example.com', password: 'password123', rememberMe } }, res);
- const token = jwt.decode(res.json.mock.calls[0][0].token);
- expect(token.exp - token.iat).toBe(rememberMe ? 604800 : 28800);
+test.each([false, true])('remember me %s sets the password session lifetime', async rememberMe => {
+ jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', emailVerified: true, role: 'student', status: 'active' }) });
+ jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', password: await bcrypt.hash('password123', 4), emailVerified: true, role: 'student', status: 'active' }) });
+ const res = response(); await auth.login({ body: { email: 'a@phinmaed.com', password: 'password123', rememberMe } }, res);
+ const token = require('jsonwebtoken').verify(res.json.mock.calls[0][0].token, process.env.JWT_SECRET);
+ expect(token.amr).toEqual(['pwd']);
+ expect(token.exp - token.iat).toBe(rememberMe ? 7 * 86400 : 8 * 3600);
 });
 test('unverified login provides resumable email after password validation', async () => {
- jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@example.com', emailVerified: false }) });
- jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@example.com', password: await bcrypt.hash('password123', 4), emailVerified: false }) });
- const res = response(); await auth.login({ body: { email: 'a@example.com', password: 'password123' } }, res);
- expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ requiresVerification: true, email: 'a@example.com' }));
+ jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@phinmaed.com', emailVerified: false }) });
+ jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@phinmaed.com', password: await bcrypt.hash('password123', 4), emailVerified: false }) });
+ const res = response(); await auth.login({ body: { email: 'a@phinmaed.com', password: 'password123' } }, res);
+ expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ requiresVerification: true, email: 'a@phinmaed.com' }));
 });
 test('recovery stores only a hash and sends the secret by email', async () => {
  const user = { save: jest.fn() }; jest.spyOn(User, 'findOne').mockResolvedValue(user);
- const res = response(); await auth.forgotPassword({ body: { email: 'a@example.com' } }, res);
+ const res = response(); await auth.forgotPassword({ body: { email: 'a@phinmaed.com' } }, res);
  const code = mail.sendPasswordResetEmail.mock.calls[0][1];
  expect(code).toMatch(/^[a-f0-9]{32}$/); expect(user.passwordResetHash).not.toBe(code);
  expect(user.passwordResetExpiresAt.getTime()).toBeGreaterThan(Date.now());
 });
 test('reset consumes unexpired code atomically and revokes existing sessions', async () => {
  const update = jest.spyOn(User, 'findOneAndUpdate').mockResolvedValue({}); const res = response();
- await auth.resetPassword({ body: { email: 'a@example.com', code: 'a'.repeat(32), password: 'newpassword123' } }, res);
+ await auth.resetPassword({ body: { email: 'a@phinmaed.com', code: 'a'.repeat(32), password: 'newpassword123' } }, res);
  const [filter, changes] = update.mock.calls[0];
  expect(filter.passwordResetExpiresAt.$gt).toBeInstanceOf(Date);
  expect(changes.$unset).toEqual({ passwordResetHash: 1, passwordResetExpiresAt: 1 });
@@ -55,6 +55,6 @@ test('reset consumes unexpired code atomically and revokes existing sessions', a
 });
 test('expired or reused reset codes are rejected', async () => {
  jest.spyOn(User, 'findOneAndUpdate').mockResolvedValue(null); const res = response();
- await auth.resetPassword({ body: { email: 'a@example.com', code: 'a'.repeat(32), password: 'newpassword123' } }, res);
+ await auth.resetPassword({ body: { email: 'a@phinmaed.com', code: 'a'.repeat(32), password: 'newpassword123' } }, res);
  expect(res.status).toHaveBeenCalledWith(400);
 });

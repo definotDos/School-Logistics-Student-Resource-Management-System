@@ -19,46 +19,48 @@ test('signup rejects duplicate student IDs before creating or emailing', async (
   jest.spyOn(Campus, 'exists').mockResolvedValue({});
   jest.spyOn(User, 'findOne').mockResolvedValueOnce(null).mockReturnValueOnce({ collation: jest.fn().mockResolvedValue({}) });
   const create = jest.spyOn(User, 'create'); const res = response();
-  await auth.signup({ body: { name: 'Student', email: 'new@example.com', password: 'password123', campus: 'Main', studentId: 'abc' } }, res);
+  await auth.signup({ body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: 'STU-123456', strand: 'BS Information Technology' } }, res);
   expect(res.status).toHaveBeenCalledWith(409); expect(create).not.toHaveBeenCalled();
 });
 test('admin account creation reports student ID conflicts', async () => {
+  jest.spyOn(User, 'exists').mockResolvedValue(null);
+  jest.spyOn(User, 'findOne').mockReturnValue({ collation: jest.fn().mockResolvedValue(null) });
   jest.spyOn(Campus, 'exists').mockResolvedValue({});
   jest.spyOn(User, 'create').mockRejectedValue({ code: 11000, keyPattern: { studentId: 1 } });
   const res = response();
-  await profile.createUser({ user: { role: 'admin' }, body: { name: 'Student', email: 'new@example.com', password: 'password123', campus: 'Main', studentId: 'abc', role: 'student' } }, res);
+  await profile.createUser({ user: { role: 'admin' }, body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: 'STU-123456', strand: 'BS Information Technology', role: 'student' } }, res);
   expect(res.status).toHaveBeenCalledWith(409);
   expect(res.json).toHaveBeenCalledWith({ message: 'That student ID is already registered.' });
 });
 test('profile cannot bypass email verification', async () => {
   const update = jest.spyOn(User, 'findByIdAndUpdate'); const res = response();
-  await profile.updateMe({ user: { email: 'old@example.com' }, body: { email: 'new@example.com' } }, res);
+  await profile.updateMe({ user: { email: 'old@phinmaed.com' }, body: { email: 'new@phinmaed.com' } }, res);
   expect(res.status).toHaveBeenCalledWith(400); expect(update).not.toHaveBeenCalled();
 });
 test('email request preserves current email and stores only hashed code', async () => {
   jest.spyOn(User, 'exists').mockResolvedValue(null);
   const update = jest.spyOn(User, 'findByIdAndUpdate').mockResolvedValue({}); const res = response();
-  await emailChange.requestEmailChange({ user: { _id: '123', email: 'old@example.com' }, body: { email: 'new@example.com' } }, res);
+  await emailChange.requestEmailChange({ user: { _id: '123', email: 'old@phinmaed.com' }, body: { email: 'new@phinmaed.com' } }, res);
   const changes = update.mock.calls[0][1];
-  expect(changes.email).toBeUndefined(); expect(changes.pendingEmail).toBe('new@example.com');
+  expect(changes.email).toBeUndefined(); expect(changes.pendingEmail).toBe('new@phinmaed.com');
   expect(changes.emailChangeHash).not.toBe(mail.sendVerificationEmail.mock.calls[0][1]);
 });
 test('delivery failure leaves account unchanged', async () => {
   jest.spyOn(User, 'exists').mockResolvedValue(null); mail.sendVerificationEmail.mockRejectedValueOnce(new Error('offline'));
   const update = jest.spyOn(User, 'findByIdAndUpdate'); const res = response();
-  await emailChange.requestEmailChange({ user: { _id: '123', email: 'old@example.com' }, body: { email: 'new@example.com' } }, res);
+  await emailChange.requestEmailChange({ user: { _id: '123', email: 'old@phinmaed.com' }, body: { email: 'new@phinmaed.com' } }, res);
   expect(res.status).toHaveBeenCalledWith(503); expect(update).not.toHaveBeenCalled();
 });
 test('verification atomically consumes unexpired account-bound code and clears recovery', async () => {
   const update = jest.spyOn(User, 'findOneAndUpdate').mockResolvedValue({ _id: '123' }); const res = response();
-  await emailChange.confirmEmailChange({ user: { _id: '123' }, body: { email: 'new@example.com', code: 'a'.repeat(32) } }, res);
+  await emailChange.confirmEmailChange({ user: { _id: '123' }, body: { email: 'new@phinmaed.com', code: 'a'.repeat(32) } }, res);
   const [filter, changes] = update.mock.calls[0];
   expect(filter._id).toBe('123'); expect(filter.emailChangeExpiresAt.$gt).toBeInstanceOf(Date);
   expect(changes.$set.emailVerified).toBe(true); expect(changes.$unset.emailChangeHash).toBe(1); expect(changes.$unset.passwordResetHash).toBe(1);
 });
 test('expired, reused or incorrect email codes are rejected', async () => {
   jest.spyOn(User, 'findOneAndUpdate').mockResolvedValue(null); const res = response();
-  await emailChange.confirmEmailChange({ user: { _id: '123' }, body: { email: 'new@example.com', code: 'a'.repeat(32) } }, res);
+  await emailChange.confirmEmailChange({ user: { _id: '123' }, body: { email: 'new@phinmaed.com', code: 'a'.repeat(32) } }, res);
   expect(res.status).toHaveBeenCalledWith(400);
 });
 const { prepareStudentIds } = require('../src/utils/studentIds');

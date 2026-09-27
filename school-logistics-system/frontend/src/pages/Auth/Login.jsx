@@ -1,3 +1,4 @@
+import { emailValid } from '../../utils/accountValidation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { authAPI } from '../../services/api'
@@ -44,7 +45,7 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
     if (isSubmitting || isLocked) return
     const normalizedEmail = email.trim()
     if (!normalizedEmail) return setValidationError('Enter your email address.')
-    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) return setValidationError('Enter a valid email address.')
+    if (!emailValid(normalizedEmail)) return setValidationError('Use a valid @phinmaed.com email address.')
     if (!password) return setValidationError('Enter your password.')
     setValidationError('')
     const result = await onLogin(normalizedEmail, password, rememberMe)

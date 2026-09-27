@@ -10,24 +10,24 @@ test('existing users can log in while duplicate IDs pause signup', async () => {
   app.locals.accountCreationReady = false;
   jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active' }) });
   jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active', password: await bcrypt.hash('test-password', 4) }) });
-  const result = await request(app).post('/api/auth/login').send({ email: 'test@example.com', password: 'test-password' });
-  expect(result.status).toBe(200); expect(result.body.token).toBeTruthy();
+  const result = await request(app).post('/api/auth/login').send({ email: 'test@phinmaed.com', password: 'test-password' });
+  expect(result.status).toBe(200); expect(result.body.token).toEqual(expect.any(String)); expect(result.body.user.id).toBe("123");
   const signup = await request(app).post('/api/auth/signup').send({});
   expect(signup.status).toBe(503); expect(signup.body.message).toContain('Existing users can still log in');
 });
 test('ID corrections reject whitespace and case duplicates', async () => {
   const save = jest.fn();
   jest.spyOn(User, 'findById').mockResolvedValue({ _id: '123', role: 'student', campus: 'Main', save });
-  jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [{ studentId: ' abc ' }] }) });
+  jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [{ studentId: ' stu-123456 ' }] }) });
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: 'ABC' } }, res);
+  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: 'STU-123456' } }, res);
   expect(res.status).toHaveBeenCalledWith(409); expect(save).not.toHaveBeenCalled();
 });
 test('ID corrections enforce campus scope', async () => {
   const save = jest.fn();
   jest.spyOn(User, 'findById').mockResolvedValue({ _id: '123', role: 'student', campus: 'Other', save });
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin', activeCampus: 'Main' }, params: { id: '123' }, body: { studentId: 'ABC' } }, res);
+  await correctStudentId({ app, user: { role: 'admin', activeCampus: 'Main' }, params: { id: '123' }, body: { studentId: 'STU-123456' } }, res);
   expect(res.status).toHaveBeenCalledWith(403); expect(save).not.toHaveBeenCalled();
 });
 test('correcting final conflict restores registration after index creation', async () => {
@@ -37,7 +37,7 @@ test('correcting final conflict restores registration after index creation', asy
   jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [] }) });
   const indexes = jest.spyOn(User, 'createIndexes').mockResolvedValue([]);
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: ' new-id ' } }, res);
-  expect(user.studentId).toBe('NEW-ID'); expect(user.save).toHaveBeenCalled();
+  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: ' stu-654321 ' } }, res);
+  expect(user.studentId).toBe('STU-654321'); expect(user.save).toHaveBeenCalled();
   expect(indexes).toHaveBeenCalled(); expect(app.locals.accountCreationReady).toBe(true);
 });

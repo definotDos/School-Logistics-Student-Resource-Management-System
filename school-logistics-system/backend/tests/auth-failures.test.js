@@ -23,7 +23,7 @@ test("malformed tokens do not query the database", async () => {
 
 test("database outages return 503 instead of falsely invalidating a session", async () => {
   jest.spyOn(User, "findById").mockRejectedValue(new Error("database unavailable"));
-  const token = jwt.sign({ id: "000000000000000000000001" }, process.env.JWT_SECRET);
+  const token = jwt.sign({ purpose: "session", amr: ["pwd"], id: "000000000000000000000001" }, process.env.JWT_SECRET, { issuer: "school-logistics", audience: "school-logistics-api", expiresIn: "1h" });
   const res = response();
   const next = jest.fn();
   await protect({ headers: { authorization: `Bearer ${token}` } }, res, next);
@@ -33,7 +33,7 @@ test("database outages return 503 instead of falsely invalidating a session", as
 
 test("a deleted account cannot authenticate", async () => {
   jest.spyOn(User, "findById").mockResolvedValue(null);
-  const token = jwt.sign({ id: "000000000000000000000001" }, process.env.JWT_SECRET);
+  const token = jwt.sign({ purpose: "session", amr: ["pwd"], id: "000000000000000000000001" }, process.env.JWT_SECRET, { issuer: "school-logistics", audience: "school-logistics-api", expiresIn: "1h" });
   const res = response();
   await protect({ headers: { authorization: `Bearer ${token}` } }, res, jest.fn());
   expect(res.status).toHaveBeenCalledWith(401);
@@ -41,7 +41,7 @@ test("a deleted account cannot authenticate", async () => {
 
 test('password reset invalidates tokens from previous sessions', async () => {
   jest.spyOn(User, 'findById').mockResolvedValue({ sessionVersion: 1, emailVerified: true, status: 'active' });
-  const token = jwt.sign({ id: '000000000000000000000001', sessionVersion: 0 }, process.env.JWT_SECRET);
+  const token = jwt.sign({ purpose: "session", amr: ["pwd"], id: '000000000000000000000001', sessionVersion: 0 }, process.env.JWT_SECRET, { issuer: "school-logistics", audience: "school-logistics-api", expiresIn: "1h" });
   const res = response(); const next = jest.fn();
   await protect({ headers: { authorization: `Bearer ${token}` } }, res, next);
   expect(res.status).toHaveBeenCalledWith(401);

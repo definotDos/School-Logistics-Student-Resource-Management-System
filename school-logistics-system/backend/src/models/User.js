@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const { USER_STATUSES, normalizeStatus } = require("../utils/status");
+const { emailValid, idType, courses, policy } = require("../utils/accountValidation");
 
 const userSchema = new mongoose.Schema(
 	{
-		name: { type: String, required: true, trim: true },
-		email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-		emailVerified: { type: Boolean, default: true },
+		name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
+		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @phinmaed.com email address." } },
+		emailVerified: { type: Boolean, default: false },
 		sessionVersion: { type: Number, default: 0 },
 		failedLoginAttempts: { type: Number, default: 0, select: false },
 		loginLockedUntil: { type: Date, select: false },
@@ -30,5 +31,17 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ studentId: 1 }, { unique: true, partialFilterExpression: { studentId: { $type: "string" } }, collation: { locale: "en", strength: 2 } });
+
+// Check related fields together; a valid prefix is never proof of staff authority.
+userSchema.pre('validate', function () {
+  if (this.isNew || this.isModified('studentId') || this.isModified('role')) {
+    const type = idType(this.studentId);
+    if (!type || (this.role === 'student') !== (type === 'student')) this.invalidate('studentId', 'ID must match the account role. ' + policy.idHelp);
+  }
+  if (this.isModified('strand')) {
+    if (this.role === 'student' && !courses.includes(this.strand)) this.invalidate('strand', 'Choose a supported course or strand.');
+  }
+  if (this.isModified('grade') && !policy.grades.includes(this.grade)) this.invalidate('grade', 'Choose a valid grade or year level.');
+});
 
 module.exports = mongoose.model("User", userSchema);

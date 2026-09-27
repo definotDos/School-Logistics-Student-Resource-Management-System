@@ -1,3 +1,4 @@
+import { idType, policy } from "../utils/accountValidation";
 import { useState } from "react";
 import { userAPI } from "../services/api";
 
@@ -8,6 +9,7 @@ export default function StudentIdEditor({ user, onUpdated }) {
   const [error, setError] = useState("");
   const save = async event => {
     event.preventDefault();
+    if (idType(value) !== "student") return setError(policy.idHelp);
     if (busy) return;
     setBusy(true); setError("");
     try {
@@ -18,8 +20,8 @@ export default function StudentIdEditor({ user, onUpdated }) {
   };
   return <div className="student-id-editor">
     {editing ? <form onSubmit={save}>
-      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={100} disabled={busy} /></label>
-      <small>Use the ID from the official school roster.</small>
+      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={10} placeholder="STU-123456" disabled={busy} /></label>
+      <small>Use the assigned student ID in STU-123456 format.</small>
       <div><button className="row-action" disabled={busy} type="submit">{busy ? "Saving..." : "Save ID"}</button><button className="row-action" disabled={busy} type="button" onClick={() => setEditing(false)}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form> : <><span>{user.studentId || "Not assigned"}</span><button className="row-action" type="button" onClick={() => { setValue(user.studentId || ""); setError(""); setEditing(true); }}>Correct ID</button></>}

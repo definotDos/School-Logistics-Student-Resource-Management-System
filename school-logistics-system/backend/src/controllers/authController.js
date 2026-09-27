@@ -1,5 +1,6 @@
+const { accountFields, emailValid, passwordValid } = require("../utils/accountValidation");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const { authorized, createSessionToken } = require("../utils/session");
 const crypto = require("crypto");
 const User = require("../models/User");
 const { sendVerificationEmail, sendPasswordResetEmail } = require("../config/email");
@@ -18,35 +19,20 @@ const publicUser = (user) => ({
 	activeCampus: user.role === "admin" ? user.activeCampus : user.campus,
 });
 
-const createToken = (user, rememberMe = false) => jwt.sign({ id: user._id, role: user.role, sessionVersion: user.sessionVersion || 0 }, process.env.JWT_SECRET || "development_secret", { expiresIn: rememberMe === true ? "7d" : "8h" });
 const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
 const verificationExpiry = () => new Date(Date.now() + 15 * 60 * 1000);
 
 async function signup(req, res) {
 	try {
-		const { name, email, password, campus, role = "student" } = req.body;
-		const studentId = req.body.studentId || req.body.matricule || req.body.student_id;
-		if (!name || !email || !password || !campus) return res.status(400).json({ message: "Name, email, password, and campus are required." });
-		if (role === "admin") return res.status(403).json({ message: "Administrator accounts must be created by an existing administrator." });
-		if (!["student", "staff"].includes(role)) return res.status(400).json({ message: "Choose a valid account type." });
-		const normalizedName = name.trim();
-		const normalizedEmail = email.toLowerCase().trim();
-		const normalizedStudentId = studentId ? String(studentId).trim().toUpperCase() : "";
-		const normalizedCampus = campus.trim();
-		if (!await require("../models/Campus").exists({ name: normalizedCampus, status: "active" })) return res.status(400).json({ message: "Choose an active campus." });
-		if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || typeof password !== "string" || password.length < 8) return res.status(400).json({ message: "Enter a valid email and a password of at least 8 characters." });
-		if (!normalizedName || !normalizedCampus) return res.status(400).json({ message: "Name and campus cannot be empty." });
-		if (role === "student" && !normalizedStudentId) return res.status(400).json({ message: "Student ID is required for student accounts." });
-		if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });
-		if (normalizedStudentId && await User.findOne({ studentId: normalizedStudentId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That student ID is already registered." });
+        const fields = accountFields(req.body);
+        const { email: normalizedEmail, studentId: normalizedStudentId } = fields;
+        if (!await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus." });
+        if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });
+        if (await User.findOne({ studentId: normalizedStudentId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
 		const verificationCode = createVerificationCode();
 		const user = await User.create({
-			name: normalizedName,
-			email: normalizedEmail,
-			studentId: normalizedStudentId || undefined,
-			campus: normalizedCampus,
-			role,
-			password: await bcrypt.hash(password, 12),
+            ...fields,
+            password: await bcrypt.hash(req.body.password, 12),
 			emailVerified: false,
 			verificationCode,
 			verificationExpiresAt: verificationExpiry(),
@@ -60,18 +46,21 @@ async function signup(req, res) {
 		}
 		res.status(201).json({ message: "Account created. Check your email for the verification code.", requiresVerification: true, email: normalizedEmail });
 	} catch (error) {
+		if ([400, 403].includes(error.status) || error.name === "ValidationError") return res.status(error.status || 400).json({ message: error.message });
 		if (error.code === 11000) return res.status(409).json({ message: "An account with this email or ID already exists." });
 		console.error("Signup error:", error);
-		res.status(500).json({ message: error.message || "Unable to create account." });
+		res.status(500).json({ message: "Unable to create account." });
 	}
 }
 
 async function login(req, res) {
 	try {
-		const { email, password } = req.body;
-		if (typeof email !== "string" || typeof password !== "string" || !password) return res.status(401).json({ message: "Invalid email or password." });
+		const { email, password } = req.body || {};
+        if (Object.keys(req.body || {}).some(key => !["email", "password", "rememberMe"].includes(key)) || (req.body?.rememberMe !== undefined && typeof req.body.rememberMe !== "boolean")) return res.status(400).json({ message: "Provide email, password, and an optional boolean rememberMe value. Account roles are determined by the server." });
+		if (!emailValid(email) || typeof password !== "string" || !password || Buffer.byteLength(password) > 72) return res.status(401).json({ message: "Invalid email or password." });
 		let user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password +failedLoginAttempts +loginLockedUntil");
 		if (!user) return res.status(401).json({ message: "Invalid email or password." });
+        req.authAuditUser = String(user._id);
 		const lockedResponse = account => {
 			const retryAfterSeconds = Math.max(1, Math.ceil((new Date(account.loginLockedUntil).getTime() - Date.now()) / 1000));
 			res.set("Retry-After", String(retryAfterSeconds));
@@ -83,7 +72,7 @@ async function login(req, res) {
 		const activeLock = { $gt: [{ $ifNull: ["$loginLockedUntil", new Date(0)] }, "$$NOW"] };
 		const previousAttempts = { $cond: [{ $and: [{ $ne: [{ $ifNull: ["$loginLockedUntil", null] }, null] }, { $lte: ["$loginLockedUntil", "$$NOW"] }] }, 0, { $ifNull: ["$failedLoginAttempts", 0] }] };
 		const nextAttempts = validPassword ? 0 : { $add: [previousAttempts, 1] };
-		user = await User.findOneAndUpdate({ _id: user._id }, [
+		user = await User.findOneAndUpdate({ _id: user._id, $expr: { $eq: [{ $ifNull: ["$sessionVersion", 0] }, user.sessionVersion || 0] } }, [
 			{ $set: { failedLoginAttempts: { $cond: [activeLock, "$failedLoginAttempts", nextAttempts] } } },
 			{ $set: { loginLockedUntil: { $cond: [activeLock, "$loginLockedUntil", { $cond: [{ $gte: ["$failedLoginAttempts", 3] }, { $add: ["$$NOW", 3 * 60 * 1000] }, "$$REMOVE"] }] } } },
 		], { new: true, updatePipeline: true }).select("+failedLoginAttempts +loginLockedUntil");
@@ -91,17 +80,21 @@ async function login(req, res) {
 		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
 		if (!validPassword) return res.status(401).json({ message: "Invalid email or password." });
 		if (user.emailVerified === false) return res.status(403).json({ message: "Please verify your email before logging in.", requiresVerification: true, email: user.email });
-		if (user.status === "suspended") return res.status(403).json({ message: "This account has been suspended. Contact an administrator." });
-		res.json({ user: publicUser(user), token: createToken(user, req.body.rememberMe) });
+		if (!authorized(user)) return res.status(403).json({ message: "Unable to sign in with this account." });
+        return res.json({ user: publicUser(user), token: createSessionToken(user, req.body.rememberMe) });
 	} catch (error) {
-		res.status(500).json({ message: "Unable to log in." });
+        console.error(JSON.stringify({ event: 'login_error', name: error.name, code: error.code, status: error.status }));
+        const status = [409, 423].includes(error.status) ? error.status : 503;
+        res.status(status).json({ message: status === 409 ? 'Login changed. Please try again.' : 'Sign-in is temporarily unavailable. Please try again shortly.' });
 	}
 }
 
 async function verifyEmail(req, res) {
 	try {
-		const email = req.body.email?.toLowerCase().trim();
-		const code = String(req.body.code || "").trim();
+		const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @phinmaed.com email address." });
+		const code = typeof req.body.code === "string" ? req.body.code.trim() : "";
+        if (!/^\d{6}$/.test(code)) return res.status(400).json({ message: "Enter the six-digit verification code." });
 		const user = await User.findOne({ email }).select("+verificationCode +verificationExpiresAt");
 		if (!user || user.emailVerified !== false || user.verificationCode !== code || !user.verificationExpiresAt || user.verificationExpiresAt < new Date()) return res.status(400).json({ message: "That verification code is invalid or expired." });
 		user.emailVerified = true;
@@ -116,7 +109,8 @@ async function verifyEmail(req, res) {
 
 async function resendVerificationCode(req, res) {
 	try {
-		const email = req.body.email?.toLowerCase().trim();
+		const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @phinmaed.com email address." });
 		if (!email) return res.status(400).json({ message: "Email is required." });
 		const user = await User.findOne({ email });
 		if (!user) return res.status(404).json({ message: "No account was found with that email." });
@@ -138,7 +132,7 @@ const hashResetCode = code => crypto.createHash("sha256").update(code).digest("h
 async function forgotPassword(req, res) {
  try {
   const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
-  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ message: "Enter a valid email address." });
+  if (!emailValid(email)) return res.status(400).json({ message: "Enter a valid email address." });
   const user = await User.findOne({ email });
   if (user) {
    const code = crypto.randomBytes(16).toString("hex");
@@ -155,8 +149,8 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
  try {
-  const { email, code, password } = req.body;
-  if (typeof email !== "string" || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code) || typeof password !== "string" || password.length < 8 || Buffer.byteLength(password) > 72) return res.status(400).json({ message: "Enter your email, reset code, and a password of 8 to 72 bytes." });
+  const { email, code, password } = req.body || {};
+  if (!emailValid(email) || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code) || !passwordValid(password)) return res.status(400).json({ message: "Enter your email, reset code, and a password of 8 to 72 bytes." });
   const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), passwordResetHash: hashResetCode(code), passwordResetExpiresAt: { $gt: new Date() } }, { $set: { password: await bcrypt.hash(password, 12) }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 }, $inc: { sessionVersion: 1 } }, { new: true });
   if (!user) return res.status(400).json({ message: "That reset code is invalid or expired. Request a new code." });
   res.json({ message: "Password reset successfully. Log in with your new password." });

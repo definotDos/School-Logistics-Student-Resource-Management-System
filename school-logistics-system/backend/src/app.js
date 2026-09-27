@@ -13,7 +13,7 @@ const reportsRoutes = require("./routes/reportsRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
 
 const app = express();
 

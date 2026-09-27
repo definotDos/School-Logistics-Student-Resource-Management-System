@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"campus":{"$numberInt":"1"},"name":{"$numberInt":"1"}},"name":"campus_1_name_1","unique":true}],"uuid":"466bc67062c14ede9fd85e40f51af8c6","collectionName":"resources","type":"collection"}

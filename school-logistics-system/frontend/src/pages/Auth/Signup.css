@@ -59,13 +59,16 @@
 .signup-form-wrap .auth-field { min-width: 0; gap: 8px; }
 .signup-form-wrap .auth-field > span:not(.password-control) { color: #e3e8f6; font-size: 12px; font-weight: 600; }
 .signup-form-wrap .compact-field input,
+.signup-form-wrap .compact-field select,
 .signup-form-wrap .signup-campus-select { height: 50px; padding-inline: 14px; border: 1px solid #ffffff29; border-radius: 11px; background: #090f254d; color: #fff; font-size: 16px; color-scheme: dark; box-shadow: inset 0 2px 4px #0000000d; }
 .signup-form-wrap .signup-campus-select span { color: #e3e8f6 !important; font-size: 13px !important; }
 .signup-form-wrap .signup-campus-select b { color: #c4b5fd; }
 .signup-form-wrap .compact-field input::placeholder { color: #aab6cf; opacity: 1; font-size: 13px; }
 .signup-form-wrap .compact-field input:hover,
+.signup-form-wrap .compact-field select:hover,
 .signup-form-wrap .signup-campus-select:hover { border-color: #ffffff55; background: #ffffff0a; }
 .signup-form-wrap .compact-field input:focus,
+.signup-form-wrap .compact-field select:focus,
 .signup-form-wrap .signup-campus-select[aria-expanded='true'] { outline: none; border-color: #b7a3ff; background: #111a35a6; box-shadow: 0 0 0 3px #a78bfa24; }
 .signup-form-wrap .password-control input { padding-right: 50px; }
 .signup-form-wrap .password-toggle { width: 40px; height: 40px; color: #c9baff; border-radius: 8px; }
@@ -129,6 +132,7 @@
   .signup-form-wrap .account-type-options label { min-height: 64px; padding: 10px; }
   .signup-form-wrap .auth-field { gap: 6px; }
   .signup-form-wrap .compact-field input,
+.signup-form-wrap .compact-field select,
   .signup-form-wrap .signup-campus-select,
   .signup-form-wrap .auth-submit { height: 44px; }
   .auth-page.is-signup .auth-footer { margin-top: 14px; }
@@ -146,4 +150,28 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-page.is-signup .auth-panel-inner { animation: none; }
   .signup-form-wrap * { transition: none; }
+}
+
+/* Match the course picker to the other registration controls. */
+.signup-form-wrap .compact-field select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  appearance: none;
+  padding-right: 40px;
+  font-family: inherit;
+  font-size: 13px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.signup-form-wrap .compact-field select:invalid { color: #aab6cf; }
+.signup-form-wrap .compact-field select option { background: #202b43; color: #eef0ff; }
+.signup-form-wrap .compact-field select.input-invalid { border-color: #fda4af; }
+.signup-form-wrap .signup-account-note {
+  margin: 0;
+  color: #bec8dd;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
 }

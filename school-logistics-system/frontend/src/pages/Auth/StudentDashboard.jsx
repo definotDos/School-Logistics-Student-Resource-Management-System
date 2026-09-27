@@ -1,3 +1,4 @@
+import { policy, courses, levelsForProgram } from "../../utils/accountValidation";
 import EmailChange from "../../components/EmailChange";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,14 +11,8 @@ import DashboardIcon from "../../components/DashboardIcon";
 import "./StudentDashboard.css";
 import useStudentTheme from "../../hooks/useStudentTheme";
 
-const gradeOptions = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year"];
-const programGroups = {
-  "Junior high school": ["Junior High School"],
-  "Senior high school strands": ["STEM", "ABM", "HUMSS", "GAS", "TVL", "Arts and Design", "Sports"],
-  "College courses": ["BS Information Technology", "BS Computer Science", "BS Information Systems", "BS Business Administration", "BS Accountancy", "BS Criminology", "BS Nursing", "BS Psychology", "BS Civil Engineering", "BS Hospitality Management", "BS Tourism Management", "Bachelor of Elementary Education", "Bachelor of Secondary Education"],
-};
-const strandOptions = Object.values(programGroups).flat();
-const profileProgram = (value) => !value || value === "Please Select Your Course Or Strand" || value === "Other Course" ? "" : value;
+const programGroups = policy.programGroups;
+const profileProgram = (value) => !courses.includes(value) ? "" : value;
 
 function StudentDashboard() {
   const { user, updateUser } = useAuth();
@@ -25,8 +20,8 @@ function StudentDashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
-  const [customProgram, setCustomProgram] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [academicErrors, setAcademicErrors] = useState({});
   const [draftProfile, setDraftProfile] = useState(() => ({
     name: user?.name || "User",
     email: user?.email || "",
@@ -58,7 +53,11 @@ function StudentDashboard() {
   const profileInitials = profileName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   const updateDraft = (field, value) => {
-    setDraftProfile((current) => ({ ...current, [field]: value }));
+    setDraftProfile((current) => ({ ...current, [field]: value,
+      ...(field === "strand" && !levelsForProgram(value).includes(current.grade) ? { grade: "" } : {}),
+    }));
+    setAcademicErrors((current) => ({ ...current, [field]: "", ...(field === "strand" ? { grade: "" } : {}) }));
+    setProfileError("");
   };
 
   const handleAvatarChange = (event) => {
@@ -91,7 +90,7 @@ function StudentDashboard() {
       avatar: user?.avatar || "",
     });
     setProfileSaved(false);
-    setCustomProgram(Boolean(profileProgram(user?.strand)) && !strandOptions.includes(user.strand));
+    setAcademicErrors({});
     setProfileError("");
     setProfileOpen(true);
   };
@@ -100,8 +99,12 @@ function StudentDashboard() {
     event.preventDefault();
     if (profileSaving) return;
     setProfileError("");
-    if (!draftProfile.name.trim() || !draftProfile.grade || !draftProfile.strand.trim()) {
-      setProfileError("Enter your name, program or course, and grade or year level.");
+    const errors = {};
+    if (!courses.includes(draftProfile.strand)) errors.strand = "Select your program, course, or strand.";
+    if (!levelsForProgram(draftProfile.strand).includes(draftProfile.grade)) errors.grade = "Select a level that matches your program.";
+    setAcademicErrors(errors);
+    if (Object.keys(errors).length || !draftProfile.name.trim()) {
+      if (!draftProfile.name.trim()) setProfileError("Enter your full name.");
       return;
     }
     setProfileSaving(true);
@@ -184,7 +187,7 @@ function StudentDashboard() {
               <section className="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
                 <button className="profile-modal-close" type="button" aria-label="Close profile editor" onClick={() => setProfileOpen(false)}>×</button>
                 <div className="profile-modal-heading"><div><span className="dashboard-kicker">Your account</span><h2 id="profile-title">Edit your profile</h2><p className="profile-modal-copy">Keep your student details up to date.</p></div><span className="profile-account-chip">Student</span></div>
-                <form onSubmit={saveProfile} aria-busy={profileSaving}>
+                <form onSubmit={saveProfile} aria-busy={profileSaving} noValidate>
                   <div className="profile-section profile-photo-section"><span className="profile-section-title">Profile photo</span><label className="profile-photo-picker">{draftProfile.avatar ? <img src={draftProfile.avatar} alt="Profile preview" /> : <span>{profileInitials}</span>}<span className="profile-photo-copy"><strong>{profileName}</strong><small>Choose a clear photo for your student account</small></span><input type="file" accept="image/*" onChange={handleAvatarChange} /><b>Change photo</b></label></div>
                   <div className="profile-section"><span className="profile-section-title">Personal details</span>
                   <div className="profile-form-grid profile-personal-fields">
@@ -194,15 +197,22 @@ function StudentDashboard() {
                   <div className="profile-form-grid">
                     <div className="profile-program-field">
                       <label htmlFor="student-program">Program / course / strand</label>
-                      <select id="student-program" value={customProgram ? "other" : draftProfile.strand} required disabled={profileSaving || profileSaved} aria-describedby="student-program-help" onChange={(event) => { setCustomProgram(event.target.value === "other"); updateDraft("strand", event.target.value === "other" ? "" : event.target.value); }}>
+                      <select id="student-program" value={draftProfile.strand} required disabled={profileSaving || profileSaved} aria-invalid={Boolean(academicErrors.strand)} aria-describedby="student-program-help student-program-error" onChange={event => updateDraft("strand", event.target.value)}>
                         <option value="" disabled>Select your program</option>
                         {Object.entries(programGroups).map(([group, programs]) => <optgroup key={group} label={group}>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</optgroup>)}
-                        <option value="other">Other — enter your course</option>
                       </select>
-                      {customProgram && <label className="profile-custom-program" htmlFor="student-custom-program">Your program or course<input id="student-custom-program" value={draftProfile.strand} onChange={(event) => updateDraft("strand", event.target.value)} placeholder="Enter the full course name" required disabled={profileSaving || profileSaved} /></label>}
-                      <small id="student-program-help">Can’t find your course? Choose Other to enter it.</small>
+                      <small id="student-program-help">Choose a supported course. Contact an administrator if yours is missing.</small>
+                      <small id="student-program-error" className="profile-field-error" role="alert">{academicErrors.strand}</small>
                     </div>
-                    <label>Grade / year level<select value={draftProfile.grade} onChange={(event) => updateDraft("grade", event.target.value)} required><option value="" disabled>Select your level</option>{draftProfile.grade && !gradeOptions.includes(draftProfile.grade) && <option value={draftProfile.grade}>{draftProfile.grade}</option>}<optgroup label="Junior high school">{gradeOptions.slice(0, 4).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</optgroup><optgroup label="Senior high school">{gradeOptions.slice(4, 6).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</optgroup><optgroup label="College">{gradeOptions.slice(6).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</optgroup></select></label>
+                    <div className="profile-program-field">
+                      <label htmlFor="student-level">Grade / year level</label>
+                      <select id="student-level" value={levelsForProgram(draftProfile.strand).includes(draftProfile.grade) ? draftProfile.grade : ""} onChange={event => updateDraft("grade", event.target.value)} required disabled={!draftProfile.strand || profileSaving || profileSaved} aria-invalid={Boolean(academicErrors.grade)} aria-describedby="student-level-help student-level-error">
+                        <option value="" disabled>Select your level</option>
+                        {levelsForProgram(draftProfile.strand).map(grade => <option key={grade} value={grade}>{grade}</option>)}
+                      </select>
+                      <small id="student-level-help">{draftProfile.strand ? "Choose your current level for the selected program." : "Select your program first to see available levels."}</small>
+                      <small id="student-level-error" className="profile-field-error" role="alert">{academicErrors.grade}</small>
+                    </div>
                   </div></div>
                   {profileError && <p className="profile-error" role="alert">{profileError}</p>}
                   <div className="profile-modal-actions"><button type="button" className="profile-cancel" onClick={() => setProfileOpen(false)}>Cancel</button><button type="submit" className={`profile-save ${profileSaved ? "saved" : ""}`} disabled={profileSaving || profileSaved}>{profileSaving ? "Saving..." : profileSaved ? "Saved" : "Save changes"}</button></div>

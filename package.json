@@ -2,6 +2,7 @@
   "name": "school-logistics-system-workspace",
   "private": true,
   "scripts": {
+    "auth:setup": "npm run auth:setup --prefix school-logistics-system/backend",
     "dev": "npm run dev --prefix school-logistics-system",
     "install:all": "npm install --prefix school-logistics-system"
   }

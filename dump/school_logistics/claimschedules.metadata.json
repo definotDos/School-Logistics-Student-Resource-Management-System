@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"allocation":{"$numberInt":"1"}},"name":"allocation_1","unique":true}],"uuid":"6b0b293850d84008a11f9a1a4aa78e33","collectionName":"claimschedules","type":"collection"}

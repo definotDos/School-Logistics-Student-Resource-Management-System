@@ -6,7 +6,10 @@ const Resource = require("./models/Resource");
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
+  const { signingKey } = require('./utils/session');
+  signingKey();
   await connectDB();
+  await require('./utils/removeLegacyAuthenticator')(require('./models/User'));
   // Existing users must still be able to sign in and correct legacy ID conflicts.
   app.locals.accountCreationReady = false;
   try {
@@ -26,4 +29,8 @@ async function startServer() {
   });
 }
 
-startServer().catch((error) => { console.error("Server startup failed:", error.message); process.exitCode = 1; });
+startServer().catch((error) => {
+  console.error("Server startup failed:", error.message);
+  if (/JWT_SECRET/.test(error.message)) console.error('For local setup, run npm run auth:setup, then restart the backend.');
+  process.exitCode = 1;
+});

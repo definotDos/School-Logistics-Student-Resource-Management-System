@@ -1,3 +1,4 @@
+const { idType, policy } = require("../utils/accountValidation");
 const User = require("../models/User");
 const { canAccessCampus } = require("../middleware/campusScope");
 const { prepareStudentIds } = require("../utils/studentIds");
@@ -9,7 +10,7 @@ module.exports = (req, res) => {
   const task = correction.then(async () => {
     try {
       const studentId = typeof req.body.studentId === "string" ? req.body.studentId.trim().toUpperCase() : "";
-      if (!studentId || studentId.length > 100) return res.status(400).json({ message: "Enter a student ID of 1 to 100 characters from the school roster." });
+      if (idType(studentId) !== "student") return res.status(400).json({ message: policy.idHelp });
       const user = await User.findById(req.params.id);
       if (!user) return res.status(404).json({ message: "Account not found." });
       if (!canAccessCampus(req, user)) return res.status(403).json({ message: "User belongs to another campus." });

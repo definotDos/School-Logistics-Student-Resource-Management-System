@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import "./ResourceCarousel.css";
+import UniformGallery from "./UniformGallery";
+import { isSchoolUniform } from "../utils/uniforms";
 
 export default function ResourceCarousel({ resources, onRequest }) {
   const [index, setIndex] = useState(0);
@@ -15,7 +17,7 @@ export default function ResourceCarousel({ resources, onRequest }) {
     <div className="resource-carousel-heading"><h2>Explore resources</h2><span>{activeIndex + 1} / {resources.length}</span></div>
     <div className="resource-carousel-slide" role="group" aria-roledescription="slide" aria-label={`${activeIndex + 1} of ${resources.length}: ${resource.name}`}>
       <div className="resource-carousel-image" onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }} onTouchEnd={(event) => { if (touchStart.current !== null) { const distance = touchStart.current - event.changedTouches[0].clientX; if (Math.abs(distance) > 50) move(distance > 0 ? 1 : -1); } touchStart.current = null; }} onTouchCancel={() => { touchStart.current = null; }}>
-        {resource.image && failedImage !== resource.image ? <img key={resource._id || activeIndex} src={resource.image} alt={resource.name} onError={() => setFailedImage(resource.image)} /> : <span key={resource._id || activeIndex} aria-hidden="true">{resource.icon}</span>}
+        {isSchoolUniform(resource) ? <UniformGallery /> : resource.image && failedImage !== resource.image ? <img key={resource._id || activeIndex} src={resource.image} alt={resource.name} onError={() => setFailedImage(resource.image)} /> : <span key={resource._id || activeIndex} aria-hidden="true">{resource.icon}</span>}
       </div>
       <div className="resource-carousel-copy">
         <span className="resource-carousel-category">{resource.category}</span>

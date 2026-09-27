@@ -5,17 +5,9 @@ import { sessionStorageForAuth, getToken, clearSession, saveSession } from "../s
 
 const AuthContext = createContext(null);
 
-function readStoredUser() {
-  try {
-    if (!getToken()) return null;
-    return JSON.parse(sessionStorageForAuth().getItem("srmsUser") || "null");
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(readStoredUser);
+  const [user, setUser] = useState(null);
+  const [isRestoring, setIsRestoring] = useState(() => Boolean(getToken()));
 
   useEffect(() => {
     const token = getToken();
@@ -28,7 +20,7 @@ export function AuthProvider({ children }) {
     }).catch(error => {
       if (cancelled || getToken() !== token) return;
       if ([401, 403].includes(error.status)) { setUser(null); clearSession(); }
-    });
+    }).finally(() => { if (!cancelled) setIsRestoring(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -70,6 +62,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        isRestoring,
         login,
         signup,
         verifyEmail,

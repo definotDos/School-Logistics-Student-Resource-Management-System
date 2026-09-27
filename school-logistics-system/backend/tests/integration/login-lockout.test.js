@@ -8,7 +8,7 @@ beforeAll(async () => {
   await mongoose.connect(process.env.MONGODB_URI);
 });
 beforeEach(async () => {
-  account = await User.create({ name: 'Lockout Test', email: `lockout-${new mongoose.Types.ObjectId()}@example.test`, password: await bcrypt.hash('correct-password', 4), campus: 'Test' });
+  account = await User.create({ name: 'Lockout Test', studentId: 'STU-900001', strand: 'BS Information Technology', emailVerified: true, email: `lockout-${new mongoose.Types.ObjectId()}@phinmaed.com`, password: await bcrypt.hash('correct-password', 4), campus: 'Test' });
 });
 afterEach(async () => {
   if (account) await User.deleteOne({ _id: account._id });

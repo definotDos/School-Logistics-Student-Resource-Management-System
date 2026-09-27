@@ -31,7 +31,7 @@ export function AuthPage() {
     setAuthError('')
     try {
       const user = await login(email, password, rememberMe)
-      navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student')
+      navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student', { replace: true })
     } catch (error) {
       setAuthError(error.lockedUntil ? '' : error.message)
       if (error.requiresVerification) {

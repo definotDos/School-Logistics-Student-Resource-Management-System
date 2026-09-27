@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci --prefix school-logistics-system/frontend",
+  "buildCommand": "npm run build --prefix school-logistics-system/frontend",
+  "outputDirectory": "school-logistics-system/frontend/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

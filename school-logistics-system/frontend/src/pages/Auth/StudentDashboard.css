@@ -388,6 +388,10 @@
   background-position: right 14px center;
 }
 .student-shell .profile-form-grid select:disabled { cursor: default; opacity: .7; }
+.student-shell .profile-program-field > .profile-field-error { color: #c53030; }
+.student-shell .profile-field-error:empty { display: none; }
+.student-shell .profile-form-grid select[aria-invalid="true"] { border-color: #c53030; }
+.student-shell.dark-mode .profile-program-field > .profile-field-error { color: #ffaaaa; }
 
 /* A consistent overview layout in both themes. */
 .student-shell.organized-workspace .dashboard-welcome {

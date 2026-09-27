@@ -12,8 +12,9 @@ import StaffServicesDashboard from "./pages/Auth/StaffServicesDashboard";
 import { useAuth } from "./context/useAuth";
 
 function ProtectedRoute({ children, role }) {
-  const { user } = useAuth();
+  const { user, isRestoring } = useAuth();
 
+  if (isRestoring) return <p role="status">Verifying your session...</p>;
   if (!user) return <Navigate to="/login" replace />;
   if (role && user.role !== role) {
     if (user.role === "admin") return <Navigate to="/admin" replace />;

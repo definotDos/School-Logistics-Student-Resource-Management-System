@@ -2,6 +2,20 @@ const express = require("express");
 const { signup, login, verifyEmail, resendVerificationCode, forgotPassword, resetPassword } = require("../controllers/authController");
 
 const router = express.Router();
+router.use((req, res, next) => {
+ res.set('Cache-Control', 'no-store');
+ res.on('finish', () => {
+  // Structured security events: never include request bodies, passwords, tokens, codes, or secrets.
+  console.info(JSON.stringify({ event: 'authentication', path: req.path, method: req.method,
+   status: res.statusCode, outcome: res.statusCode < 400 ? 'success' : 'failure',
+   userId: req.authAuditUser, ip: req.ip, time: new Date().toISOString() }));
+ });
+ next();
+});
+router.use((req, res, next) => {
+ if (["POST", "PATCH", "PUT"].includes(req.method) && (!req.body || typeof req.body !== "object" || Array.isArray(req.body))) return res.status(400).json({ message: "Provide a JSON object." });
+ next();
+});
 // Bound attempts per client, including code guessing and email requests.
 const attempts = new Map();
 router.use((req, res, next) => {
@@ -20,5 +34,4 @@ router.post("/signup", require("../middleware/accountCreationReady"), signup);
 router.post("/login", login);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-verification-code", resendVerificationCode);
-
 module.exports = router;

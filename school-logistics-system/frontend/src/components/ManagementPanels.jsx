@@ -1,3 +1,4 @@
+import { courses, validateAccount } from "../utils/accountValidation";
 import { useTabState } from "../hooks/useTabState";
 import { useEffect, useState } from "react";
 import DashboardIcon from "./DashboardIcon";
@@ -6,21 +7,26 @@ import "./CampusPanel.css";
 import { allocationAPI, distributionAPI, campusAPI, notificationAPI, reportsAPI, userAPI } from "../services/api";
 
 export function CreateUserForm({ onCreated }) {
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "student", studentId: "", campus: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "student", studentId: "", campus: "", strand: "" });
   const [campuses, setCampuses] = useState([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => { campusAPI.getAll().then(r => setCampuses(r.campuses.filter(c => c.status === "active"))).catch(e => setError(e.message)); }, []);
   const submit = async event => {
-    event.preventDefault(); setBusy(true); setError("");
+    event.preventDefault();
+    const errors = validateAccount(form, true);
+    if (Object.keys(errors).length) return setError(Object.values(errors)[0]);
+    setBusy(true); setError("");
     try {
-      const result = await userAPI.create(form); onCreated(result.user);
-      setForm({ name: "", email: "", password: "", role: "student", studentId: "", campus: "" });
+      const result = await userAPI.create({ ...form, ...(form.role !== "student" ? { strand: undefined } : {}) }); onCreated(result.user);
+      setForm({ name: "", email: "", password: "", role: "student", studentId: "", campus: "", strand: "" });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   return <details><summary>Add user</summary><form className="resource-form" onSubmit={submit}>
-    {['name', 'email', 'password', 'studentId'].map(key => <label key={key}>{key}<input required={key !== "studentId" || form.role === "student"} type={key === "password" ? "password" : key === "email" ? "email" : "text"} minLength={key === "password" ? 8 : undefined} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
+    {['name', 'email', 'password', 'studentId'].map(key => <label key={key}>{key === "studentId" ? (form.role === "student" ? "Student ID (STU-123456)" : "Employee ID (EMP-123456)") : key}<input required type={key === "password" ? "password" : key === "email" ? "email" : "text"} minLength={key === "password" ? 8 : undefined} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
     <label>Role<select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{['student', 'staff', 'admin'].map(role => <option key={role}>{role}</option>)}</select></label>
+    {form.role === "student" && <label>Course / strand<select required value={form.strand} onChange={e => setForm({ ...form, strand: e.target.value })}><option value="">Choose course</option>{courses.map(course => <option key={course}>{course}</option>)}</select></label>}
+    <p>New users receive a verification code and must verify their email before first login.</p>
     <label>Campus<select required value={form.campus} onChange={e => setForm({ ...form, campus: e.target.value })}><option value="">Choose campus</option>{campuses.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}</select></label>
     <button className="admin-primary" disabled={busy}>{busy ? "Saving…" : "Create user"}</button>
   </form>{error && <p role="alert" className="auth-error">{error}</p>}</details>;

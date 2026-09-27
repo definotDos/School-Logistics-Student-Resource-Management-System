@@ -3,13 +3,13 @@ const User = require('../src/models/User');
 const { login } = require('../src/controllers/authController');
 
 const now = new Date('2026-09-23T00:00:00Z');
-const account = { _id: '123', email: 'student@example.com', password: 'hash', role: 'student', emailVerified: true };
+const account = { _id: '123', email: 'student@phinmaed.com', password: 'hash', role: 'student', status: 'active', emailVerified: true };
 const response = () => ({ status: jest.fn().mockReturnThis(), set: jest.fn().mockReturnThis(), json: jest.fn() });
 const lookup = user => jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue(user) });
 const update = user => jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue(user) });
 const attempt = async (password = 'wrong') => {
   const res = response();
-  await login({ body: { email: ' Student@Example.com ', password } }, res);
+  await login({ body: { email: ' Student@PHINMAED.COM ', password } }, res);
   return res;
 };
 
@@ -62,7 +62,7 @@ test('at the expiry boundary a correct password can log in and resets the failur
   jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
   const write = update({ ...account, failedLoginAttempts: 0 });
   const res = await attempt('correct');
-  expect(res.json.mock.calls[0][0].token).toBeTruthy();
+  expect(res.json.mock.calls[0][0].token).toEqual(expect.any(String));
   const [, pipeline, options] = write.mock.calls[0];
   expect(options).toEqual({ new: true, updatePipeline: true });
   expect(pipeline[0].$set.failedLoginAttempts.$cond[2]).toBe(0);

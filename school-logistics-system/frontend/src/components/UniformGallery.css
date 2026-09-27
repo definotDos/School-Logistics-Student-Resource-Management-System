@@ -1,0 +1,44 @@
+.uniform-gallery {
+  --uniform-surface: #edf4fa;
+  --uniform-text: #173452;
+  --uniform-border: #c4d4e4;
+  --uniform-accent: #245b85;
+  --uniform-selected-text: #fff;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--uniform-surface);
+  color: var(--uniform-text);
+}
+.dark-mode .uniform-gallery {
+  --uniform-surface: #20334b;
+  --uniform-text: #f1f5fb;
+  --uniform-border: #435873;
+  --uniform-accent: #9bd8ff;
+  --uniform-selected-text: #10243a;
+}
+.uniform-gallery-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 600; }
+.uniform-gallery-navigation { display: flex; align-items: center; gap: 8px; }
+.uniform-gallery-navigation > span { min-width: 32px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.uniform-gallery-item { min-width: 0; margin: 0; overflow: hidden; border-radius: 12px; background: transparent; }
+.uniform-gallery .uniform-gallery-item img {
+  display: block;
+  width: 100%;
+  height: clamp(220px, 32vw, 300px);
+  padding: 0;
+  box-sizing: border-box;
+  object-fit: contain;
+  background: transparent;
+}
+.uniform-gallery-item figcaption { padding: 14px 8px 4px; color: var(--uniform-text); font-size: 14px; font-weight: 600; line-height: 1.5; text-align: center; }
+.uniform-gallery-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; border: 1px solid var(--uniform-border); border-radius: 12px; }
+.student-pages .uniform-gallery button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--uniform-text); font-size: 12px; font-weight: 600; cursor: pointer; }
+.student-pages .uniform-gallery-navigation button { width: 36px; min-height: 36px; flex-shrink: 0; border-color: var(--uniform-border); font-size: 18px; }
+.student-pages .uniform-gallery-options button[aria-pressed="true"] { background: var(--uniform-accent); color: var(--uniform-selected-text); }
+.student-pages .uniform-gallery button:focus-visible { outline: 3px solid var(--uniform-accent); outline-offset: 2px; }
+.student-pages .uniform-gallery button:hover { border-color: var(--uniform-accent); }
+@media (max-width: 400px) { .uniform-gallery { padding: 12px; } }

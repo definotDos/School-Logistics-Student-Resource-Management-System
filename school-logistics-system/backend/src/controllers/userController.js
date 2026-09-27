@@ -1,6 +1,8 @@
+const { accountFields, profileFields } = require("../utils/accountValidation");
 const { USER_STATUSES, normalizeStatus } = require("../utils/status");
 const User = require("../models/User");
 const { publicUser } = require("./authController");
+const { sendVerificationEmail } = require("../config/email");
 
 async function getMe(req, res) {
 	res.json({ user: publicUser(req.user) });
@@ -58,30 +60,41 @@ async function updateMe(req, res) {
 		}
 		if (req.body.email !== undefined && (typeof req.body.email !== "string" || req.body.email.trim().toLowerCase() !== req.user.email)) return res.status(400).json({ message: "Verify your new email using Change email before updating it." });
         const allowedFields = ["name", "grade", "strand", "avatar"];
+        if (!req.body || typeof req.body !== "object" || Array.isArray(req.body) || Object.keys(req.body).some(key => ![...allowedFields, "email", "campus", "activeCampus"].includes(key))) return res.status(400).json({ message: "Unsupported profile field. Role and ID changes are not permitted here." });
+        const validatedProfile = profileFields(req.body, req.user.role, req.user);
 		if (req.body.activeCampus !== undefined) {
 			if (req.user.role !== "admin") return res.status(403).json({ message: "Your account is locked to its assigned campus." });
 			if (typeof req.body.activeCampus !== "string") return res.status(400).json({ message: "Active campus must be a campus name or an empty string for all campuses." });
 			if (req.body.activeCampus && !await require("../models/Campus").exists({ name: req.body.activeCampus })) return res.status(400).json({ message: "Campus not found." });
 			allowedFields.push("activeCampus");
 		}
-		const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowedFields.includes(key)));
+		const updates = { ...validatedProfile, ...(req.body.activeCampus !== undefined ? { activeCampus: req.body.activeCampus } : {}) };
 		if (updates.name !== undefined && (typeof updates.name !== "string" || !updates.name.trim())) return res.status(400).json({ message: "Enter your full name." });
 		const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: "after", runValidators: true });
 		if (!user) return res.status(404).json({ message: "Your account could not be found." });
 		res.json({ user: publicUser(user) });
 	} catch (error) {
-		res.status(500).json({ message: "Unable to update profile. Please try again." });
+		res.status(error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to update profile. Please try again." });
 	}
 }
 
 async function createUser(req, res) {
 	try {
-		const { name, email, password, role, campus, studentId } = req.body;
-		if (typeof name !== "string" || !name.trim() || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email.trim()) || typeof password !== "string" || password.length < 8 || !["student", "staff", "admin"].includes(role)) return res.status(400).json({ message: "Provide a name, valid email, role, and password of at least 8 characters." });
-		if (!require("../middleware/campusScope").canAccessCampus(req, { campus }) || !await require("../models/Campus").exists({ name: campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus in your workspace." });
-		if (role === "student" && !String(studentId || "").trim()) return res.status(400).json({ message: "Student ID is required." });
-		const user = await User.create({ name, email, password: await require("bcryptjs").hash(password, 12), role, campus, studentId, emailVerified: true });
+        if (req.user.role !== "admin") return res.status(403).json({ message: "Administrator access required." });
+        const fields = accountFields(req.body, true);
+        if (!require("../middleware/campusScope").canAccessCampus(req, fields) || !await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus in your workspace." });
+        if (await User.exists({ email: fields.email })) return res.status(409).json({ message: "Email already exists." });
+        if (await User.findOne({ studentId: fields.studentId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
+        const verificationCode = String(require("crypto").randomInt(100000, 1000000));
+        const user = await User.create({ ...fields, password: await require("bcryptjs").hash(req.body.password, 12), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+        try {
+            await sendVerificationEmail(fields.email, verificationCode);
+        } catch {
+            await User.deleteOne({ _id: user._id });
+            return res.status(503).json({ message: "Verification email is unavailable. The account was not created. Try again later." });
+        }
+
 		res.status(201).json({ user: publicUser(user) });
-	} catch (error) { res.status(error.code === 11000 ? 409 : 400).json({ message: error.code === 11000 ? error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : "Unable to create account." }); }
+	} catch (error) { res.status(error.code === 11000 ? 409 : error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.code === 11000 ? error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to create account." }); }
 }
 module.exports = { getMe, getAllUsers, updateUserStatus, deleteUser, updateMe, createUser };

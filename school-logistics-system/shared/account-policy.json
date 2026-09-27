@@ -1,0 +1,52 @@
+{
+  "emailDomain": "phinmaed.com",
+  "emailPattern": "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@phinmaed\\.com$",
+  "studentIdPattern": "^STU-[0-9]{6}$",
+  "employeeIdPattern": "^EMP-[0-9]{6}$",
+  "idHelp": "Use STU-123456 for students or EMP-123456 for employees.",
+  "roles": [
+    "student",
+    "staff",
+    "admin"
+  ],
+  "programGroups": {
+    "Junior high school": [
+      "Junior High School"
+    ],
+    "Senior high school strands": [
+      "STEM",
+      "ABM",
+      "HUMSS",
+      "GAS",
+      "TVL",
+      "Arts and Design",
+      "Sports"
+    ],
+    "College courses": [
+      "BS Information Technology",
+      "BS Computer Science",
+      "BS Information Systems",
+      "BS Business Administration",
+      "BS Accountancy",
+      "BS Criminology",
+      "BS Nursing"
+    ]
+  },
+  "programLevels": {
+    "Junior high school": ["Grade 7", "Grade 8", "Grade 9", "Grade 10"],
+    "Senior high school strands": ["Grade 11", "Grade 12"],
+    "College courses": ["1st Year", "2nd Year", "3rd Year", "4th Year"]
+  },
+  "grades": [
+    "Grade 7",
+    "Grade 8",
+    "Grade 9",
+    "Grade 10",
+    "Grade 11",
+    "Grade 12",
+    "1st Year",
+    "2nd Year",
+    "3rd Year",
+    "4th Year"
+  ]
+}

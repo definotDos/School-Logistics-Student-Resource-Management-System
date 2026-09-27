@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"referenceId":{"$numberInt":"1"}},"name":"referenceId_1","unique":true,"sparse":true}],"uuid":"2eb2e2f142bb432cb5601e466d0f2ec7","collectionName":"distributions","type":"collection"}
