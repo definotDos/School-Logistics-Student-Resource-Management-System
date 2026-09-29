@@ -20,8 +20,8 @@ export default function StudentIdEditor({ user, onUpdated }) {
   };
   return <div className="student-id-editor">
     {editing ? <form onSubmit={save}>
-      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={10} placeholder="STU-123456" disabled={busy} /></label>
-      <small>Use the assigned student ID in STU-123456 format.</small>
+      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={16} placeholder="03-01-2425-12345" disabled={busy} /></label>
+      <small>Required format: 03-01-2425-_____ (5 digits) or 03-2425-____ (4 digits).</small>
       <div><button className="row-action" disabled={busy} type="submit">{busy ? "Saving..." : "Save ID"}</button><button className="row-action" disabled={busy} type="button" onClick={() => setEditing(false)}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form> : <><span>{user.studentId || "Not assigned"}</span><button className="row-action" type="button" onClick={() => { setValue(user.studentId || ""); setError(""); setEditing(true); }}>Correct ID</button></>}

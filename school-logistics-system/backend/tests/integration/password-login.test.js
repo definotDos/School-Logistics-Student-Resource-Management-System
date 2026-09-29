@@ -7,7 +7,7 @@ const cleanup = require('../../src/utils/removeLegacyAuthenticator');
 let user;
 beforeAll(async () => { await mongoose.connect(process.env.MONGODB_URI); });
 beforeEach(async () => {
-  user = await User.create({ name: 'Login Test', studentId: 'STU-900002',
+  user = await User.create({ name: 'Login Test', studentId: '03-01-2425-00002',
     strand: 'BS Information Technology', email: `login-${new mongoose.Types.ObjectId()}@phinmaed.com`,
     password: await bcrypt.hash('Test-password-123', 4), campus: 'Test', emailVerified: true });
 });

@@ -5,7 +5,7 @@
 `shared/account-policy.json` is consumed by the frontend and backend. Deploy the shared directory alongside both applications.
 
 - Email: exact `phinmaed.com` domain, as confirmed by the project owner. Subdomains and suffix lookalikes are rejected. Addresses are trimmed and lowercased; inbox ownership requires verification.
-- Student ID: `STU-` followed by six digits (example `STU-123456`).
+- Student ID: `03-01-2425-` followed by five digits (example `03-01-2425-12345`) or `03-2425-` followed by four digits (example `03-2425-1234`).
 - Employee ID: `EMP-` followed by six digits (example `EMP-123456`). Employees use the existing `staff` or `admin` roles. IDs are stored in the existing `studentId` database field for compatibility with reports and the unique index.
 - Courses and strands: the application's existing dropdown catalog, with the free-text option removed. This catalog has **not** been confirmed as the official list for every campus.
 
@@ -13,7 +13,7 @@ The ID patterns are application defaults, not verified PHINMA roster formats. Co
 
 ## Authorization and validation
 
-Public signup creates only students. Employee prefixes do not grant authority: an authenticated administrator must create staff and administrator accounts in an allowed campus. Client-supplied role changes, account types, verification flags, and other unsupported account fields are rejected.
+Public signup supports students and staff. Staff first enter an employee ID; the server checks its format and availability before the UI reveals account details. Signup repeats ID validation and duplicate checks. This checks format and uniqueness only: no employee roster is connected, so it does not establish employment. Staff self-registration requires school email verification before login. Administrator accounts still require creation by an authenticated administrator. Profile role changes, verification flags, and other unsupported account fields are rejected.
 
 Both registration forms require a name, institutional email, password, campus, and ID. Public student signup defers course selection to the profile. Administrator student creation requires a supported course/strand. Optional grade/year selections must be supported. Passwords have a minimum of eight characters and a maximum of 72 UTF-8 bytes, matching bcrypt's input limit.
 

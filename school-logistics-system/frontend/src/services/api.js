@@ -53,6 +53,7 @@ export async function apiRequest(endpoint, options = {}) {
 // ============================================
 
 export const authAPI = {
+  checkEmployeeId: studentId => apiRequest("/auth/check-employee-id", { method: "POST", body: JSON.stringify({ studentId }) }),
   forgotPassword: email => apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: details => apiRequest("/auth/reset-password", { method: "POST", body: JSON.stringify(details) }),
   /**

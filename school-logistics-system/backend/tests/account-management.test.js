@@ -19,7 +19,7 @@ test('signup rejects duplicate student IDs before creating or emailing', async (
   jest.spyOn(Campus, 'exists').mockResolvedValue({});
   jest.spyOn(User, 'findOne').mockResolvedValueOnce(null).mockReturnValueOnce({ collation: jest.fn().mockResolvedValue({}) });
   const create = jest.spyOn(User, 'create'); const res = response();
-  await auth.signup({ body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: 'STU-123456', strand: 'BS Information Technology' } }, res);
+  await auth.signup({ body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: '03-01-2425-23456', strand: 'BS Information Technology' } }, res);
   expect(res.status).toHaveBeenCalledWith(409); expect(create).not.toHaveBeenCalled();
 });
 test('admin account creation reports student ID conflicts', async () => {
@@ -28,7 +28,7 @@ test('admin account creation reports student ID conflicts', async () => {
   jest.spyOn(Campus, 'exists').mockResolvedValue({});
   jest.spyOn(User, 'create').mockRejectedValue({ code: 11000, keyPattern: { studentId: 1 } });
   const res = response();
-  await profile.createUser({ user: { role: 'admin' }, body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: 'STU-123456', strand: 'BS Information Technology', role: 'student' } }, res);
+  await profile.createUser({ user: { role: 'admin' }, body: { name: 'Student', email: 'new@phinmaed.com', password: 'password123', campus: 'Main', studentId: '03-01-2425-23456', strand: 'BS Information Technology', role: 'student' } }, res);
   expect(res.status).toHaveBeenCalledWith(409);
   expect(res.json).toHaveBeenCalledWith({ message: 'That student ID is already registered.' });
 });

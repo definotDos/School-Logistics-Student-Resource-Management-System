@@ -12,7 +12,7 @@ export function validateAccount(form, administrator = false) {
  if (!form.password || form.password.length < 8 || new TextEncoder().encode(form.password).length > 72) errors.password = 'Password must contain at least 8 characters and at most 72 UTF-8 bytes.';
  const type = idType(form.studentId);
  if (!type || (form.role === 'student') !== (type === 'student')) errors.studentId = policy.idHelp;
- if (!policy.roles.includes(form.role) || (!administrator && form.role !== 'student')) errors.role = 'Staff accounts must be created by an administrator.';
+ if (!policy.roles.includes(form.role) || (!administrator && !['student', 'staff'].includes(form.role))) errors.role = 'Choose a student or staff account.';
  if (form.role === 'student' && (administrator || form.strand !== undefined) && !courses.includes(form.strand)) errors.strand = 'Choose a supported course or strand.';
  return errors;
 }

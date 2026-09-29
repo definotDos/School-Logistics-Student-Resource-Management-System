@@ -1,9 +1,9 @@
 {
   "emailDomain": "phinmaed.com",
   "emailPattern": "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@phinmaed\\.com$",
-  "studentIdPattern": "^STU-[0-9]{6}$",
+  "studentIdPattern": "^(03-01-2425-[0-9]{5}|03-2425-[0-9]{4})$",
   "employeeIdPattern": "^EMP-[0-9]{6}$",
-  "idHelp": "Use STU-123456 for students or EMP-123456 for employees.",
+  "idHelp": "Student IDs must use 03-01-2425-12345 or 03-2425-1234. Employee IDs must use EMP-123456.",
   "roles": [
     "student",
     "staff",

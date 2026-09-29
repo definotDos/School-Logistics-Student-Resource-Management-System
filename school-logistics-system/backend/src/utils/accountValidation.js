@@ -36,11 +36,10 @@ function accountFields(body, administrator = false) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) fail('Provide account information.');
   const allowed = ['name', 'email', 'password', 'campus', 'role', 'studentId', 'strand', 'grade'];
   if (Object.keys(body).some(key => !allowed.includes(key))) fail('Unsupported account field.');
-  if (!administrator && body.role !== undefined && body.role !== 'student') { const error = new Error('Staff and administrator accounts must be created by an administrator.'); error.status = 403; throw error; }
+  if (!administrator && body.role !== undefined && !['student', 'staff'].includes(body.role)) { const error = new Error('Administrator accounts must be created by an administrator.'); error.status = 403; throw error; }
   const type = idType(body.studentId);
   if (!type) fail(policy.idHelp);
-  if (!administrator && (type !== 'student' || (body.role !== undefined && body.role !== 'student'))) fail('Staff and administrator accounts must be created by an administrator.');
-  const role = administrator ? body.role : 'student';
+  const role = administrator ? body.role : (body.role || 'student');
   if (!policy.roles.includes(role)) fail('Choose a valid role.');
   if ((role === 'student') !== (type === 'student')) fail('The ID does not match the account role. ' + policy.idHelp);
   if (!emailValid(body.email)) fail('Use a valid @phinmaed.com email address.');

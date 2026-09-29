@@ -31,6 +31,7 @@ router.use((req, res, next) => {
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/signup", require("../middleware/accountCreationReady"), signup);
+router.post("/check-employee-id", require("../controllers/authController").checkEmployeeId);
 router.post("/login", login);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-verification-code", resendVerificationCode);

@@ -1,4 +1,15 @@
 /* Registration glass surface; scoped to preserve the other authentication views. */
+.signup-role-picker { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+.signup-role-picker legend { margin-bottom: 9px; color: #e3e8f6; font-size: 12px; font-weight: 600; }
+.signup-role-picker > div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.signup-role-picker label { display: flex; align-items: center; gap: 8px; padding: 13px 10px; border: 1px solid #ffffff29; border-radius: 11px; color: #e3e8f6; cursor: pointer; font-size: 13px; }
+.signup-role-picker label.selected { border-color: #b7a3ff; background: #a78bfa21; }
+.signup-role-picker input { accent-color: #a78bfa; }
+.signup-steps { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 0 0 18px; color: #bec8dd; font-size: 12px; }
+.signup-steps [aria-current='step'] { color: #e3d9ff; font-weight: 700; }
+.signup-id-help { margin: 0; color: #bec8dd; font-size: 13px; line-height: 1.6; }
+.signup-id-summary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: #a78bfa18; color: #e3e8f6; font-size: 12px; }
+.signup-id-summary button { border: 0; background: none; color: #e3d9ff; text-decoration: underline; cursor: pointer; font: inherit; }
 .auth-page.is-signup {
   height: auto;
   min-height: 100dvh;

@@ -13,7 +13,7 @@ test.each(['EAUTH', 'ETIMEDOUT', 'ECONNECTION', undefined])('Email failure %s ro
  jest.spyOn(console, 'error').mockImplementation(() => {});
  mail.sendVerificationEmail.mockRejectedValueOnce(Object.assign(new Error('Private SMTP details'), { code }));
  const res = response();
- await auth.signup({ body: { name: 'Student', email: 'student@phinmaed.com', password: 'password123', campus: 'Main', role: 'student', studentId: 'STU-123456', strand: 'BS Information Technology' } }, res);
+ await auth.signup({ body: { name: 'Student', email: 'student@phinmaed.com', password: 'password123', campus: 'Main', role: 'student', studentId: '03-01-2425-23456', strand: 'BS Information Technology' } }, res);
  expect(remove).toHaveBeenCalledWith({ _id: 'new-user' });
  expect(res.status).toHaveBeenCalledWith(503);
  expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining('Your account was not created') });

@@ -1,4 +1,4 @@
-const { accountFields, emailValid, passwordValid } = require("../utils/accountValidation");
+const { accountFields, emailValid, passwordValid, idType, normalize } = require("../utils/accountValidation");
 const bcrypt = require("bcryptjs");
 const { authorized, createSessionToken } = require("../utils/session");
 const crypto = require("crypto");
@@ -21,6 +21,21 @@ const publicUser = (user) => ({
 
 const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
 const verificationExpiry = () => new Date(Date.now() + 15 * 60 * 1000);
+
+async function checkEmployeeId(req, res) {
+    if (Object.keys(req.body || {}).some(key => key !== 'studentId') || idType(req.body?.studentId) !== 'employee') {
+        return res.status(400).json({ message: 'Enter an employee ID in the format EMP-123456.' });
+    }
+    const studentId = normalize(req.body.studentId).toUpperCase();
+    try {
+        if (await User.findOne({ studentId }).collation({ locale: 'en', strength: 2 })) {
+            return res.status(409).json({ message: 'That employee ID is already registered. Log in or contact your administrator.' });
+        }
+        return res.json({ studentId });
+    } catch {
+        return res.status(503).json({ message: 'Unable to check your employee ID. Please try again.' });
+    }
+}
 
 async function signup(req, res) {
 	try {
@@ -159,4 +174,4 @@ async function resetPassword(req, res) {
  }
 }
 
-module.exports = { signup, login, verifyEmail, resendVerificationCode, forgotPassword, resetPassword, publicUser };
+module.exports = { signup, checkEmployeeId, login, verifyEmail, resendVerificationCode, forgotPassword, resetPassword, publicUser };
