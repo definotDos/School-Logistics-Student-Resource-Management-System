@@ -1,12 +1,51 @@
 /* Registration glass surface; scoped to preserve the other authentication views. */
-.signup-role-picker { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
-.signup-role-picker legend { margin-bottom: 9px; color: #e3e8f6; font-size: 12px; font-weight: 600; }
-.signup-role-picker > div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.signup-role-picker label { display: flex; align-items: center; gap: 8px; padding: 13px 10px; border: 1px solid #ffffff29; border-radius: 11px; color: #e3e8f6; cursor: pointer; font-size: 13px; }
-.signup-role-picker label.selected { border-color: #b7a3ff; background: #a78bfa21; }
-.signup-role-picker input { accent-color: #a78bfa; }
-.signup-steps { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 0 0 18px; color: #bec8dd; font-size: 12px; }
-.signup-steps [aria-current='step'] { color: #e3d9ff; font-weight: 700; }
+.signup-role-picker { border: 0; border-bottom: 1px solid #ffffff1a; padding: 0 0 22px; margin: 0 0 22px; min-width: 0; }
+.signup-role-picker legend { padding: 0; color: #f1edff; font-size: 13px; font-weight: 600; }
+.signup-role-help { margin: 6px 0 14px; color: #bec8dd; font-size: 12px; line-height: 1.5; }
+.signup-role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.signup-role-picker label { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 18px; align-content: start; gap: 12px; min-width: 0; padding: 16px; border: 1px solid #ffffff29; border-radius: 14px; background: #090f2533; color: #e3e8f6; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.signup-role-picker label:hover { border-color: #ffffff66; background: #ffffff0a; }
+.signup-role-picker label.selected { border-color: #b7a3ff; background: #a78bfa24; box-shadow: inset 0 0 0 1px #b7a3ff33; }
+.signup-role-picker label:has(input:focus-visible) { outline: 2px solid #d3c5ff; outline-offset: 3px; }
+.signup-role-picker input { grid-column: 2; grid-row: 1; align-self: start; width: 18px; height: 18px; margin: 0; accent-color: #b7a3ff; cursor: pointer; }
+.signup-role-icon { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: #ffffff09; color: #c4cde0; }
+.signup-role-icon svg { width: 23px; height: 23px; }
+.selected .signup-role-icon { background: #b7a3ff26; color: #e3d9ff; }
+.signup-role-copy { grid-column: 1 / -1; display: grid; gap: 5px; }
+.signup-role-copy strong { color: #f5f3ff; font-size: 13px; font-weight: 600; line-height: 1.4; }
+.signup-role-copy small { color: #bec8dd; font-size: 11px; line-height: 1.5; }
+.signup-role-picker:disabled label { opacity: .6; cursor: wait; }
+.signup-role-picker:disabled input { cursor: wait; }
+@media (max-width: 480px) {
+  .signup-role-options { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .signup-role-picker label { grid-template-columns: 36px minmax(0, 1fr) 18px; align-items: center; padding: 14px; }
+  .signup-role-picker input { grid-column: 3; align-self: center; }
+  .signup-role-copy { grid-column: 2; grid-row: 1; }
+}
+.signup-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0 0 24px; color: #bec8dd; font-size: 12px; }
+.signup-steps li { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 2px solid #ffffff1a; line-height: 1.4; }
+.signup-steps [aria-current='step'] { color: #ede5ff; font-weight: 600; border-bottom-color: #b7a3ff; }
+.signup-step-number { display: grid; place-items: center; flex: 0 0 26px; height: 26px; border: 1px solid #ffffff30; border-radius: 50%; font-size: 12px; }
+[aria-current='step'] .signup-step-number { background: #b7a3ff; border-color: #b7a3ff; color: #20183c; }
+.signup-steps .is-complete { color: #a7e8d1; border-bottom-color: #6bc9ac; }
+.signup-step-status { display: block; margin-top: 2px; font-size: 10px; font-weight: 400; }
+.signup-section-heading { margin-bottom: 4px; }
+.signup-section-heading > span { color: #c4b5fd; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }
+.signup-section-heading h3 { margin: 6px 0; color: #f5f3ff; font-size: 19px; line-height: 1.35; }
+.signup-section-heading p { margin: 0; color: #bec8dd; font-size: 13px; line-height: 1.6; }
+.signup-form-wrap .signup-id-form { padding: 20px; border: 1px solid #ffffff1a; border-radius: 16px; background: #090f252e; gap: 18px; }
+.signup-form-wrap .signup-alert { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 13px 14px; border: 1px solid #fb718566; border-radius: 11px; background: #491d35; color: #ffe4e9; text-align: left; }
+.signup-alert-icon { display: grid; place-items: center; flex: 0 0 20px; height: 20px; border: 1px solid #fda4af; border-radius: 50%; color: #fecdd3; font-size: 12px; font-weight: 700; }
+.signup-alert > div { min-width: 0; }
+.signup-alert strong { display: block; font-size: 13px; line-height: 1.5; }
+.signup-alert p { margin: 4px 0 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.signup-form-wrap .signup-account-note button { padding: 0; border: 0; background: none; color: #e3d9ff; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.auth-page.is-signup .signup-form-wrap .signup-field-hint { font-weight: 400; line-height: 1.6; }
+.signup-form-wrap .field-error { display: block; margin: 0; padding: 7px 10px; border-left: 2px solid #fda4af; border-radius: 0 5px 5px 0; background: #88133726; font-weight: 400; line-height: 1.5; }
+@media (max-width: 480px) {
+  .signup-steps li { flex-direction: column; align-items: flex-start; font-size: 11px; }
+  .signup-form-wrap .signup-id-form { padding: 16px; }
+}
 .signup-id-help { margin: 0; color: #bec8dd; font-size: 13px; line-height: 1.6; }
 .signup-id-summary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: #a78bfa18; color: #e3e8f6; font-size: 12px; }
 .signup-id-summary button { border: 0; background: none; color: #e3d9ff; text-decoration: underline; cursor: pointer; font: inherit; }

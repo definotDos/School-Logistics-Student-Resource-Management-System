@@ -8,7 +8,7 @@ const details = { name: 'Staff Member', email: 'staff@phinmaed.com', studentId: 
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); });
 
-test.each(['', 'EMP-123', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async studentId => {
+test.each(['', 'UP-25-795-F', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async studentId => {
   const lookup = jest.spyOn(User, 'findOne');
   const res = response();
   await checkEmployeeId({ body: { studentId } }, res);

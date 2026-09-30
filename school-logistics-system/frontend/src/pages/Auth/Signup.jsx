@@ -19,6 +19,10 @@ export function SignupPage({
   const [isCheckingId, setIsCheckingId] = useState(false)
   const [employeeIdError, setEmployeeIdError] = useState('')
   const detailsHeading = useRef(null)
+  const employeeIdInput = useRef(null)
+  useEffect(() => {
+    if (employeeIdError && !isCheckingId) employeeIdInput.current?.focus()
+  }, [employeeIdError, isCheckingId])
   useEffect(() => {
     if (employeeIdChecked) detailsHeading.current?.focus()
   }, [employeeIdChecked])
@@ -33,7 +37,7 @@ export function SignupPage({
     event.preventDefault()
     if (isCheckingId) return
     if (idType(form.studentId) !== 'employee') {
-      setEmployeeIdError('Enter an employee ID in the format EMP-123456.')
+      setEmployeeIdError(form.studentId.trim() ? 'Use EMP- followed by 6 digits, for example EMP-123456.' : 'Enter your employee ID to continue.')
       return
     }
     setIsCheckingId(true)
@@ -43,7 +47,7 @@ export function SignupPage({
       setForm(current => ({ ...current, studentId: result.studentId }))
       setEmployeeIdChecked(true)
     } catch (checkError) {
-      setEmployeeIdError(checkError.message)
+      setEmployeeIdError(checkError.message || 'We could not check your employee ID. Please try again.')
     } finally {
       setIsCheckingId(false)
     }
@@ -186,41 +190,51 @@ export function SignupPage({
   return (
     <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
       <div className="auth-heading">
-        {campusError && <p role="alert">{campusError}</p>}
         <h2 ref={detailsHeading} tabIndex={-1}>Create account</h2>
         <p>Join your campus. Get the resources you need.</p>
       </div>
       <fieldset className="signup-role-picker" disabled={isCheckingId || isSubmitting}>
-        <legend>Account type</legend>
-        <div>
-          {[['student', 'Student'], ['staff', 'Staff / Employee']].map(([role, label]) => (
+        <legend>Choose your account type</legend>
+        <p className="signup-role-help">Select the role you use on campus.</p>
+        <div className="signup-role-options">
+          {[
+            ['student', 'Student', 'Register with your student ID'],
+            ['staff', 'Staff / Employee', 'Register with your employee ID'],
+          ].map(([role, label, description]) => (
             <label key={role} className={form.role === role ? 'selected' : ''}>
               <input type="radio" name="signup-role" value={role} checked={form.role === role} onChange={() => changeAccountType(role)} />
-              <span>{label}</span>
+              <span className="signup-role-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  {role === 'student' ? <><path d="m2 9 10-5 10 5-10 5-10-5Z" /><path d="M6 11v6c4 3 8 3 12 0v-6M22 9v7" /></> : <><rect x="3" y="7" width="18" height="14" rx="3" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M12 12v3" /></>}
+                </svg>
+              </span>
+              <span className="signup-role-copy"><strong>{label}</strong><small>{description}</small></span>
             </label>
           ))}
         </div>
       </fieldset>
       {form.role === 'staff' && <ol className="signup-steps" aria-label="Staff signup progress">
-        <li aria-current={!employeeIdChecked ? 'step' : undefined}>1. Employee ID</li>
-        <li aria-current={employeeIdChecked ? 'step' : undefined}>2. Account details</li>
-        <li>3. Verify email</li>
+        <li className={employeeIdChecked ? 'is-complete' : ''} aria-current={!employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">{employeeIdChecked ? '✓' : '1'}</span><span>Employee ID{employeeIdChecked && <span className="signup-step-status">Complete</span>}</span></li>
+        <li aria-current={employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">2</span><span>Account details</span></li>
+        <li><span className="signup-step-number" aria-hidden="true">3</span><span>Verify email</span></li>
       </ol>}
       {form.role === 'staff' && !employeeIdChecked ? (
-        <form className="auth-form signup-form" onSubmit={checkEmployeeId} aria-busy={isCheckingId}>
-          <p className="signup-id-help form-wide">Enter your employee ID to continue to the staff signup form.</p>
+        <form className="auth-form signup-form signup-id-form" onSubmit={checkEmployeeId} noValidate aria-busy={isCheckingId}>
+          <div className="signup-section-heading form-wide"><span>STEP 1 OF 3</span><h3>Enter your employee ID</h3><p>We’ll check if your ID is available for registration.</p></div>
           <label className="auth-field compact-field form-wide">
             <span>Employee ID</span>
-            <input value={form.studentId} onChange={event => { update('studentId')(event); setEmployeeIdError('') }} placeholder="EMP-123456" maxLength={10} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby="employee-id-help" />
-            <small id="employee-id-help" className="signup-field-hint">Use the format EMP-123456. Your ID must not already be registered.</small>
+            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.studentId} onChange={event => { setForm(current => ({ ...current, studentId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. EMP-123456" maxLength={10} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-help employee-id-error' : 'employee-id-help'} />
+            <small id="employee-id-help" className="signup-field-hint">EMP- followed by your 6-digit employee number.</small>
           </label>
-          {employeeIdError && <p className="auth-error form-wide" role="alert">{employeeIdError}</p>}
-          <AuthLoadingButton className="auth-submit form-wide" loading={isCheckingId} loadingText="Checking employee ID...">Continue</AuthLoadingButton>
+          {employeeIdError && <div id="employee-id-error" className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Check your employee ID</strong><p>{employeeIdError}</p></div></div>}
+          <AuthLoadingButton className="auth-submit form-wide" loading={isCheckingId} loadingText="Checking employee ID...">Continue to account details <span aria-hidden="true">→</span></AuthLoadingButton>
+          <p className="signup-account-note form-wide">Already registered? <button type="button" onClick={() => onChangeMode('login')}>Log in to your account</button></p>
         </form>
       ) : (
       <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
         {form.role === 'staff' && <div className="signup-id-summary form-wide"><span>Employee ID: <strong>{form.studentId}</strong></span><button type="button" disabled={isSubmitting} onClick={() => { setEmployeeIdChecked(false); setEmployeeIdError(''); setForm(current => ({ ...current, password: '' })) }}>Change ID</button></div>}
-        {error && <p className="auth-error form-wide" role="alert">{error}</p>}
+        {error && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to create account</strong><p>{error}</p></div></div>}
+        {campusError && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to load campuses</strong><p>{campusError}</p></div></div>}
         <label className="auth-field compact-field form-wide signup-campus-field">
           <span>Campus</span>
           <button className="signup-campus-select" type="button" aria-label={selectedCampus ? `Selected campus: ${selectedCampus.name}` : 'Please select your campus'} aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen(open => !open)}>
