@@ -24,7 +24,7 @@ const verificationExpiry = () => new Date(Date.now() + 15 * 60 * 1000);
 
 async function checkEmployeeId(req, res) {
     if (Object.keys(req.body || {}).some(key => key !== 'studentId') || idType(req.body?.studentId) !== 'employee') {
-        return res.status(400).json({ message: 'Enter an employee ID in the format EMP-123456.' });
+        return res.status(400).json({ message: 'Enter an employee ID with UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' });
     }
     const studentId = normalize(req.body.studentId).toUpperCase();
     try {

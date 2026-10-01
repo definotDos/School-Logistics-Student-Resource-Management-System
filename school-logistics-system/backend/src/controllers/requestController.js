@@ -6,6 +6,7 @@ const Notification = require("../models/Notification");
 const AuditLog = require("../models/AuditLog");
 const Resource = require("../models/Resource");
 const Inventory = require("../models/Inventory");
+const User = require("../models/User");
 
 const requestTransitions = {
 	pending: ["approved", "rejected"],
@@ -154,12 +155,37 @@ async function createRequest(req, res) {
 			`Student ${req.user.name} submitted request for ${resource}`
 		);
 
-		// Notify staff to review
-		// Staff will see in their dashboard
+		// Each reviewer gets a separate notification and independent read state.
+		let notificationWarning;
+		try {
+			const reviewers = await User.find({
+				role: { $in: ["staff", "admin"] },
+				status: "active",
+				campus: req.user.campus,
+			}).select("_id role").lean();
+			if (reviewers.length) await Notification.insertMany(reviewers.map(reviewer => ({
+				user: reviewer._id,
+				userRole: reviewer.role,
+				type: "general",
+				title: "New resource request",
+				message: `${req.user.name} requested ${Number(quantity)} × ${resourceExists.name}. Review the request and verify eligibility.`,
+				relatedEntity: "Request",
+				relatedEntityId: request._id,
+				actionUrl: reviewer.role === "admin" ? "/admin/requests" : "/staff/review_requests",
+				metadata: { event: "request_created", studentName: req.user.name, studentId: req.user.studentId || "", resourceName: resourceExists.name, quantity: Number(quantity), campus: req.user.campus, requestId: `REQ-${request._id.toString().slice(-8).toUpperCase()}` },
+				sent: true,
+				sentAt: new Date(),
+			})));
+		} catch (error) {
+			// The request is already saved: do not invite a duplicate submission.
+			console.error("Unable to notify request reviewers:", error.message);
+			notificationWarning = "Your request was saved, but reviewer notifications could not be delivered.";
+		}
 
 		await request.populate("student", "name email campus grade studentId avatar");
 		res.status(201).json({ 
 			message: "Request submitted successfully", 
+			...(notificationWarning ? { warning: notificationWarning } : {}),
 			request: formatRequest(request) 
 		});
 	} catch (error) {

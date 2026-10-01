@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import DashboardIcon from "./DashboardIcon";
+import StaffNotifications from "./StaffNotifications";
+import StudentNotifications from "./StudentNotifications";
 import { notificationAPI, searchAPI } from "../services/api";
 
 function Navbar({ isDarkMode = false, onToggleTheme }) {
@@ -29,9 +31,19 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
       .finally(() => setNotificationsLoading(false));
     load();
     const timer = window.setInterval(load, 30000);
+    window.addEventListener("focus", load);
     window.addEventListener("notifications-updated", load);
-    return () => { window.clearInterval(timer); window.removeEventListener("notifications-updated", load); };
+    return () => { window.clearInterval(timer); window.removeEventListener("notifications-updated", load); window.removeEventListener("focus", load); };
   }, [user]);
+
+  useEffect(() => {
+    if (!showNotifications) return;
+    let cancelled = false;
+    notificationAPI.getAll()
+      .then(result => { if (!cancelled) { setNotifications(result.notifications); setNotificationError(""); } })
+      .catch(error => { if (!cancelled) setNotificationError(error.message); });
+    return () => { cancelled = true; };
+  }, [showNotifications]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,65 +101,22 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
             {unreadCount > 0 && <i aria-hidden="true">{unreadCount > 9 ? "9+" : unreadCount}</i>}
           </button>
           {showNotifications && (isStudent ? (
-            <section id="header-notifications" className="notification-menu student-notifications" aria-labelledby="student-notifications-title">
-              <div className="student-notifications-heading">
-                <div><h2 id="student-notifications-title">Notifications</h2><p>Your latest resource updates</p></div>
-                <div className="student-notifications-controls"><span className="student-unread-count">{unreadCount} unread</span><button type="button" className="student-notifications-close" aria-label="Close notifications" onClick={() => { setShowNotifications(false); notificationButtonRef.current?.focus(); }}>&times;</button></div>
-              </div>
-              <div className="student-notifications-list" tabIndex={0} aria-label="Recent notifications">
-                {notificationError && <p className="student-notification-error" role="alert">{notificationError}</p>}
-                {notificationsLoading ? <p className="student-notification-empty" role="status">Loading notifications...</p> : notifications.length ? (
-                  <ul>
-                    {[...notifications].sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)).map((notification) => (
-                      <li key={notification._id} className={`student-notification-item ${notification.read ? "" : "is-unread"}`}>
-                        <span className="student-notification-icon"><DashboardIcon name="notification" /></span>
-                        <div className="student-notification-copy">
-                          <h3>{notification.title}</h3>
-                          <p>{notification.message}</p>
-                          <div className="student-notification-meta">
-                            <span>{notification.read ? "Read" : "Unread"}</span>
-                            {notification.createdAt && !Number.isNaN(Date.parse(notification.createdAt)) && <time dateTime={notification.createdAt}>{new Date(notification.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time>}
-                            {!notification.read && <button type="button" onClick={() => markRead(notification)} aria-label={`Mark ${notification.title} as read`}>Mark as read</button>}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : !notificationError && <p className="student-notification-empty">You're all caught up. New resource updates will appear here.</p>}
-              </div>
-              <Link className="student-notifications-footer" to="/claim-schedule" onClick={() => setShowNotifications(false)}>View claim schedule <span aria-hidden="true">→</span></Link>
-            </section>
-
-          ) : user?.role === "admin" ? (
-            <section id="header-notifications" className="notification-menu admin-notifications" aria-labelledby="admin-notifications-title">
-              <div className="admin-notifications-heading">
-                <div><h2 id="admin-notifications-title">Notifications</h2><p>Latest requests and schedule updates</p></div>
-                <span className="admin-unread-count">{unreadCount} unread</span>
-              </div>
-              <div className="admin-notifications-list" tabIndex={0} aria-label="Recent notifications">
-                {notificationError && <p className="admin-notification-error" role="alert">{notificationError}</p>}
-                {notificationsLoading ? <p className="admin-notification-empty" role="status">Loading notifications...</p> : notifications.length ? (
-                  <ul>
-                    {[...notifications].sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)).map(notification => (
-                      <li key={notification._id} className={`admin-notification-item ${notification.read ? "" : "is-unread"}`}>
-                        <span className="admin-notification-icon" aria-hidden="true"><DashboardIcon name="notification" /></span>
-                        <div className="admin-notification-copy">
-                          <h3>{notification.title}</h3>
-                          <p>{notification.message}</p>
-                          <div className="admin-notification-meta">
-                            <span>{notification.read ? "Read" : "Unread"}</span>
-                            {notification.createdAt && !Number.isNaN(Date.parse(notification.createdAt)) && <time dateTime={notification.createdAt}>{new Date(notification.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time>}
-                            {!notification.read && <button type="button" onClick={() => markRead(notification)} aria-label={`Mark ${notification.title} as read`}>Mark as read</button>}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : !notificationError && <p className="admin-notification-empty">You're all caught up. New updates will appear here.</p>}
-              </div>
-              <Link className="admin-notifications-footer" to="/admin/distribution" onClick={() => setShowNotifications(false)}>Manage claim schedules <span aria-hidden="true">?</span></Link>
-            </section>          ) : (
-            <div id="header-notifications" className="notification-menu"><strong>Notifications</strong>{notificationError ? <p role="alert">{notificationError}</p> : notificationsLoading ? <p role="status">Loading notifications...</p> : notifications.length ? notifications.slice(0, 5).map((notification) => <div key={notification._id}><p>{notification.title}: {notification.message}</p>{!notification.read && <button onClick={() => markRead(notification)}>Mark read</button>}</div>) : <p>No notifications yet.</p>}<Link to={user?.role === "admin" ? "/admin/distribution" : "/staff/manage_schedules"} onClick={() => setShowNotifications(false)}>View schedule <span aria-hidden="true">→</span></Link></div>
+            <StudentNotifications
+              notifications={notifications}
+              loading={notificationsLoading}
+              error={notificationError}
+              onMarkRead={markRead}
+              onClose={() => { setShowNotifications(false); notificationButtonRef.current?.focus(); }}
+            />
+          ) : (
+            <StaffNotifications
+              role={user?.role}
+              notifications={notifications}
+              loading={notificationsLoading}
+              error={notificationError}
+              onMarkRead={markRead}
+              onClose={() => { setShowNotifications(false); notificationButtonRef.current?.focus(); }}
+            />
           ))}
         </div>
         <div className="header-profile">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{user?.role || "Student"}</small></span></div>

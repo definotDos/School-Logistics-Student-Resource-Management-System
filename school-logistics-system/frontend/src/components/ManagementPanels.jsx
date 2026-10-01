@@ -23,7 +23,7 @@ export function CreateUserForm({ onCreated }) {
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   return <details><summary>Add user</summary><form className="resource-form" onSubmit={submit}>
-    {['name', 'email', 'password', 'studentId'].map(key => <label key={key}>{key === "studentId" ? (form.role === "student" ? "Student ID (03-01-2425-_____ or 03-2425-____)" : "Employee ID (EMP-123456)") : key}<input required type={key === "password" ? "password" : key === "email" ? "email" : "text"} minLength={key === "password" ? 8 : undefined} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
+    {['name', 'email', 'password', 'studentId'].map(key => <label key={key}>{key === "studentId" ? (form.role === "student" ? "Student ID (03-01-2425-_____ or 03-2425-____)" : "Employee ID (UP-25-12345-A)") : key}<input required type={key === "password" ? "password" : key === "email" ? "email" : "text"} minLength={key === "password" ? 8 : undefined} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
     <label>Role<select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{['student', 'staff', 'admin'].map(role => <option key={role}>{role}</option>)}</select></label>
     {form.role === "student" && <label>Course / strand<select required value={form.strand} onChange={e => setForm({ ...form, strand: e.target.value })}><option value="">Choose course</option>{courses.map(course => <option key={course}>{course}</option>)}</select></label>}
     <p>New users receive a verification code and must verify their email before first login.</p>

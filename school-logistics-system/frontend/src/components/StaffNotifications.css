@@ -1,0 +1,158 @@
+.admin-shell.organized-workspace .notification-menu.staff-notifications {
+  --notice-surface: #fff;
+  --notice-ink: #1d3048;
+  --notice-muted: #617187;
+  --notice-border: #e0e7f0;
+  --notice-tint: #edf5ff;
+  --notice-accent: #245da3;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(600px, calc(100dvh - 110px));
+  padding: 0;
+  top: calc(100% + 14px);
+  right: 0;
+  overflow: hidden;
+  border: 1px solid var(--notice-border);
+  border-radius: 16px;
+  background: var(--notice-surface);
+  color: var(--notice-ink);
+  box-shadow: 0 16px 48px #0c203029;
+}
+.admin-shell.organized-workspace.dark-mode .notification-menu.staff-notifications {
+  --notice-surface: #19283b;
+  --notice-ink: #eff5fd;
+  --notice-muted: #b3c2d5;
+  --notice-border: #34465c;
+  --notice-tint: #213852;
+  --notice-accent: #96ceff;
+}
+.staff-notifications .staff-notifications-heading { display: flex; align-items: center; gap: 12px; padding: 20px 18px 16px; flex-shrink: 0; }
+.staff-notifications .staff-notifications-icon, .staff-notifications .staff-notifications-empty-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: var(--notice-tint); color: var(--notice-accent); }
+.staff-notifications svg { width: 21px; height: 21px; }
+.admin-shell.organized-workspace .staff-notifications h2 { margin: 0; color: var(--notice-ink); font-size: 17px; line-height: 1.4; }
+.admin-shell.organized-workspace .staff-notifications h3 { margin: 0; color: var(--notice-ink); font-size: 13px; line-height: 1.5; }
+.admin-shell.organized-workspace .staff-notifications p { margin: 5px 0 0; padding: 0; border: 0; color: var(--notice-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-shell.organized-workspace .staff-notifications button { cursor: pointer; font: inherit; color: var(--notice-accent); }
+.staff-notifications .staff-notifications-close { margin-left: auto; padding: 4px; min-width: 32px; min-height: 32px; border: 0; border-radius: 8px; background: transparent; font-size: 24px !important; }
+.staff-notifications .staff-notifications-filters { display: flex; gap: 8px; padding: 0 18px 16px; border-bottom: 1px solid var(--notice-border); }
+.staff-notifications-filters button { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--notice-border); border-radius: 8px; background: transparent; font-size: 12px !important; }
+.staff-notifications-filters button[aria-pressed="true"] { background: var(--notice-tint); border-color: var(--notice-accent); }
+.staff-notifications-filters span { font-size: 11px; font-weight: 700; }
+.staff-notifications .staff-notifications-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.staff-notifications-list ul { margin: 0; padding: 0; list-style: none; }
+.staff-notifications-list li { display: flex; align-items: flex-start; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--notice-border); }
+.staff-notifications-list li:last-child { border-bottom: 0; }
+.staff-notifications-list li.is-unread { background: var(--notice-tint); }
+.staff-notifications-dot { width: 7px; height: 7px; margin-top: 6px; flex-shrink: 0; border-radius: 50%; background: var(--notice-border); }
+.is-unread .staff-notifications-dot { background: var(--notice-accent); }
+.staff-notifications-copy { min-width: 0; overflow-wrap: anywhere; }
+.staff-notifications-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; color: var(--notice-muted); font-size: 10px; }
+.staff-notifications .staff-notifications-read { padding: 6px 0; margin-top: 6px; border: 0; background: transparent; font-size: 11px; font-weight: 600; }
+.staff-notifications .staff-notifications-state { padding: 30px 24px; text-align: center; }
+.staff-notifications-empty-icon { margin: 0 auto 14px; }
+.staff-notifications .staff-notifications-error { margin: 12px 18px !important; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-footer { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0; padding: 16px 18px; border-top: 1px solid var(--notice-border); background: var(--notice-surface); color: var(--notice-accent); font-size: 12px; text-decoration: none; }
+.staff-notifications .staff-notifications-footer span { margin-left: auto; }
+.staff-notifications button:hover, .staff-notifications .staff-notifications-footer:hover { background: var(--notice-tint); }
+.staff-notifications :is(button, a, [tabindex]):focus-visible { outline: 2px solid var(--notice-accent); outline-offset: -3px; }
+.staff-notifications .staff-notifications-filters { flex-wrap: wrap; }
+.staff-notifications .staff-notifications-list ul { padding: 12px; }
+.staff-notifications .staff-notifications-list li { padding: 14px 12px; border: 1px solid var(--notice-border); border-radius: 12px; margin-bottom: 10px; }
+.staff-notifications .staff-notifications-list li:last-child { border-bottom: 1px solid var(--notice-border); margin-bottom: 0; }
+.staff-notifications .staff-notifications-list li.is-unread { box-shadow: inset 3px 0 var(--notice-accent); }
+.staff-notifications-item-icon { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 9px; background: var(--notice-tint); color: var(--notice-accent); }
+.staff-notifications-item-icon svg { width: 18px; height: 18px; }
+.staff-notifications-copy { flex: 1; }
+.staff-notifications-category { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 7px; color: var(--notice-accent); font-size: 10px; font-weight: 650; }
+.staff-notifications-category span { color: var(--notice-muted); font-weight: 400; }
+.staff-notifications-details { display: grid; gap: 5px; margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--notice-border); font-size: 10px; }
+.staff-notifications-details > div { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; }
+.staff-notifications-details dt { color: var(--notice-muted); }
+.staff-notifications-details dd { margin: 0; color: var(--notice-ink); }
+.staff-notifications-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; }
+.admin-shell.organized-workspace .staff-notifications a.staff-notifications-review { margin: 0; color: var(--notice-accent); font-size: 11px; }
+.staff-notifications .staff-notifications-actions .staff-notifications-read { margin: 0; }
+.staff-notifications .staff-notifications-read:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace .notification-menu.staff-notifications { position: fixed; top: 76px; right: 16px; max-height: calc(100dvh - 100px); }
+}
+
+/* Role palettes: indigo for admin decisions, teal for staff operations. */
+.admin-shell.organized-workspace .notification-menu.staff-notifications[data-role] {
+  --notice-surface: #ffffff;
+  --notice-card: #ffffff;
+  --notice-list: #f5f7fb;
+  --notice-ink: #202b40;
+  --notice-muted: #59677e;
+  --notice-border: #dce3ee;
+  --notice-success: #23704e;
+  --notice-success-bg: #e9f5ee;
+  --notice-button-text: #ffffff;
+  width: min(460px, calc(100vw - 32px));
+  border-radius: 18px;
+}
+.admin-shell.organized-workspace .staff-notifications[data-role="admin"] {
+  --notice-accent: #5146b5;
+  --notice-tint: #f0eefc;
+  --notice-button: #584cc4;
+  --notice-button-hover: #463ba8;
+}
+.admin-shell.organized-workspace .staff-notifications[data-role="staff"] {
+  --notice-accent: #0d726b;
+  --notice-tint: #e9f6f3;
+  --notice-button: #10766d;
+  --notice-button-hover: #095e57;
+}
+.admin-shell.organized-workspace.dark-mode .notification-menu.staff-notifications[data-role] {
+  --notice-surface: #182438;
+  --notice-card: #1e2d43;
+  --notice-list: #131e30;
+  --notice-ink: #edf2fb;
+  --notice-muted: #b4c1d4;
+  --notice-border: #36445b;
+  --notice-success: #9de0bb;
+  --notice-success-bg: #233e38;
+  --notice-button-text: #142039;
+}
+.admin-shell.organized-workspace.dark-mode .staff-notifications[data-role="admin"] {
+  --notice-accent: #c3bcff;
+  --notice-tint: #2a2d4c;
+  --notice-button: #c3bcff;
+  --notice-button-hover: #d6d1ff;
+}
+.admin-shell.organized-workspace.dark-mode .staff-notifications[data-role="staff"] {
+  --notice-accent: #88ded1;
+  --notice-tint: #1c393f;
+  --notice-button: #88ded1;
+  --notice-button-hover: #aff0e6;
+}
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-workspace { display: block; margin-bottom: 3px; color: var(--notice-accent); font-size: 9px; font-weight: 750; letter-spacing: 1.2px; text-transform: uppercase; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-heading { padding: 20px; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-close { font-size: 24px; border: 1px solid var(--notice-border); }
+.admin-shell.organized-workspace .staff-notifications svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-list { background: var(--notice-list); scrollbar-width: thin; scrollbar-color: var(--notice-border) transparent; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-list li { gap: 12px; padding: 16px; background: var(--notice-card); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-list li.is-unread { background: var(--notice-card); border-left-color: var(--notice-accent); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-item-icon { flex-basis: 34px; height: 34px; border: 1px solid var(--notice-border); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-category { align-items: center; margin-bottom: 8px; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border-radius: 20px; font-size: 9px; font-weight: 650; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-status.is-new { background: var(--notice-tint); color: var(--notice-accent); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-status.is-new::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-status.is-read { background: var(--notice-success-bg); color: var(--notice-success); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-details { gap: 8px; padding: 12px; background: var(--notice-list); border: 1px solid var(--notice-border); border-radius: 9px; line-height: 1.5; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-details dd { font-weight: 550; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-meta { margin-top: 12px; font-size: 10px; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--notice-border); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions :is(a.staff-notifications-review, button.staff-notifications-read, .staff-notifications-read-confirmed) { display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; min-height: 36px; margin: 0; padding: 8px; border: 1px solid var(--notice-border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 650; line-height: 1.35; text-align: center; text-decoration: none; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions a.staff-notifications-review { background: var(--notice-button); color: var(--notice-button-text); border-color: transparent; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions a.staff-notifications-review:hover { background: var(--notice-button-hover); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions button.staff-notifications-read { background: var(--notice-surface); color: var(--notice-accent); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions button.staff-notifications-read:hover:not(:disabled) { background: var(--notice-tint); border-color: var(--notice-accent); }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions .staff-notifications-read-confirmed { color: var(--notice-success); background: var(--notice-success-bg); border-color: transparent; font-size: 10px; }
+.admin-shell.organized-workspace .staff-notifications .staff-notifications-actions svg { flex: 0 0 14px; width: 14px; height: 14px; }
+@media (max-width: 390px) {
+  .admin-shell.organized-workspace .staff-notifications .staff-notifications-list li { padding: 12px; gap: 8px; }
+  .admin-shell.organized-workspace .staff-notifications .staff-notifications-actions { grid-template-columns: 1fr; }
+  .admin-shell.organized-workspace .staff-notifications .staff-notifications-item-icon { flex-basis: 28px; height: 28px; }
+}

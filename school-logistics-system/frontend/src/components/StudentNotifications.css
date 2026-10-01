@@ -1,0 +1,59 @@
+.dashboard-shell.student-shell.organized-workspace .student-inbox {
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(660px, calc(100dvh - 150px));
+  --inbox-green: #18704e;
+  --inbox-rose: #ae3654;
+  --inbox-amber: #90600e;
+}
+.dashboard-shell.student-shell.organized-workspace.dark-mode .student-inbox {
+  --notice-border: #34465e;
+  --inbox-green: #8de0bd;
+  --inbox-rose: #ffa7bd;
+  --inbox-amber: #f6d18b;
+}
+.student-shell.organized-workspace .student-inbox .student-notifications-heading { align-items: flex-start; padding: 22px 20px 18px; border-bottom: 0; }
+.student-shell.organized-workspace .student-inbox .inbox-eyebrow { display: block; margin-bottom: 6px; color: var(--notice-muted); font-size: 9px; font-weight: 750; letter-spacing: 1.5px; }
+.student-shell.organized-workspace .student-inbox h2 { font-size: 21px; letter-spacing: -.5px; line-height: 1.25; }
+.student-shell.organized-workspace .student-inbox .student-notifications-heading p { font-size: 12px; }
+.student-shell.organized-workspace .student-inbox .student-notifications-close { flex-shrink: 0; width: 36px; height: 36px; }
+.student-shell.organized-workspace .student-inbox .inbox-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px 16px; flex-shrink: 0; border-bottom: 1px solid var(--notice-border); }
+.student-inbox .inbox-filters { display: flex; gap: 4px; padding: 4px; background: var(--notice-soft); border-radius: 10px; }
+.student-shell.organized-workspace .student-inbox .inbox-filters button { display: flex; align-items: center; gap: 7px; min-height: 32px; padding: 5px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--notice-muted); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.student-shell.organized-workspace .student-inbox .inbox-filters button[aria-pressed="true"] { background: var(--notice-surface); border-color: var(--notice-border); color: var(--notice-text); box-shadow: 0 2px 4px #0000000a; }
+.student-inbox .inbox-filters button span { min-width: 16px; font-size: 10px; text-align: center; }
+.student-inbox .inbox-summary { color: var(--notice-muted); font-size: 10px; white-space: nowrap; }
+.student-shell.organized-workspace .student-inbox .student-notifications-list { padding: 0 12px 14px; background: var(--notice-surface); }
+.student-inbox .inbox-date { display: flex; align-items: center; gap: 8px; margin: 18px 8px 10px; color: var(--notice-muted); font-size: 10px; font-weight: 650; letter-spacing: .3px; }
+.student-inbox .inbox-date span { opacity: .7; font-weight: 400; }
+.student-shell.organized-workspace .student-inbox .student-notification-item { padding: 15px 12px; margin-bottom: 8px; gap: 11px; border: 1px solid var(--notice-border); border-radius: 12px; }
+.student-shell.organized-workspace .student-inbox .student-notification-item:last-child { margin-bottom: 0; }
+.student-shell.organized-workspace .student-inbox .student-notification-item.is-unread { border-color: var(--notice-accent); box-shadow: inset 3px 0 var(--notice-accent); }
+.student-shell.organized-workspace .student-inbox .student-notification-icon { flex: 0 0 34px; height: 34px; border: 0; border-radius: 10px; background: var(--notice-soft); }
+.student-shell.organized-workspace .student-inbox .tone-green { color: var(--inbox-green); }
+.student-shell.organized-workspace .student-inbox .tone-rose { color: var(--inbox-rose); }
+.student-shell.organized-workspace .student-inbox .tone-amber { color: var(--inbox-amber); }
+.student-shell.organized-workspace .student-inbox .tone-blue { color: var(--notice-accent); }
+.student-inbox .inbox-card-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 6px; }
+.student-inbox .inbox-category { font-size: 10px; font-weight: 650; }
+.student-inbox .inbox-read-state { display: inline-flex; align-items: center; gap: 5px; color: var(--notice-muted); font-size: 9px; }
+.student-inbox .inbox-read-state.is-new { color: var(--notice-accent); font-weight: 700; }
+.student-inbox .inbox-read-state.is-new::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.student-shell.organized-workspace .student-inbox .student-notification-copy h3 { font-size: 13px; line-height: 1.45; }
+.student-shell.organized-workspace .student-inbox .student-notification-copy p { margin-top: 6px; font-size: 12px; line-height: 1.7; }
+.student-shell.organized-workspace .student-inbox .student-notification-meta { justify-content: space-between; margin-top: 13px; gap: 8px; }
+.student-inbox .student-notification-meta time { display: inline-flex; align-items: center; gap: 5px; }
+.student-inbox .student-notification-meta time svg { width: 12px; height: 12px; }
+.student-inbox .student-notification-meta button:disabled { cursor: wait; opacity: .6; }
+.student-shell.organized-workspace .student-inbox .student-notifications-footer { padding: 16px 20px; font-size: 12px; }
+.student-inbox .student-notifications-footer > span:first-child { display: inline-flex; align-items: center; gap: 9px; margin: 0; }
+.student-inbox .student-notifications-footer svg { width: 17px; height: 17px; }
+.student-inbox .inbox-empty { padding: 36px 20px; text-align: center; color: var(--notice-muted); }
+.student-inbox .inbox-empty > svg { width: 34px; height: 34px; margin-bottom: 12px; color: var(--notice-accent); }
+.student-inbox .inbox-empty h3 { margin: 0; color: var(--notice-text); font-size: 14px; }
+.student-shell.organized-workspace .student-inbox :is(button, a, [tabindex]):focus-visible { outline: 2px solid var(--notice-accent); outline-offset: -2px; }
+@media (max-width: 380px) {
+  .student-shell.organized-workspace .student-inbox .inbox-toolbar { padding-inline: 14px; }
+  .student-inbox .inbox-summary { white-space: normal; text-align: right; }
+  .student-shell.organized-workspace .student-inbox .student-notifications-heading { padding-inline: 14px; }
+  .student-shell.organized-workspace .student-inbox .student-notification-icon { flex-basis: 28px; height: 28px; }
+}

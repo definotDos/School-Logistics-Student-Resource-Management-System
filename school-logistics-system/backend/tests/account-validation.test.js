@@ -14,7 +14,7 @@ test('normalizes valid emails and IDs', () => {
   expect(accountFields({ ...valid, email: ' Student@PHINMAED.COM ', studentId: ' 03-01-2425-23456 ' })).toMatchObject({ email: valid.email, studentId: valid.studentId });
 });
 test.each([
-  { email: 'a@gmail.com' }, { studentId: 'EMP-123456' }, { studentId: 'STU-123' },
+  { email: 'a@gmail.com' }, { studentId: 'UP-25-12345-A' }, { studentId: 'STU-123' },
   { name: {} }, { name: ' ' }, { campus: [] }, { password: 'a'.repeat(73) },
   { password: '😀'.repeat(19) }, { strand: 'Other' }, { strand: '' },
   { role: 'staff' }, { role: 'admin' }, { role: { $ne: '' } }, { accountType: 'staff' },
@@ -28,9 +28,9 @@ test.each([
 test.each(['staff', 'admin'])('administrator-created %s requires employee ID', role => {
   expect(() => accountFields({ ...valid, role }, true)).toThrow('ID does not match');
   const { strand, ...employee } = valid;
-  expect(accountFields({ ...employee, role, studentId: 'EMP-123456' }, true).role).toBe(role);
+  expect(accountFields({ ...employee, role, studentId: 'UP-25-12345-A' }, true).role).toBe(role);
 });
-test.each([{ role: 'admin' }, { studentId: 'EMP-123456' }, { strand: 'Invented Course' }, { grade: 'Year 999' }, { name: [] }, { avatar: 'javascript:alert(1)' }])('profile rejects bypass payload %j', async body => {
+test.each([{ role: 'admin' }, { studentId: 'UP-25-12345-A' }, { strand: 'Invented Course' }, { grade: 'Year 999' }, { name: [] }, { avatar: 'javascript:alert(1)' }])('profile rejects bypass payload %j', async body => {
   const update = jest.spyOn(User, 'findByIdAndUpdate'); const res = response();
   await users.updateMe({ body, user: { role: 'student', campus: 'Main' } }, res);
   expect(res.status).toHaveBeenCalledWith(400); expect(update).not.toHaveBeenCalled();
@@ -76,9 +76,9 @@ test('administrator-created employees receive verification and cannot start veri
   const create = jest.spyOn(User, 'create').mockResolvedValue({ _id: 'new-user', role: 'staff' });
   const res = response();
   const { strand, ...employee } = valid;
-  await users.createUser({ user: { role: 'admin' }, body: { ...employee, role: 'staff', studentId: 'EMP-123456' } }, res);
+  await users.createUser({ user: { role: 'admin' }, body: { ...employee, role: 'staff', studentId: 'UP-25-12345-A' } }, res);
   expect(res.status).toHaveBeenCalledWith(201);
-  expect(create).toHaveBeenCalledWith(expect.objectContaining({ role: 'staff', studentId: 'EMP-123456', emailVerified: false, verificationCode: expect.stringMatching(/^\d{6}$/) }));
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ role: 'staff', studentId: 'UP-25-12345-A', emailVerified: false, verificationCode: expect.stringMatching(/^\d{6}$/) }));
 });
 test('database defaults do not mark new accounts verified', () => {
   expect(new User(valid).emailVerified).toBe(false);

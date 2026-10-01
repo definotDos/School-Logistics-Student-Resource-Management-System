@@ -4,11 +4,16 @@ jest.mock('../src/config/email', () => ({ sendVerificationEmail: jest.fn() }));
 const { sendVerificationEmail } = require('../src/config/email');
 const { checkEmployeeId, signup } = require('../src/controllers/authController');
 const { accountFields } = require('../src/utils/accountValidation');
-const details = { name: 'Staff Member', email: 'staff@phinmaed.com', studentId: 'EMP-123456', password: 'password123', campus: 'Main', role: 'staff' };
+const details = { name: 'Staff Member', email: 'staff@phinmaed.com', studentId: 'UP-25-12345-A', password: 'password123', campus: 'Main', role: 'staff' };
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); });
 
-test.each(['', 'UP-25-795-F', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async studentId => {
+test.each(['UP-00-000-A', 'UP-25-1234-M', 'UP-99-99999-Z'])('accepts employee ID %s in signup and model validation', async studentId => {
+  expect(accountFields({ ...details, studentId }).studentId).toBe(studentId);
+  await expect(new User({ ...details, studentId }).validate()).resolves.toBeUndefined();
+});
+
+test.each(['', 'EMP-123456', 'UP-2-123-A', 'UP-123-123-A', 'UP-25-12-A', 'UP-25-123456-A', 'UP-25-123-AA', 'UP-25-123-1', 'UP25123A', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async studentId => {
   const lookup = jest.spyOn(User, 'findOne');
   const res = response();
   await checkEmployeeId({ body: { studentId } }, res);
@@ -19,7 +24,7 @@ test('ID gate normalizes IDs and checks availability case-insensitively', async 
   const collation = jest.fn().mockResolvedValue(null);
   const lookup = jest.spyOn(User, 'findOne').mockReturnValue({ collation });
   const res = response();
-  await checkEmployeeId({ body: { studentId: ' emp-123456 ' } }, res);
+  await checkEmployeeId({ body: { studentId: ' up-25-12345-a ' } }, res);
   expect(lookup).toHaveBeenCalledWith({ studentId: details.studentId });
   expect(collation).toHaveBeenCalledWith({ locale: 'en', strength: 2 });
   expect(res.json).toHaveBeenCalledWith({ studentId: details.studentId });

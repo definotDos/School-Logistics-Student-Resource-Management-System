@@ -6,7 +6,7 @@
 
 - Email: exact `phinmaed.com` domain, as confirmed by the project owner. Subdomains and suffix lookalikes are rejected. Addresses are trimmed and lowercased; inbox ownership requires verification.
 - Student ID: `03-01-2425-` followed by five digits (example `03-01-2425-12345`) or `03-2425-` followed by four digits (example `03-2425-1234`).
-- Employee ID: `EMP-` followed by six digits (example `EMP-123456`). Employees use the existing `staff` or `admin` roles. IDs are stored in the existing `studentId` database field for compatibility with reports and the unique index.
+- Employee ID: `UP-` followed by exactly two digits, a hyphen, three to five digits, a hyphen, and one uppercase letter A-Z (examples `UP-25-795-F`, `UP-25-1234-A`, `UP-25-12345-Z`). Lowercase input is normalized to uppercase. Employees use the existing `staff` or `admin` roles. IDs are stored in the existing `studentId` database field for compatibility with reports and the unique index.
 - Courses and strands: the application's existing dropdown catalog, with the free-text option removed. This catalog has **not** been confirmed as the official list for every campus.
 
 The ID patterns are application defaults, not verified PHINMA roster formats. Confirm the patterns and supported programs with the school before production rollout. Change the JSON patterns and help text together, then rebuild the frontend and restart the backend. Do not invent replacement IDs for existing users.

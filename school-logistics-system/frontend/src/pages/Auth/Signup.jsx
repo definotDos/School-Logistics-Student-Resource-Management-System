@@ -21,6 +21,9 @@ export function SignupPage({
   const detailsHeading = useRef(null)
   const employeeIdInput = useRef(null)
   useEffect(() => {
+    if (form.role === 'staff') employeeIdInput.current?.focus()
+  }, [form.role])
+  useEffect(() => {
     if (employeeIdError && !isCheckingId) employeeIdInput.current?.focus()
   }, [employeeIdError, isCheckingId])
   useEffect(() => {
@@ -37,7 +40,7 @@ export function SignupPage({
     event.preventDefault()
     if (isCheckingId) return
     if (idType(form.studentId) !== 'employee') {
-      setEmployeeIdError(form.studentId.trim() ? 'Use EMP- followed by 6 digits, for example EMP-123456.' : 'Enter your employee ID to continue.')
+      setEmployeeIdError(form.studentId.trim() ? 'Use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' : 'Enter your employee ID to continue.')
       return
     }
     setIsCheckingId(true)
@@ -190,16 +193,22 @@ export function SignupPage({
   return (
     <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
       <div className="auth-heading">
-        <h2 ref={detailsHeading} tabIndex={-1}>Create account</h2>
+        <h2 ref={detailsHeading} tabIndex={-1}>{form.role === 'staff' ? 'Create staff account' : 'Create account'}</h2>
         <p>Join your campus. Get the resources you need.</p>
       </div>
+      {form.role === 'staff' ? (
+        <div className="signup-id-summary signup-role-summary">
+          <span>Account type: <strong>Staff / Employee</strong></span>
+          <button type="button" disabled={isCheckingId || isSubmitting} onClick={() => changeAccountType('student')}>Change account type</button>
+        </div>
+      ) : (
       <fieldset className="signup-role-picker" disabled={isCheckingId || isSubmitting}>
         <legend>Choose your account type</legend>
         <p className="signup-role-help">Select the role you use on campus.</p>
         <div className="signup-role-options">
           {[
-            ['student', 'Student', 'Register with your student ID'],
-            ['staff', 'Staff / Employee', 'Register with your employee ID'],
+            ['student', 'Student', 'Use your student ID'],
+            ['staff', 'Staff / Employee', 'Use your employee ID'],
           ].map(([role, label, description]) => (
             <label key={role} className={form.role === role ? 'selected' : ''}>
               <input type="radio" name="signup-role" value={role} checked={form.role === role} onChange={() => changeAccountType(role)} />
@@ -213,6 +222,7 @@ export function SignupPage({
           ))}
         </div>
       </fieldset>
+      )}
       {form.role === 'staff' && <ol className="signup-steps" aria-label="Staff signup progress">
         <li className={employeeIdChecked ? 'is-complete' : ''} aria-current={!employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">{employeeIdChecked ? '✓' : '1'}</span><span>Employee ID{employeeIdChecked && <span className="signup-step-status">Complete</span>}</span></li>
         <li aria-current={employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">2</span><span>Account details</span></li>
@@ -223,8 +233,7 @@ export function SignupPage({
           <div className="signup-section-heading form-wide"><span>STEP 1 OF 3</span><h3>Enter your employee ID</h3><p>We’ll check if your ID is available for registration.</p></div>
           <label className="auth-field compact-field form-wide">
             <span>Employee ID</span>
-            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.studentId} onChange={event => { setForm(current => ({ ...current, studentId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. EMP-123456" maxLength={10} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-help employee-id-error' : 'employee-id-help'} />
-            <small id="employee-id-help" className="signup-field-hint">EMP- followed by your 6-digit employee number.</small>
+            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.studentId} onChange={event => { setForm(current => ({ ...current, studentId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. UP-25-12345-A" maxLength={13} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-error' : undefined} />
           </label>
           {employeeIdError && <div id="employee-id-error" className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Check your employee ID</strong><p>{employeeIdError}</p></div></div>}
           <AuthLoadingButton className="auth-submit form-wide" loading={isCheckingId} loadingText="Checking employee ID...">Continue to account details <span aria-hidden="true">→</span></AuthLoadingButton>

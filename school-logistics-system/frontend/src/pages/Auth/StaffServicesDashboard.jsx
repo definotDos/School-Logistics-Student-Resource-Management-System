@@ -10,6 +10,10 @@ import DashboardIcon from "../../components/DashboardIcon";
 import { useAuth } from "../../context/useAuth";
 import { campuses } from "../../data/campuses";
 import "./StaffServicesDashboard.css";
+import "./StaffMetrics.css";
+import "./StaffActions.css";
+import "./StaffPerformance.css";
+import "./StaffQuickActions.css";
 
 const sections = {
   profile: { label: "My Profile", title: "Staff profile", description: "Manage your personal details, photo, and verified email." },
@@ -317,7 +321,7 @@ function StaffServicesDashboard() {
           )}
 
           {activeSection === "dashboard" && (
-            <StaffOverview setNotice={setNotice} stats={dashboardStats} />
+            <StaffOverview stats={dashboardStats} />
           )}
           {activeSection === "verify_eligibility" && (
             <EligibilityPanel rows={rows.verify_eligibility} onAction={handleVerifyEligibility} />
@@ -367,7 +371,7 @@ function StaffServicesDashboard() {
   );
 }
 
-function StaffOverview({ setNotice, stats }) {
+function StaffOverview({ stats }) {
   const liveStats = {
     pending_requests: Number(stats?.pending_requests || 0),
     eligible_students: Number(stats?.eligible_students || 0),
@@ -377,173 +381,155 @@ function StaffOverview({ setNotice, stats }) {
 
   return (
     <>
-      <div className="admin-stats">
-        <AdminStat label="Pending Requests" value={liveStats.pending_requests} change="Live queue" tone="orange" />
-        <AdminStat label="Eligible Students" value={liveStats.eligible_students} change="Live record count" tone="green" />
-        <AdminStat label="Scheduled Claims" value={liveStats.scheduled_claims} change="Live schedule count" tone="blue" />
-        <AdminStat label="Resources Released" value={liveStats.resources_released} change="Live distribution count" tone="navy" />
-      </div>
+      <section className="staff-metrics" aria-labelledby="staff-metrics-title">
+        <div className="staff-metrics-heading">
+          <div><h2 id="staff-metrics-title">At a glance</h2><p>A snapshot of requests, students, and distribution.</p></div>
+          <span className="staff-metrics-caption">Service overview</span>
+        </div>
+        <div className="staff-metrics-grid">
+          <AdminStat label="Pending Requests" value={liveStats.pending_requests} change="Awaiting review" tone="amber" icon="clock" />
+          <AdminStat label="Eligible Students" value={liveStats.eligible_students} change="Eligible to receive resources" tone="teal" icon="users" />
+          <AdminStat label="Scheduled Claims" value={liveStats.scheduled_claims} change="Claims with an assigned schedule" tone="blue" icon="calendar" />
+          <AdminStat label="Resources Released" value={liveStats.resources_released} change="Recorded distributions" tone="violet" icon="distribution" />
+        </div>
+      </section>
 
       <div className="admin-grid">
-        <section className="admin-panel">
-          <PanelHeading
-            title="Immediate Actions"
-            description="Tasks requiring staff attention today"
-          />
-          <div className="attention-list">
+        <section className="admin-panel staff-actions" aria-labelledby="staff-actions-title">
+          <header className="staff-actions-heading">
+            <div>
+              <span className="staff-actions-eyebrow">WORK QUEUE</span>
+              <h2 id="staff-actions-title">Immediate Actions</h2>
+              <p>Review requests, verify claims, and track distribution.</p>
+            </div>
+            <span className="staff-actions-summary">3 workflows</span>
+          </header>
+          <ul className="staff-actions-list">
             <Attention
-              icon="!"
-              title={`${liveStats.pending_requests} requests awaiting verification`}
+              icon="studentRequests" tone="amber" count={liveStats.pending_requests}
+              title="Eligibility review"
+              status={liveStats.pending_requests === 1 ? "request awaiting review" : "requests awaiting review"}
               detail="Review student eligibility and approve valid requests."
-              action="Review Eligibility"
-              href="/staff/verify_eligibility"
+              action="Review Eligibility" href="/staff/verify_eligibility"
             />
             <Attention
-              icon="✓"
-              title={`${liveStats.scheduled_claims} claims pending verification`}
+              icon="audit" tone="blue" count={liveStats.scheduled_claims}
+              title="Claim verification"
+              status={liveStats.scheduled_claims === 1 ? "scheduled claim" : "scheduled claims"}
               detail="Confirm student identity and mark items as claimed."
-              action="Verify Claims"
-              href="/staff/verify_claims"
+              action="Verify Claims" href="/staff/verify_claims"
             />
             <Attention
-              icon="◷"
-              title={`${liveStats.resources_released} resources released`}
+              icon="distribution" tone="violet" count={liveStats.resources_released}
+              title="Resource distribution"
+              status={liveStats.resources_released === 1 ? "resource released" : "resources released"}
               detail="Monitor resource distribution and track pending items."
-              action="Monitor Distribution"
-              href="/staff/monitor_distribution"
+              action="Monitor Distribution" href="/staff/monitor_distribution"
             />
-          </div>
+          </ul>
         </section>
 
-        <section className="admin-panel">
-          <PanelHeading
-            title="Performance Metrics"
-            description="Current operational performance"
-          />
-          <div className="progress-block">
+        <section className="admin-panel staff-performance" aria-labelledby="staff-performance-title">
+          <header className="staff-performance-heading">
             <div>
-              <span>Request fulfillment rate</span>
-              <strong>{Math.min(100, Math.max(0, liveStats.pending_requests ? 78 : 0))}%</strong>
+              <span className="staff-performance-eyebrow">SERVICE PERFORMANCE</span>
+              <h2 id="staff-performance-title">Performance Metrics</h2>
+              <p>Request, claim, and distribution performance.</p>
             </div>
-            <div className="progress">
-              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.pending_requests ? 78 : 0))}%` }} />
-            </div>
+            <span className="staff-performance-badge">Sample data</span>
+          </header>
+          <div className="staff-performance-list">
+            {[
+              { id: "fulfillment", label: "Request fulfillment", detail: "Fulfillment of student resource requests", icon: "studentRequests", tone: "blue", value: liveStats.pending_requests ? 78 : 0 },
+              { id: "claims", label: "Claim completion", detail: "Completion of scheduled student claims", icon: "audit", tone: "teal", value: liveStats.scheduled_claims ? 85 : 0 },
+              { id: "accuracy", label: "Distribution accuracy", detail: "Accuracy of recorded resource releases", icon: "distribution", tone: "violet", value: liveStats.resources_released ? 92 : 0 },
+            ].map((metric) => (
+              <div className={`staff-performance-metric staff-performance-metric--${metric.tone}`} key={metric.id}>
+                <span className="staff-performance-icon"><DashboardIcon name={metric.icon} /></span>
+                <div className="staff-performance-label">
+                  <h3 id={`performance-${metric.id}`}>{metric.label}</h3>
+                  <p>{metric.detail}</p>
+                </div>
+                <strong className="staff-performance-value">{metric.value}<span>%</span></strong>
+                <progress aria-labelledby={`performance-${metric.id}`} value={metric.value} max="100">{metric.value}%</progress>
+              </div>
+            ))}
           </div>
-          <div className="progress-block">
-            <div>
-              <span>Claim completion rate</span>
-              <strong>{Math.min(100, Math.max(0, liveStats.scheduled_claims ? 85 : 0))}%</strong>
-            </div>
-            <div className="progress green">
-              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.scheduled_claims ? 85 : 0))}%` }} />
-            </div>
-          </div>
-          <div className="progress-block">
-            <div>
-              <span>Distribution accuracy</span>
-              <strong>{Math.min(100, Math.max(0, liveStats.resources_released ? 92 : 0))}%</strong>
-            </div>
-            <div className="progress green">
-              <i style={{ width: `${Math.min(100, Math.max(0, liveStats.resources_released ? 92 : 0))}%` }} />
-            </div>
-          </div>
-          <button className="text-action" onClick={() => setNotice("Report export prepared for download.")}>
-            Export weekly report →
-          </button>
+          <footer className="staff-performance-footer">
+            <p>Sample percentages are shown until live performance rates are available.</p>
+            <Link to="/staff/reports" className="staff-performance-report"><DashboardIcon name="reports" />View Reports<span aria-hidden="true">&rarr;</span></Link>
+          </footer>
         </section>
       </div>
 
-      <section className="admin-panel admin-quick">
-        <PanelHeading
-          title="Staff Quick Actions"
-          description="Jump directly to common staff workflows"
-        />
-        <div className="quick-action-grid">
-          <Link to="/staff/verify_eligibility">
-            <DashboardIcon name="resources" />
-            <span>
-              Verify Eligibility
-              <small>Check student qualifications</small>
-            </span>
-            →
-          </Link>
-          <Link to="/staff/review_requests">
-            <DashboardIcon name="requests" />
-            <span>
-              Review Requests
-              <small>Examine submitted requests</small>
-            </span>
-            →
-          </Link>
-          <Link to="/staff/approve_reject">
-            <DashboardIcon name="calendar" />
-            <span>
-              Approve/Reject
-              <small>Process request decisions</small>
-            </span>
-            →
-          </Link>
-          <Link to="/staff/verify_claims">
-            <DashboardIcon name="history" />
-            <span>
-              Verify Claims
-              <small>Confirm student identity</small>
-            </span>
-            →
-          </Link>
-          <Link to="/staff/manage_schedules">
-            <DashboardIcon name="resources" />
-            <span>
-              Manage Schedules
-              <small>Assign claim times</small>
-            </span>
-            →
-          </Link>
-          <Link to="/staff/monitor_distribution">
-            <DashboardIcon name="calendar" />
-            <span>
-              Monitor Distribution
-              <small>Track resource releases</small>
-            </span>
-            →
-          </Link>
-        </div>
+      <section className="admin-panel staff-shortcuts" aria-labelledby="staff-shortcuts-title">
+        <header className="staff-shortcuts-heading">
+          <div>
+            <span className="staff-shortcuts-eyebrow">WORKSPACE TOOLS</span>
+            <h2 id="staff-shortcuts-title">Staff Quick Actions</h2>
+            <p>Choose a workflow to keep student services moving.</p>
+          </div>
+          <span className="staff-shortcuts-caption">6 shortcuts</span>
+        </header>
+        {[
+          { id: "requests", title: "Requests & eligibility", description: "Review qualifications and make request decisions.", actions: [
+            { href: "verify_eligibility", title: "Verify Eligibility", detail: "Check student qualifications", icon: "graduate", tone: "amber" },
+            { href: "review_requests", title: "Review Requests", detail: "Examine submitted requests", icon: "studentRequests", tone: "amber" },
+            { href: "approve_reject", title: "Approve / Reject", detail: "Process request decisions", icon: "audit", tone: "amber" },
+          ] },
+          { id: "claims", title: "Claims & distribution", description: "Coordinate collection and track resource releases.", actions: [
+            { href: "manage_schedules", title: "Manage Schedules", detail: "Assign student claim times", icon: "calendar", tone: "blue" },
+            { href: "verify_claims", title: "Verify Claims", detail: "Confirm student identity", icon: "claimCalendar", tone: "blue" },
+            { href: "monitor_distribution", title: "Monitor Distribution", detail: "Track resource releases", icon: "distribution", tone: "violet" },
+          ] },
+        ].map((group) => (
+          <section className="staff-shortcuts-group" key={group.id} aria-labelledby={`shortcuts-${group.id}`}>
+            <div className="staff-shortcuts-group-heading">
+              <h3 id={`shortcuts-${group.id}`}>{group.title}</h3>
+              <p>{group.description}</p>
+            </div>
+            <ul className="staff-shortcuts-grid">
+              {group.actions.map((action) => (
+                <li key={action.href}>
+                  <Link className={`staff-shortcut staff-shortcut--${action.tone}`} to={`/staff/${action.href}`}>
+                    <span className="staff-shortcut-icon"><DashboardIcon name={action.icon} /></span>
+                    <span className="staff-shortcut-copy"><strong>{action.title}</strong><small>{action.detail}</small></span>
+                    <span className="staff-shortcut-arrow" aria-hidden="true">&rarr;</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </section>
     </>
   );
 }
 
-function AdminStat({ label, value, change, tone }) {
+function AdminStat({ label, value, change, tone, icon }) {
   return (
-    <article className={`admin-stat ${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{change}</small>
+    <article className={`staff-metric staff-metric--${tone}`}>
+      <div className="staff-metric-heading">
+        <h3>{label}</h3>
+        <span className="staff-metric-icon"><DashboardIcon name={icon} /></span>
+      </div>
+      <strong className="staff-metric-value">{value.toLocaleString()}</strong>
+      <p className="staff-metric-detail"><span aria-hidden="true" />{change}</p>
     </article>
   );
 }
 
-function PanelHeading({ title, description }) {
+function Attention({ icon, tone, count, title, status, detail, action, href }) {
   return (
-    <div className="admin-panel-heading">
-      <div>
-        <h2>{title}</h2>
-        <p>{description}</p>
+    <li className={`staff-action staff-action--${tone}`}>
+      <span className="staff-action-icon"><DashboardIcon name={icon} /></span>
+      <div className="staff-action-body">
+        <h3>{title}</h3>
+        <p className="staff-action-status"><strong>{count.toLocaleString()}</strong> {status}</p>
+        <p className="staff-action-detail">{detail}</p>
       </div>
-    </div>
-  );
-}
-
-function Attention({ icon, title, detail, action, href }) {
-  return (
-    <div className="attention-row">
-      <b>{icon}</b>
-      <div>
-        <strong>{title}</strong>
-        <small>{detail}</small>
-      </div>
-      <Link to={href}>{action} →</Link>
-    </div>
+      <Link className="staff-action-link" to={href}>{action}<span aria-hidden="true">&rarr;</span></Link>
+    </li>
   );
 }
 
