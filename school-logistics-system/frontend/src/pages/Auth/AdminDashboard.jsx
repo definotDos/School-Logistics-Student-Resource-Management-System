@@ -1,3 +1,4 @@
+import useStudentTheme from "../../hooks/useStudentTheme";
 import { useTabState } from "../../hooks/useTabState";
 import RequestPanel from "../../components/AdminRequestPanel";
 import AuditLogPanel from "../../components/AuditLogPanel";
@@ -43,13 +44,7 @@ const emptyRows = {
 function AdminDashboard() {
   const { user } = useAuth();
   const { section: requestedSection } = useParams();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = sessionStorage.getItem("srmsDashboardTheme");
-    return savedTheme ? savedTheme === "dark" : false;
-  });
-  useEffect(() => {
-    sessionStorage.setItem("srmsDashboardTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
   const activeCampus = campuses.find((campus) => campus.name === user?.activeCampus);
   const [rows, setRows] = useState(emptyRows);

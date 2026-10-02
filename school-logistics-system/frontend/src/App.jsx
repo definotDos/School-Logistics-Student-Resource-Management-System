@@ -9,6 +9,7 @@ import ClaimSchedule from "./pages/Auth/ClaimSchedule";
 import DistributionHistory from "./pages/Auth/DistributionHistory";
 import AdminDashboard from "./pages/Auth/AdminDashboard";
 import StaffServicesDashboard from "./pages/Auth/StaffServicesDashboard";
+import AccountUtilities from "./pages/Auth/AccountUtilities";
 import { useAuth } from "./context/useAuth";
 
 function ProtectedRoute({ children, role }) {
@@ -48,6 +49,8 @@ function App() {
       />
 
       {/* Administrator */}
+      <Route path="/help" element={<ProtectedRoute><AccountUtilities page="help" /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><AccountUtilities page="settings" /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/:section" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/inventory" element={<ProtectedRoute role="admin"><Navigate to="/admin/inventory" replace /></ProtectedRoute>} />

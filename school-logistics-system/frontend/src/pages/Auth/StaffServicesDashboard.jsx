@@ -1,12 +1,14 @@
+import useStudentTheme from "../../hooks/useStudentTheme";
 import { useTabState } from "../../hooks/useTabState";
 import ProfilePanel from "../../components/ProfilePanel";
 import { NotificationsPanel, ReportsPanel } from "../../components/ManagementPanels";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { allocationAPI, distributionAPI, notificationAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
+import { getResourceImage } from "../../utils/resourceImages";
 import { useAuth } from "../../context/useAuth";
 import { campuses } from "../../data/campuses";
 import "./StaffServicesDashboard.css";
@@ -46,14 +48,7 @@ function StaffServicesDashboard() {
   const { user } = useAuth();
   const assignedCampus = campuses.find((campus) => campus.name === user?.campus);
   const { section: requestedSection } = useParams();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = sessionStorage.getItem("srmsStaffDashboardTheme");
-    return savedTheme ? savedTheme === "dark" : false;
-  });
-
-  useEffect(() => {
-    sessionStorage.setItem("srmsStaffDashboardTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+  const [isDarkMode, setIsDarkMode] = useStudentTheme();
 
   const activeSection = sections[requestedSection] ? requestedSection : "dashboard";
   const [rows, setRows] = useState(emptyRows);
@@ -61,12 +56,16 @@ function StaffServicesDashboard() {
   const [requests, setRequests] = useState([]);
   const [requestError, setRequestError] = useState("");
   const [notice, setNotice] = useState("");
-  const [selectedStudentHistory, setSelectedStudentHistory] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     if (activeSection !== "dashboard") return;
+    queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
     reportsAPI.getDashboardOverview()
       .then((result) => {
+        if (cancelled) return;
         const overview = result?.overview || result || {};
         setDashboardStats({
           pending_requests: Number(overview.pendingRequests || overview.pending_requests || 0),
@@ -75,14 +74,19 @@ function StaffServicesDashboard() {
           resources_released: Number(overview.resourcesReleased || overview.resources_released || 0),
         });
       })
-      .catch((error) => setRequestError(error.message));
-  }, [activeSection]);
+      .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeSection, revision]);
 
   useEffect(() => {
+    let cancelled = false;
     if (!["review_requests", "approve_reject", "verify_eligibility", "update_status"].includes(activeSection)) return;
-      requestAPI.getAll()
+    queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
+    requestAPI.getAll()
       .then((result) => {
-        const staffRequests = result.requests.map((req) => ({
+        if (cancelled) return;
+        const staffRequests = (result.requests || []).map((req) => ({
           databaseId: req.databaseId,
           name: req.id || "Request",
           detail: `${req.student?.name || "Student"} · Student ID: ${req.studentId || req.student?.studentId || req.student?.id || "N/A"} · ${req.resourceName || req.resource || "Resource"} · Submitted ${req.date ? new Date(req.date).toLocaleDateString() : "recently"}`,
@@ -93,6 +97,8 @@ function StaffServicesDashboard() {
           student: req.student,
           studentId: req.studentId || req.student?.studentId || req.student?.id || "N/A",
           avatar: req.avatar || req.student?.avatar || "",
+          studentName: req.student?.name || "Student",
+          resourceImage: getResourceImage({ name: req.resourceName || req.resource }),
           resource: req.resourceName || req.resource,
         }));
         setRequests(staffRequests);
@@ -100,33 +106,49 @@ function StaffServicesDashboard() {
           ...current,
             review_requests: staffRequests,
             approve_reject: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, action: "Approve", reason: "Pending eligibility and approval review" })),
-            update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: request.status === "pending" ? ["approved", "rejected"] : request.status === "claimed" ? ["completed"] : [], action: "Update" })),
+            update_status: staffRequests.map((request) => ({ ...request, current_status: request.status, possible_statuses: request.status === "pending" ? ["approved", "rejected"] : ["claimed", "released"].includes(request.status) ? ["completed"] : [], action: "Update" })),
             verify_eligibility: staffRequests.filter((request) => request.status === "pending").map((request) => ({ ...request, name: request.student?.name || "Student", eligibility: request.eligibilityStatus === "eligible" ? "Eligible" : "Pending", action: "Verify" })),
         }));
       })
-      .catch((error) => setRequestError(error.message));
-  }, [activeSection]);
+      .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeSection, revision]);
 
   useEffect(() => {
+    let cancelled = false;
     if (activeSection !== "student_history") return;
+    queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
     requestAPI.getAll()
-      .then((result) => setRows((current) => ({
+      .then((result) => !cancelled && setRows((current) => ({
         ...current,
         student_history: (result.requests || []).map((request) => ({
           databaseId: request.databaseId,
           name: request.student?.name || "Student",
           detail: `${request.resourceName || request.resource || "Resource"} · ${request.status}`,
+          status: request.status,
+          studentId: request.studentId || request.student?.studentId || "Not recorded",
+          date: request.date ? new Date(request.date).toLocaleDateString() : "Not recorded",
+          avatar: request.avatar || request.student?.avatar || "",
+          studentName: request.student?.name || "Student",
+          resource: request.resourceName || request.resource || "Resource",
+          resourceImage: getResourceImage({ name: request.resourceName || request.resource }),
           action: "View History",
-          claimed: request.status === "completed" ? `${request.quantity || 1} resource(s)` : "Not claimed",
+          claimed: ["claimed", "released", "completed"].includes(request.status) ? `${request.quantity || 1} resource(s)` : "Not claimed",
         })),
       })))
-      .catch((error) => setRequestError(error.message));
-  }, [activeSection]);
+      .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeSection, revision]);
 
   useEffect(() => {
+    let cancelled = false;
     if (activeSection !== "notifications") return;
+    queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
     notificationAPI.getAll()
       .then((result) => {
+        if (cancelled) return;
         const notifications = (result.notifications || []).map((entry) => ({
           databaseId: entry._id,
           user: entry.user,
@@ -137,16 +159,25 @@ function StaffServicesDashboard() {
         }));
         setRows((current) => ({ ...current, notifications }));
       })
-      .catch((error) => setRequestError(error.message));
-  }, [activeSection]);
+      .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeSection, revision]);
 
   useEffect(() => {
+    let cancelled = false;
     if (activeSection === "manage_schedules") {
+      queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
       Promise.all([allocationAPI.getByStatus("Reserved"), distributionAPI.getAllSchedules()])
         .then(([allocationResult, scheduleResult]) => {
+          if (cancelled) return;
           const existing = new Set((scheduleResult.schedules || []).map((schedule) => String(schedule.allocation?._id || schedule.allocation)));
           setRows((current) => ({ ...current, manage_schedules: (allocationResult.allocations || []).filter((allocation) => !existing.has(String(allocation._id))).map((allocation) => ({
             databaseId: allocation._id,
+          avatar: allocation.student?.avatar || "",
+          studentName: allocation.student?.name || "Student",
+          resource: allocation.resource?.name || "Resource",
+          resourceImage: getResourceImage(allocation.resource),
             name: allocation.resource?.name || "Resource claim",
             detail: `${allocation.student?.name || "Student"} · ${allocation.quantity} unit(s) · ${allocation.campus || "Campus not set"}`,
             status: allocation.status,
@@ -154,14 +185,22 @@ function StaffServicesDashboard() {
             action: "Schedule",
           })) }));
         })
-        .catch((error) => setRequestError(error.message));
+        .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     }
     if (activeSection === "verify_claims") {
+      queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
       distributionAPI.getAllSchedules()
         .then((result) => {
+        if (cancelled) return;
           const claims = (result.schedules || []).map((schedule) => ({
             databaseId: schedule._id,
+          avatar: schedule.student?.avatar || "",
+          studentName: schedule.student?.name || "Student",
+          resource: schedule.resource?.name || "Resource",
+          resourceImage: getResourceImage(schedule.resource),
             allocationId: schedule.allocation?._id || schedule.allocation,
+            location: schedule.location,
             quantity: schedule.allocation?.quantity || schedule.quantityClaimed || 1,
             name: schedule.resource?.name || "Resource claim",
             detail: `${schedule.student?.name || "Student"} · ${schedule.location}`,
@@ -171,26 +210,36 @@ function StaffServicesDashboard() {
           }));
           setRows((current) => ({ ...current, verify_claims: claims }));
         })
-        .catch((error) => setRequestError(error.message));
+        .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     }
     if (activeSection === "monitor_distribution") {
+      queueMicrotask(() => { if (!cancelled) { setLoading(true); setRequestError(""); setNotice(""); } });
       distributionAPI.getAll()
-        .then((result) => setRows((current) => ({ ...current, monitor_distribution: (result.distributions || []).map((distribution) => ({
+        .then((result) => !cancelled && setRows((current) => ({ ...current, monitor_distribution: (result.distributions || []).map((distribution) => ({
           databaseId: distribution._id,
+          avatar: distribution.student?.avatar || "",
+          studentName: distribution.student?.name || "Student",
+          resource: distribution.resource?.name || "Resource",
+          resourceImage: getResourceImage(distribution.resource),
           name: distribution.resource?.name || "Resource distribution",
           detail: `${distribution.student?.name || "Student"} · ${distribution.campus || "Campus not set"}`,
           status: distribution.status,
           released: `${distribution.quantityDelivered || 0} items`,
-          pending: distribution.status === "Released" ? "0 items" : `${distribution.quantityRequested || distribution.quantity || 0} items`,
+          pending: distribution.status === "Released" ? "0 items" : `${Math.max(0, (distribution.quantityRequested || distribution.quantity || 0) - (distribution.quantityDelivered || 0))} items`,
         })) })))
-        .catch((error) => setRequestError(error.message));
+        .catch((error) => { if (!cancelled) setRequestError(error.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     }
-  }, [activeSection]);
+    return () => { cancelled = true; };
+  }, [activeSection, revision]);
 
   const handleApproveRequest = async (databaseId) => {
     const request = rows.approve_reject.find((row) => row.databaseId === databaseId);
     try {
-      if (request.eligibilityStatus !== "eligible") await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
+      setRequestError("");
+      setNotice("");
+      if (request.eligibilityStatus !== "eligible") throw new Error("Verify student eligibility before approving this request.");
       await requestAPI.approve(request.databaseId, {});
         setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
       setNotice(`Request ${request.name} has been approved. Student will be notified.`);
@@ -200,16 +249,20 @@ function StaffServicesDashboard() {
   const handleVerifyEligibility = async (databaseId) => {
     const request = rows.verify_eligibility.find((row) => row.databaseId === databaseId);
     try {
+      setRequestError("");
+      setNotice("");
       await requestAPI.verifyEligibility(request.databaseId, { eligible: true });
-        setRows((current) => ({ ...current, verify_eligibility: current.verify_eligibility.map((row) => row.databaseId === databaseId ? { ...row, eligibility: "Eligible", status: "Verified", action: "Verified" } : row) }));
+        setRows((current) => ({ ...current, verify_eligibility: current.verify_eligibility.map((row) => row.databaseId === databaseId ? { ...row, eligibility: "Eligible", eligibilityStatus: "eligible", action: "Verified" } : row) }));
       setNotice(`${request.name} eligibility was verified.`);
     } catch (error) { setRequestError(error.message); }
   };
 
-  const handleRejectRequest = async (databaseId) => {
+  const handleRejectRequest = async (databaseId, reason) => {
     const request = rows.approve_reject.find((row) => row.databaseId === databaseId);
     try {
-      await requestAPI.reject(request.databaseId, { requestId: request.databaseId, rejectionReason: "Request did not meet the eligibility requirements." });
+      setRequestError("");
+      setNotice("");
+      await requestAPI.reject(request.databaseId, { requestId: request.databaseId, rejectionReason: reason });
         setRows((current) => ({ ...current, approve_reject: current.approve_reject.filter((row) => row.databaseId !== request.databaseId) }));
       setNotice(`Request ${request.name} has been rejected. Student will be notified with reason.`);
     } catch (error) { setRequestError(error.message); }
@@ -228,7 +281,7 @@ function StaffServicesDashboard() {
         row.databaseId === databaseId ? { ...row, status: newStatus, eligibility: newStatus === "claimed" ? "Eligible" : row.eligibility } : row
       ),
       update_status: current.update_status.map((row) =>
-        row.databaseId === databaseId ? { ...row, current_status: newStatus } : row
+        row.databaseId === databaseId ? { ...row, status: newStatus, current_status: newStatus, possible_statuses: ["claimed", "released"].includes(newStatus) ? ["completed"] : [] } : row
       ),
       student_history: current.student_history.map((row) =>
         row.databaseId === databaseId ? { ...row, detail: row.detail.replace(/\b(approved|rejected|ready_for_claim|claimed|released|completed)\b/i, newStatus), claimed: newStatus === "claimed" ? `${row.quantity || 1} resource(s)` : row.claimed } : row
@@ -245,6 +298,9 @@ function StaffServicesDashboard() {
   const handleUpdateStatus = async (databaseId, newStatus) => {
     const request = rows.update_status.find((row) => row.databaseId === databaseId);
     try {
+      setRequestError("");
+      setNotice("");
+      if (newStatus === "rejected") throw new Error("Use Request decisions to provide a rejection reason.");
       const result = await requestAPI.updateStatus(request.databaseId, {
         status: newStatus,
         reason: `Staff updated status to ${newStatus}`,
@@ -261,21 +317,26 @@ function StaffServicesDashboard() {
   const handleSchedule = async (databaseId, schedule) => {
     const allocation = rows.manage_schedules.find((row) => row.databaseId === databaseId);
     try {
+      setRequestError("");
+      setNotice("");
       await allocationAPI.createSchedule(allocation.databaseId, schedule);
       setRows((current) => ({ ...current, manage_schedules: current.manage_schedules.filter((row) => row.databaseId !== databaseId) }));
       setNotice(`${allocation.name} was scheduled successfully.`);
+      return true;
     } catch (error) { setRequestError(error.message); }
   };
 
   const handleClaimAction = async (databaseId) => {
     const claim = rows.verify_claims.find((row) => row.databaseId === databaseId);
     try {
+      setRequestError("");
+      setNotice("");
       if (claim.action === "Verify") {
         await distributionAPI.verifyClaimIdentity(claim.databaseId, { quantityClaimed: claim.quantity, verificationDetails: "Identity verified by staff." });
         setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row) => row.databaseId === databaseId ? { ...row, status: "Verified", action: "Release" } : row) }));
         setNotice(`${claim.name} was verified.`);
       } else if (claim.action === "Release") {
-        await distributionAPI.release(claim.allocationId, { quantityDelivered: claim.quantity, distributionLocation: "Student Affairs Office" });
+        await distributionAPI.release(claim.allocationId, { quantityDelivered: claim.quantity, distributionLocation: claim.location || "Student Affairs Office" });
         setRows((current) => ({ ...current, verify_claims: current.verify_claims.map((row) => row.databaseId === databaseId ? { ...row, status: "Released", action: "View" } : row) }));
         setNotice(`${claim.name} was released and recorded in distribution history.`);
       }
@@ -283,7 +344,7 @@ function StaffServicesDashboard() {
   };
 
   return (
-    <div className={`admin-shell organized-workspace ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-shell staff-services organized-workspace ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
@@ -311,6 +372,8 @@ function StaffServicesDashboard() {
             )}
           </div>
 
+          {requestError && <div className="staff-feedback" role="alert">{requestError}<button onClick={() => setRevision((value) => value + 1)}>Refresh data</button></div>}
+          {loading && !["profile", "reports", "notifications"].includes(activeSection) && <p className="staff-loading" role="status">Loading service records?</p>}
           {notice && (
             <div className="admin-notice" role="status">
               {notice}
@@ -323,40 +386,37 @@ function StaffServicesDashboard() {
           {activeSection === "dashboard" && (
             <StaffOverview stats={dashboardStats} />
           )}
-          {activeSection === "verify_eligibility" && (
+          {!loading && activeSection === "verify_eligibility" && (
             <EligibilityPanel rows={rows.verify_eligibility} onAction={handleVerifyEligibility} />
           )}
-          {activeSection === "review_requests" && (
+          {!loading && activeSection === "review_requests" && (
             <ReviewRequestsPanel
               rows={rows.review_requests}
               requests={requests}
-              requestError={requestError}
             />
           )}
-          {activeSection === "approve_reject" && (
+          {!loading && activeSection === "approve_reject" && (
             <ApproveRejectPanel
               rows={rows.approve_reject}
               onApprove={handleApproveRequest}
               onReject={handleRejectRequest}
             />
           )}
-          {activeSection === "manage_schedules" && (
+          {!loading && activeSection === "manage_schedules" && (
             <SchedulesPanel rows={rows["manage_schedules"]} onSchedule={handleSchedule} />
           )}
-          {activeSection === "verify_claims" && (
+          {!loading && activeSection === "verify_claims" && (
             <VerifyClaimsPanel rows={rows["verify_claims"]} onAction={handleClaimAction} />
           )}
-          {activeSection === "monitor_distribution" && (
+          {!loading && activeSection === "monitor_distribution" && (
             <MonitorDistributionPanel rows={rows["monitor_distribution"]} />
           )}
-          {activeSection === "student_history" && (
+          {!loading && activeSection === "student_history" && (
             <StudentHistoryPanel
               rows={rows["student_history"]}
-              selectedStudent={selectedStudentHistory}
-              onSelectStudent={setSelectedStudentHistory}
             />
           )}
-          {activeSection === "update_status" && (
+          {!loading && activeSection === "update_status" && (
             <UpdateStatusPanel rows={rows["update_status"]} onUpdateStatus={handleUpdateStatus} />
           )}
           {activeSection === "profile" && <ProfilePanel setNotice={setNotice} />}
@@ -533,402 +593,141 @@ function Attention({ icon, tone, count, title, status, detail, action, href }) {
   );
 }
 
-function EligibilityPanel({ rows, onAction }) {
-  const [search, setSearch] = useTabState("EligibilityPanel.search", "");
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
+const formatStatus = (value = "") => value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Student Eligibility Verification</h2>
-          <p>{rows.length} students to review</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search students..."
-          aria-label="Search students"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row) => (
-          <div className="record-row">
-            <div className="record-icon">
-              {row.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-            </div>
-            <span className={`status-pill ${row.eligibility.toLowerCase()}`}>
-              {row.eligibility}
-            </span>
-            <button
-              className="row-action"
-              onClick={() => onAction(row.databaseId)}
-            >
-              {row.action}
-            </button>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+function ActionButton({ onClick, children, disabled, className = "row-action" }) {
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  return <button className={className} disabled={disabled || busy} onClick={async () => {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
+    try { await onClick(); } finally { lock.current = false; setBusy(false); }
+  }}>{busy ? "Saving…" : children}</button>;
 }
 
-const resourceImageByName = (name = "") => {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("mathematics")) return "/mathematics-book.svg";
-  return "";
-};
+function RecordsPanel({ id, title, description, rows, icon = "requests", children }) {
+  const [search, setSearch] = useTabState(`${id}.search`, "");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const statuses = [...new Set(rows.map((row) => row.eligibility || row.status).filter(Boolean))];
+  const filtered = rows.filter((row) => (!status || (row.eligibility || row.status) === status) &&
+    `${row.name} ${row.detail} ${row.studentId || ""}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const pages = Math.max(1, Math.ceil(filtered.length / 10));
+  const currentPage = Math.min(page, pages);
+  return <section className="admin-panel record-panel staff-records" aria-labelledby={`${id}-title`}>
+    <header className="record-toolbar">
+      <span className="staff-panel-icon"><DashboardIcon name={icon} /></span>
+      <div className="staff-panel-heading"><span className="staff-eyebrow">STUDENT SERVICES</span><h2 id={`${id}-title`}>{title}</h2><p>{description}</p></div>
+      <span className="staff-record-count">{rows.length}<small>records</small></span>
+    </header>
+    <div className="staff-record-filters">
+      <label className="staff-search"><span>Search records</span><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search name, resource or student ID…" /></label>
+      <label><span>Status</span><select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="">All statuses</option>{statuses.map((value) => <option key={value} value={value}>{formatStatus(value)}</option>)}</select></label>
+      {(search || status) && <button className="row-action" onClick={() => { setSearch(""); setStatus(""); setPage(1); }}>Clear filters</button>}
+    </div>
+    <div className="record-list">
+      {filtered.slice((currentPage - 1) * 10, currentPage * 10).map((row) => <div className="staff-record" key={row.databaseId}>{children(row)}</div>)}
+      {!filtered.length && <div className="staff-empty"><DashboardIcon name={icon} /><h3>{rows.length ? "No matching records" : "No records to display"}</h3><p>{rows.length ? "Try another search or clear your filters." : "New records will appear here when they reach this workflow."}</p>{!rows.length && <Link to="/staff/dashboard">Back to overview</Link>}</div>}
+    </div>
+    <footer className="staff-record-footer"><span>{filtered.length ? `${(currentPage - 1) * 10 + 1}–${Math.min(currentPage * 10, filtered.length)} of ${filtered.length}` : "0 records"}</span><div><button className="row-action" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Previous</button><span>Page {currentPage} of {pages}</span><button className="row-action" disabled={currentPage >= pages} onClick={() => setPage(currentPage + 1)}>Next</button></div></footer>
+  </section>;
+}
 
-const resourceInitials = (name = "Resource") => {
-  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
-  return words.map((word) => word[0]).join("").toUpperCase() || "RS";
-};
+function RecordImage({ src, name, kind, icon = "resources" }) {
+  const [failedSource, setFailedSource] = useState(null);
+  const initials = (name || "Student").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  return <span className={`staff-record-image staff-record-image--${kind}`}>
+    {src && failedSource !== src ? <img src={src} alt={kind === "profile" ? `${name}'s profile picture` : name} loading="lazy" decoding="async" onError={() => setFailedSource(src)} /> : kind === "profile" ? <span aria-label={`${name}: no profile picture`}>{initials}</span> : <DashboardIcon name={icon} />}
+  </span>;
+}
 
-function ReviewRequestsPanel({ rows, requests, requestError }) {
-  const [search, setSearch] = useTabState("ReviewRequestsPanel.search", "");
-  const displayRows = (requests.length > 0 ? requests : rows).filter((row) => row.status === "pending");
-  const filteredRows = displayRows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Request Review Queue</h2>
-          <p>{filteredRows.length} pending request{filteredRows.length === 1 ? "" : "s"} awaiting review.</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search requests..."
-          aria-label="Search requests"
-        />
+function RecordRow({ row, icon = "requests", children, extra }) {
+  const status = row.eligibility || row.current_status || row.status;
+  const studentFirst = icon === "profile" || icon === "graduate";
+  const resourceName = row.resource || row.name;
+  const studentName = row.studentName || row.student?.name || "Student";
+  const detail = row.detail?.startsWith(`${studentName} ? `) ? row.detail.slice(studentName.length + 3) : row.detail;
+  return <div className="record-row staff-media-row">
+    <RecordImage src={studentFirst ? row.avatar : row.resourceImage} name={studentFirst ? studentName : resourceName} kind={studentFirst ? "profile" : "resource"} icon={icon} />
+    <div className="record-copy">
+      <strong>{row.name}</strong>
+      <div className="staff-record-person">
+        <RecordImage src={studentFirst ? row.resourceImage : row.avatar} name={studentFirst ? resourceName : studentName} kind={studentFirst ? "resource" : "profile"} />
+        <span>{studentFirst ? resourceName : studentName}</span>
       </div>
-      {requestError && (
-        <p className="auth-error" role="alert">
-          {requestError}
-        </p>
-      )}
-      <div className="record-list">
-        {filteredRows.map((row, index) => {
-          const resourceName = row.resourceName || row.resource || row.name || "Resource";
-          const resourceImage = resourceImageByName(resourceName);
-          return (
-            <div className="record-row" key={index}>
-              <div className="record-avatar">
-                {resourceImage ? <img src={resourceImage} alt={resourceName} /> : <span>{resourceInitials(resourceName)}</span>}
-              </div>
-              <div className="record-copy">
-                <strong>{row.name}</strong>
-                <small>{row.detail}</small>
-              </div>
-              <span className={`status-pill ${row.status.toLowerCase()}`}>
-                {row.status}
-              </span>
-              <span className="row-action">View details</span>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
+      <small>{detail}</small>{extra}
+    </div>
+    {status && <span className={`status-pill ${status.toLowerCase().replaceAll(" ", "-")}`}>{formatStatus(status)}</span>}
+    <div className="staff-row-actions">{children}</div>
+  </div>;
+}
+
+function RecordDetails({ row, children }) {
+  return <details className="staff-details"><summary>View details</summary><div><h3>{row.name}</h3><p>{row.detail}</p><dl>{[["Student ID", row.studentId], ["Eligibility", row.eligibilityStatus], ["Status", row.status], ["Claim date", row.date], ["Claimed", row.claimed]].filter(([, value]) => value).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{formatStatus(String(value))}</dd></div>)}</dl>{children}</div></details>;
+}
+
+function EligibilityPanel({ rows, onAction }) {
+  return <RecordsPanel id="eligibility" title="Student eligibility" description="Check student qualifications before approving a request." rows={rows} icon="graduate">{(row) => <><RecordRow row={row} icon="graduate"><ActionButton disabled={row.eligibility === "Eligible"} onClick={() => onAction(row.databaseId)}>{row.eligibility === "Eligible" ? "Verified" : "Verify eligibility"}</ActionButton></RecordRow><RecordDetails row={row} /></>}</RecordsPanel>;
+}
+
+function ReviewRequestsPanel({ rows, requests }) {
+  const pending = (requests.length ? requests : rows).filter((row) => row.status === "pending");
+  return <RecordsPanel id="review" title="Request review queue" description="Review pending requests and student information." rows={pending}>{(row) => <><RecordRow row={row}><Link className="row-action" to="/staff/verify_eligibility">Review eligibility</Link></RecordRow><RecordDetails row={row}><Link to="/staff/approve_reject">Go to request decisions →</Link></RecordDetails></>}</RecordsPanel>;
 }
 
 function ApproveRejectPanel({ rows, onApprove, onReject }) {
-  const [search, setSearch] = useTabState("ApproveRejectPanel.search", "");
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const [rejecting, setRejecting] = useState(null);
+  const [reason, setReason] = useState("");
+  return <RecordsPanel id="decisions" title="Request decisions" description="Approve eligible requests or provide a reason for rejection." rows={rows} icon="audit">{(row) => <><RecordRow row={row} icon="audit" extra={<small>Eligibility: {formatStatus(row.eligibilityStatus || "pending")}</small>}>
+    {row.eligibilityStatus === "eligible" ? <ActionButton className="row-action staff-approve" onClick={() => onApprove(row.databaseId)}>Approve</ActionButton> : <Link className="row-action" to="/staff/verify_eligibility">Verify eligibility</Link>}
+    <button className="row-action staff-reject" onClick={() => { setRejecting(rejecting === row.databaseId ? null : row.databaseId); setReason(""); }}>Reject</button>
+  </RecordRow>{rejecting === row.databaseId && <div className="staff-inline-form"><label>Reason for rejection<textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explain why the request cannot be approved." maxLength={1000} /></label><ActionButton disabled={!reason.trim()} className="row-action staff-reject" onClick={() => onReject(row.databaseId, reason.trim())}>Confirm rejection</ActionButton><button className="row-action" onClick={() => setRejecting(null)}>Cancel</button></div>}</>}</RecordsPanel>;
+}
 
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Approve or Reject Requests</h2>
-          <p>{filteredRows.length} requests ready for decision</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search requests..."
-          aria-label="Search requests"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row) => (
-          <div className="record-row approval-row" key={row.databaseId}>
-            <div className="record-icon">
-              {row.status.includes("Approve") ? "✓" : "✗"}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-              <p className="approval-reason">{row.reason}</p>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-            <div className="approval-actions">
-              {row.status === "pending" && (
-                <button className="action-btn approve-btn" onClick={() => onApprove(row.databaseId)}>
-                  Approve
-                </button>
-              )}
-              {row.status === "pending" && (
-                <button className="action-btn reject-btn" onClick={() => onReject(row.databaseId)}>
-                  Reject
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+function ScheduleForm({ row, onSchedule, onCancel }) {
+  const [schedule, setSchedule] = useState({ pickupDate: "", startTime: "09:00", endTime: "11:00", location: "Student Affairs Office" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return <form className="staff-inline-form" onSubmit={async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    if (schedule.endTime <= schedule.startTime) { setError("End time must be after start time."); return; }
+    if (!schedule.location.trim()) { setError("Enter a pickup location."); return; }
+    setError(""); setBusy(true);
+    try { if (await onSchedule(row.databaseId, { ...schedule, location: schedule.location.trim() })) onCancel(); } finally { setBusy(false); }
+  }}>
+    {[["pickupDate", "Pickup date", "date"], ["startTime", "Start time", "time"], ["endTime", "End time", "time"], ["location", "Pickup location", "text"]].map(([key, label, type]) => <label key={key}>{label}<input type={type} min={type === "date" ? today : undefined} required value={schedule[key]} onChange={(event) => setSchedule({ ...schedule, [key]: event.target.value })} /></label>)}
+    {error && <p role="alert">{error}</p>}<button className="row-action staff-primary" disabled={busy}>{busy ? "Saving…" : "Save schedule"}</button><button type="button" className="row-action" disabled={busy} onClick={onCancel}>Cancel</button>
+  </form>;
 }
 
 function SchedulesPanel({ rows, onSchedule }) {
-  const [search, setSearch] = useTabState("SchedulesPanel.search", "");
-  const [scheduleIndex, setScheduleIndex] = useState(null);
-  const [schedule, setSchedule] = useState({ pickupDate: "", startTime: "09:00", endTime: "11:00", location: "Student Affairs Office" });
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Manage Claim Schedules</h2>
-          <p>{rows.length} claim windows scheduled</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search schedules..."
-          aria-label="Search schedules"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row, index) => (
-          <div key={row.databaseId || index}>
-          <div className="record-row">
-            <div className="record-icon">◷</div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-              <p className="schedule-info">{row.assigned} assigned</p>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-            <button className="row-action" onClick={() => setScheduleIndex(scheduleIndex === row.databaseId ? null : row.databaseId)}>{row.action}</button>
-          </div>
-          {scheduleIndex === row.databaseId && <form className="resource-form" onSubmit={(event) => { event.preventDefault(); onSchedule(row.databaseId, schedule); setScheduleIndex(null); }}>
-            <label>Date<input type="date" value={schedule.pickupDate} onChange={(event) => setSchedule((current) => ({ ...current, pickupDate: event.target.value }))} required /></label>
-            <label>Start time<input type="time" value={schedule.startTime} onChange={(event) => setSchedule((current) => ({ ...current, startTime: event.target.value }))} required /></label>
-            <label>End time<input type="time" value={schedule.endTime} onChange={(event) => setSchedule((current) => ({ ...current, endTime: event.target.value }))} required /></label>
-            <label>Location<input value={schedule.location} onChange={(event) => setSchedule((current) => ({ ...current, location: event.target.value }))} required /></label>
-            <button className="admin-primary" type="submit">Save schedule</button>
-          </form>}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+  const [selected, setSelected] = useState(null);
+  return <RecordsPanel id="schedules" title="Claim schedules" description="Set pickup times for reserved allocations awaiting a schedule." rows={rows} icon="calendar">{(row) => <><RecordRow row={row} icon="calendar" extra={<small>{row.assigned} assigned</small>}><button className="row-action staff-primary" onClick={() => setSelected(selected === row.databaseId ? null : row.databaseId)}>Schedule pickup</button></RecordRow>{selected === row.databaseId && <ScheduleForm row={row} onSchedule={onSchedule} onCancel={() => setSelected(null)} />}</>}</RecordsPanel>;
 }
 
 function VerifyClaimsPanel({ rows, onAction }) {
-  const [search, setSearch] = useTabState("VerifyClaimsPanel.search", "");
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Verify Student Claims</h2>
-          <p>{rows.length} claims in system</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search claims..."
-          aria-label="Search claims"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row) => (
-          <div className="record-row" key={row.databaseId}>
-            <div className={`record-icon ${row.status.toLowerCase()}`}>
-              {row.status === "Verified" ? "✓" : row.status === "Pending" ? "?" : "✗"}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-              <p className="claim-date">{row.date}</p>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-            <button className="row-action" onClick={() => onAction(row.databaseId)}>
-              {row.action}
-            </button>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+  return <RecordsPanel id="claims" title="Student claims" description="Verify student identity, then release the allocated resources." rows={rows} icon="claimCalendar">{(row) => <><RecordRow row={row} icon="claimCalendar" extra={<small>Pickup: {row.date}</small>}>{["Verify", "Release"].includes(row.action) && <ActionButton onClick={() => onAction(row.databaseId)}>{row.action === "Verify" ? "Confirm identity" : "Release resources"}</ActionButton>}</RecordRow><RecordDetails row={row} /></>}</RecordsPanel>;
 }
 
 function MonitorDistributionPanel({ rows }) {
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Distribution Monitoring</h2>
-          <p>{rows.length} distribution runs in progress</p>
-        </div>
-      </div>
-      <div className="record-list">
-        {rows.map((row, index) => (
-          <div className="record-row distribution-row" key={index}>
-            <div className={`record-icon ${row.status.toLowerCase()}`}>
-              {row.status === "Released" ? "↓" : row.status === "In Progress" ? "⟳" : "⊝"}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-              <div className="distribution-stats">
-                <span className="released">
-                  <b>Released:</b> {row.released}
-                </span>
-                <span className="pending">
-                  <b>Pending:</b> {row.pending}
-                </span>
-              </div>
-            </div>
-            <span className={`status-pill ${row.status.toLowerCase()}`}>
-              {row.status}
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+  return <RecordsPanel id="distribution" title="Distribution monitoring" description="Track recorded releases and outstanding quantities." rows={rows} icon="distribution">{(row) => <RecordRow row={row} icon="distribution" extra={<div className="staff-quantities"><span>Released <b>{row.released}</b></span><span>Pending <b>{row.pending}</b></span></div>} />}</RecordsPanel>;
 }
 
-function StudentHistoryPanel({ rows, selectedStudent, onSelectStudent }) {
-  const [search, setSearch] = useTabState("StudentHistoryPanel.search", "");
-  const filteredRows = rows.filter((row) =>
-    `${row.name}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Student History & Records</h2>
-          <p>{rows.length} students with records</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search students..."
-          aria-label="Search students"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row) => (
-          <div
-            className={`record-row ${selectedStudent === row.databaseId ? "selected" : ""}`}
-            key={row.databaseId}
-            onClick={() => onSelectStudent(selectedStudent === row.databaseId ? null : row.databaseId)}
-          >
-            <div className="record-icon">
-              {row.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-            </div>
-            <span className="info-badge">{row.claimed}</span>
-            <button className="row-action" onClick={() => onSelectStudent(row.databaseId)}>{row.action}</button>
-          </div>
-        ))}
-      </div>
-
-      {selectedStudent !== null && (
-        <div className="history-detail">
-          <h3>Request History</h3>
-          <p>{rows.find((row) => row.databaseId === selectedStudent)?.detail || "No matching request history."}</p>
-        </div>
-      )}
-    </section>
-  );
+function StudentHistoryPanel({ rows }) {
+  return <RecordsPanel id="history" title="Student history & records" description="Search student request records and review their claim status." rows={rows} icon="history">{(row) => <><RecordRow row={row} icon="profile" extra={<small>{row.claimed}</small>} /><RecordDetails row={row} /></>}</RecordsPanel>;
 }
 
 function UpdateStatusPanel({ rows, onUpdateStatus }) {
-  const [search, setSearch] = useTabState("UpdateStatusPanel.search", "");
-  const [draftStatuses, setDraftStatuses] = useState({});
-  const filteredRows = rows.filter((row) =>
-    `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <section className="admin-panel record-panel">
-      <div className="record-toolbar">
-        <div>
-          <h2>Update Request Status</h2>
-          <p>{rows.length} requests in workflow</p>
-        </div>
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search requests..."
-          aria-label="Search requests"
-        />
-      </div>
-      <div className="record-list">
-        {filteredRows.map((row) => {
-          const selectedStatus = draftStatuses[row.databaseId] || row.current_status;
-          return (
-          <div className="record-row status-update-row" key={row.databaseId}>
-            <div className="record-icon">⟳</div>
-            <div className="record-copy">
-              <strong>{row.name}</strong>
-              <small>{row.detail}</small>
-            </div>
-            <div className="status-controls">
-              <span className="current-status">{row.current_status}</span>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setDraftStatuses((current) => ({ ...current, [row.databaseId]: e.target.value }))}
-                className="status-select"
-              >
-                <option value={row.current_status}>{row.current_status}</option>
-                {row.possible_statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button className="row-action" type="button" disabled={selectedStatus === row.current_status} onClick={() => onUpdateStatus(row.databaseId, selectedStatus)}>Save</button>
-          </div>
-          );
-        })}
-      </div>
-    </section>
-  );
+  const [drafts, setDrafts] = useState({});
+  return <RecordsPanel id="status" title="Request status" description="Save available transitions or continue through the linked workflow." rows={rows} icon="history">{(row) => {
+    const available = row.possible_statuses || [];
+    const selected = available.includes(drafts[row.databaseId]) ? drafts[row.databaseId] : row.current_status;
+    return <RecordRow row={row} icon="history">{row.current_status === "pending" ? <Link className="row-action" to="/staff/approve_reject">Review decision</Link> : available.length ? <><select aria-label={`New status for ${row.name}`} value={selected} onChange={(event) => setDrafts({ ...drafts, [row.databaseId]: event.target.value })}><option value={row.current_status}>{formatStatus(row.current_status)}</option>{available.map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}</select><ActionButton disabled={selected === row.current_status} onClick={() => onUpdateStatus(row.databaseId, selected)}>Save status</ActionButton></> : row.current_status === "approved" ? <Link className="row-action" to="/staff/manage_schedules">Manage schedule</Link> : row.current_status === "ready_for_claim" ? <Link className="row-action" to="/staff/verify_claims">Verify claim</Link> : <span className="staff-final-status">No further action</span>}</RecordRow>;
+  }}</RecordsPanel>;
 }
 
 export default StaffServicesDashboard;

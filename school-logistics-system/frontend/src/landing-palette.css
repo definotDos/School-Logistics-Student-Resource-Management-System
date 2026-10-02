@@ -111,8 +111,32 @@
 }
 
 /* Teal ties the headline, icons, and illustration together. */
-.landing-page.landing-palette .hero-copy h1 span {
+.landing-page.landing-palette .hero-copy h1 .hero-stretch-accent {
   color: var(--landing-accent);
+}
+
+/* Each phrase keeps its space while the letters stretch and settle. */
+.landing-page.landing-palette .hero-copy .hero-stretch-line {
+  display: block;
+  color: var(--landing-text);
+  transform-origin: left center;
+  animation: hero-text-stretch 3s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+}
+
+.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(2) { animation-delay: 100ms; }
+.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(3) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page.landing-palette .hero-copy .hero-stretch-line {
+    animation: none;
+  }
+}
+
+@keyframes hero-text-stretch {
+  0%, 28%, 100% { transform: none; }
+  8% { transform: scale(0.94, 1.14); }
+  16% { transform: scale(1.015, 0.96); }
+  22% { transform: scale(0.995, 1.02); }
 }
 
 .landing-page.landing-palette :is(.landing-badge, .benefit-icon, .feature-check, .contact-icon, .audience-avatar, .contact-avatar) {

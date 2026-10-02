@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { authAPI, campusAPI } from '../../services/api'
 import { campuses as campusDirectory } from '../../data/campuses'
 import { AuthLoadingButton } from '../../components/auth/AuthLoadingButton'
+import { LegalDialog } from '../../components/auth/LegalDialog'
 import './Signup.css'
 
 export function SignupPage({
@@ -15,6 +16,7 @@ export function SignupPage({
 }) {
   const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
+  const [legalDocument, setLegalDocument] = useState(null)
   const [employeeIdChecked, setEmployeeIdChecked] = useState(false)
   const [isCheckingId, setIsCheckingId] = useState(false)
   const [employeeIdError, setEmployeeIdError] = useState('')
@@ -279,11 +281,15 @@ export function SignupPage({
           <small className="signup-field-hint">Use at least 8 characters.</small>
           {validationErrors.password && <small className="field-error">{validationErrors.password}</small>}
         </label>
-        <label className="terms form-wide"><input type="checkbox" required /> <span>I agree to the <button type="button">Terms of Service</button> and <button type="button">Privacy Policy</button>.</span></label>
+        <div className="terms form-wide">
+          <input id="signup-terms" type="checkbox" required aria-labelledby="signup-terms-label" />
+          <span id="signup-terms-label"><label htmlFor="signup-terms">I agree to the </label><button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('terms')}>Terms of Service</button> and <button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('privacy')}>Privacy Policy</button>.</span>
+        </div>
         <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Creating account...">Sign Up</AuthLoadingButton>
         <p className="signup-account-note form-wide">{form.role === 'staff' ? 'Create your staff account using your school email.' : 'Create your student account using your school email.'} Email verification is required.</p>
       </form>
       )}
+      {legalDocument && <LegalDialog document={legalDocument} onClose={() => setLegalDocument(null)} />}
     </div>
   )
 }

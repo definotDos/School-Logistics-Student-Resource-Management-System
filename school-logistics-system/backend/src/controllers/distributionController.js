@@ -329,7 +329,7 @@ async function getAllSchedules(req, res) {
 
 		const schedules = await ClaimSchedule.find(filter)
 			.populate("allocation", "quantity campus")
-			.populate("student", "name email")
+			.populate("student", "name email avatar")
 			.populate("resource", "name category")
 			.sort({ pickupDate: -1 });
 
@@ -354,7 +354,7 @@ async function getDistributions(req, res) {
 		Object.assign(filter, campusFilter(req));
 
 		const distributions = await Distribution.find(filter)
-			.populate("student", "name email")
+			.populate("student", "name email avatar")
 			.populate("resource", "name category")
 			.populate("releasedBy", "name")
 			.sort({ createdAt: -1 });

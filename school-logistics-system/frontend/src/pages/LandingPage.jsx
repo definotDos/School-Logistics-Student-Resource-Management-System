@@ -214,8 +214,10 @@ export function LandingPage() {
         <div className="hero-copy">
           <div className="landing-badge">School Logistics System</div>
 
-          <h1>
-            Manage campus resources with <span>clarity and speed.</span>
+          <h1 className="hero-stretch-title">
+            <span className="hero-stretch-line">Manage campus</span>{' '}
+            <span className="hero-stretch-line">resources with</span>{' '}
+            <span className="hero-stretch-line hero-stretch-accent">clarity and speed.</span>
           </h1>
 
           <p>

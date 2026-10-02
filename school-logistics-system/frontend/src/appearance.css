@@ -1,0 +1,108 @@
+/* Browser preferences are scoped to authenticated workspaces. */
+:root { --chosen-accent: #087e83; --chosen-bright: #78ddd0; --chosen-soft: #e4f4f1; }
+:root[data-accent="blue"] { --chosen-accent: #245fc0; --chosen-bright: #9bc3ff; --chosen-soft: #eaf1ff; }
+:root[data-accent="violet"] { --chosen-accent: #7144b8; --chosen-bright: #cfb3ff; --chosen-soft: #f2ebfc; }
+:root[data-accent="rose"] { --chosen-accent: #ad365f; --chosen-bright: #ffadc8; --chosen-soft: #fcebf1; }
+html[data-accent] .organized-workspace {
+  --appearance-accent: var(--chosen-accent); --appearance-soft: var(--chosen-soft); --appearance-on-accent: #fff;
+  --utility-accent: var(--appearance-accent); --utility-accent-hover: var(--appearance-accent); --utility-soft: var(--appearance-soft); --utility-on-accent: var(--appearance-on-accent);
+}
+html[data-accent] .organized-workspace.dark-mode { --appearance-accent: var(--chosen-bright); --appearance-soft: color-mix(in srgb, var(--chosen-bright) 14%, #19283b); --appearance-on-accent: #142235; }
+html[data-accent] .organized-workspace .app-sidebar { --nav-selected-bg: color-mix(in srgb, var(--chosen-accent) 35%, #142b43); --nav-selected-border: var(--chosen-bright); --nav-selected-icon-text: var(--chosen-bright); --nav-accent: var(--chosen-bright); }
+html[data-accent] .organized-workspace :is(.admin-primary, .dashboard-primary-action, .profile-save) { background: var(--appearance-accent); color: var(--appearance-on-accent); }
+html[data-accent] .organized-workspace :is(.admin-primary, .dashboard-primary-action, .profile-save):hover { background: color-mix(in srgb, var(--appearance-accent) 85%, var(--appearance-on-accent)); }
+html[data-accent] .organized-workspace :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--appearance-accent); outline-offset: 3px; }
+.utility-shell .appearance-card .utility-theme-options { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.utility-shell .appearance-card fieldset { min-width: 0; }
+.utility-shell .appearance-card legend { color: var(--utility-ink); font-size: 13px; font-weight: 650; }
+.utility-shell .appearance-card .utility-theme-option { padding: 8px; }
+.utility-shell .appearance-card .utility-theme-label { font-size: 12px; padding-left: 0; }
+.utility-shell .appearance-card .utility-theme-preview { height: 64px; padding: 6px; gap: 5px; }
+.utility-theme-preview.system { background: linear-gradient(115deg, #f3f6fa 50%, #101b2b 50%); }
+.utility-theme-preview.system b { background: linear-gradient(115deg, #fff 50%, #263b50 50%); }
+.utility-shell .appearance-hint { margin: 10px 0 22px; color: var(--utility-muted); font-size: 12px; }
+.appearance-colors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; border: 0; padding: 20px 0 0; margin: 0; border-top: 1px solid var(--utility-border); }
+.appearance-colors legend { padding: 0 6px 0 0; }
+.utility-shell .appearance-swatch { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; margin: 0; padding: 10px 2px; position: relative; border-radius: 10px; border: 1px solid transparent; }
+.appearance-swatch.teal { --swatch: #087e83; }.appearance-swatch.blue { --swatch: #245fc0; }.appearance-swatch.violet { --swatch: #7144b8; }.appearance-swatch.rose { --swatch: #ad365f; }
+.appearance-swatch > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--swatch); color: white; font-weight: 700; }
+.appearance-swatch strong { font-size: 11px; font-weight: 500; }
+.utility-shell .appearance-swatch input { position: absolute; opacity: 0; width: 100%; height: 100%; min-height: 0; inset: 0; margin: 0; cursor: pointer; }
+.appearance-swatch:has(input:checked) { background: var(--utility-soft); border-color: var(--utility-accent); }
+.appearance-swatch:has(input:focus-visible) { outline: 3px solid var(--utility-accent); outline-offset: 3px; }
+.appearance-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 8px; }
+.utility-shell .appearance-motion { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; margin: 20px 0 0; border-top: 1px solid var(--utility-border); cursor: pointer; }
+.appearance-motion small { display: block; color: var(--utility-muted); font-size: 12px; margin-top: 5px; font-weight: 400; }
+.utility-shell .appearance-motion input { width: 20px; height: 20px; min-height: 0; flex-shrink: 0; accent-color: var(--utility-accent); }
+.appearance-sample { display: grid; gap: 8px; padding: 18px; border: 1px solid var(--utility-border); border-radius: 12px; background: var(--utility-input); }
+.appearance-sample-label { color: var(--utility-muted); font-size: 10px; letter-spacing: .12em; }
+.appearance-sample > strong { font-size: 14px; }.utility-shell .appearance-sample p { margin: 0; color: var(--utility-muted); font-size: 12px; }
+.appearance-sample-tag { justify-self: start; padding: 6px 10px; border-radius: 6px; font-size: 11px; background: var(--utility-accent); color: var(--utility-on-accent); }
+.appearance-footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--utility-border); }
+.utility-shell .appearance-footer p { font-size: 11px; color: var(--utility-muted); margin: 0 0 12px; }
+.utility-shell .appearance-footer button { min-height: 40px; padding: 8px 12px; background: var(--utility-soft); color: var(--utility-ink); border: 1px solid var(--utility-border); border-radius: 8px; cursor: pointer; font: inherit; font-size: 12px; }
+/* Explicit overrides are needed because legacy page styles use fixed pixel sizes. */
+html[data-text-size="large"] .organized-workspace :is(p, li, label, input, select, textarea, td, th, dd, dt, button, .sidebar-link, .record-copy, .appearance-sample > strong) { font-size: 1rem; }
+html[data-text-size="large"] .organized-workspace :is(small, .appearance-hint, .appearance-swatch strong, .utility-theme-label, .appearance-footer p) { font-size: .875rem; }
+html[data-density="compact"] .organized-workspace :is(.utility-card, .admin-panel, .dashboard-panel) { padding: 16px; }
+html[data-density="compact"] .organized-workspace :is(.utility-stack, .utility-grid, .admin-grid, .dashboard-grid) { gap: 14px; }
+html[data-density="compact"] .organized-workspace :is(td, th, .record-row, .request-row, .utility-details > div) { padding-top: 8px; padding-bottom: 8px; }
+html[data-density="compact"] .organized-workspace .utility-section-heading { margin-bottom: 16px; }
+html[data-density="compact"] .organized-workspace .appearance-sample { padding: 12px; gap: 5px; }
+html[data-reduce-motion="true"] .organized-workspace *, html[data-reduce-motion="true"] .organized-workspace *::before, html[data-reduce-motion="true"] .organized-workspace *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) { .organized-workspace *, .organized-workspace *::before, .organized-workspace *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 380px) { .utility-shell .appearance-card .utility-theme-options { grid-template-columns: 1fr; }.appearance-controls { grid-template-columns: 1fr; } }
+/* Match the settings palette specificity so every accent also updates its controls. */
+html[data-accent] .admin-shell.organized-workspace.utility-shell {
+  --utility-accent: var(--appearance-accent);
+  --utility-accent-hover: var(--appearance-accent);
+  --utility-soft: var(--appearance-soft);
+  --utility-on-accent: var(--appearance-on-accent);
+}
+
+/* Extended accent palette: dark swatches support white selection marks. */
+:root[data-accent="emerald"] { --chosen-accent: #19734d; --chosen-bright: #8ce0b6; --chosen-soft: #e5f5ed; }
+:root[data-accent="amber"] { --chosen-accent: #925b0b; --chosen-bright: #f5cb7b; --chosen-soft: #fff3dd; }
+:root[data-accent="indigo"] { --chosen-accent: #484ab5; --chosen-bright: #b8bbff; --chosen-soft: #ededfc; }
+:root[data-accent="slate"] { --chosen-accent: #526277; --chosen-bright: #becddd; --chosen-soft: #edf1f5; }
+.appearance-swatch.emerald { --swatch: #19734d; }
+.appearance-swatch.amber { --swatch: #925b0b; }
+.appearance-swatch.indigo { --swatch: #484ab5; }
+.appearance-swatch.slate { --swatch: #526277; }
+.utility-shell .appearance-mode-description { display: block; color: var(--utility-muted); font-size: 10px; line-height: 1.5; margin-top: 4px; }
+.utility-shell .appearance-card .utility-theme-option input { top: 84px; bottom: auto; }
+.utility-shell .appearance-card .utility-theme-label { padding-right: 20px; }
+.utility-shell .appearance-card .utility-theme-options { gap: 12px; }
+.utility-theme-preview.warm { background: #f5efe4; border-color: #ddd2c0; }
+.utility-theme-preview.warm > i { background: #66533e; }
+.utility-theme-preview.warm b { background: #fffcf6; border-color: #ddd2c0; }
+.utility-theme-preview.warm b:first-child { background: #e5ca9c; }
+.utility-theme-preview.ocean { background: #eaf3f8; border-color: #c9dce8; }
+.utility-theme-preview.ocean > i { background: #24465e; }
+.utility-theme-preview.ocean b { background: #f6fbff; border-color: #c9dce8; }
+.utility-theme-preview.ocean b:first-child { background: #9dcfe4; }
+.utility-theme-preview.midnight { background: #0e1118; border-color: #363b49; }
+.utility-theme-preview.midnight > i { background: #282d3b; }
+.utility-theme-preview.midnight b { background: #1b202c; border-color: #363b49; }
+.utility-theme-preview.midnight b:first-child { background: #777e9f; }
+/* The System preview uses one continuous split across the complete miniature. */
+.utility-theme-preview.system { position: relative; overflow: hidden; background: #f3f6fa; }
+.utility-theme-preview.system b { background: #fff; }
+.utility-theme-preview.system::after { content: ""; position: absolute; inset: 0 0 0 50%; background: #17283a; mix-blend-mode: multiply; pointer-events: none; }
+:root[data-theme="warm"] { --mode-canvas: #f5efe4; --mode-surface: #fffcf6; --mode-soft: #f0e7d8; --mode-border: #dacebc; --mode-ink: #453b30; --mode-muted: #706252; }
+:root[data-theme="ocean"] { --mode-canvas: #eaf3f8; --mode-surface: #f7fbfe; --mode-soft: #e0eef6; --mode-border: #c4d9e6; --mode-ink: #203e52; --mode-muted: #4f6a7d; }
+:root[data-theme="midnight"] { --mode-canvas: #0e1118; --mode-surface: #191e29; --mode-soft: #232a38; --mode-border: #394151; --mode-ink: #edf0f8; --mode-muted: #b4bfd2; }
+html:is([data-theme="warm"], [data-theme="ocean"], [data-theme="midnight"]) .organized-workspace {
+  --utility-canvas: var(--mode-canvas); --utility-surface: var(--mode-surface); --utility-input: var(--mode-canvas); --utility-border: var(--mode-border); --utility-ink: var(--mode-ink); --utility-muted: var(--mode-muted);
+  --light-ink: var(--mode-ink); --light-muted: var(--mode-muted); --light-soft: var(--mode-soft); --light-border: var(--mode-border);
+  --workspace-surface: var(--mode-surface); --workspace-border: var(--mode-border); --workspace-muted: var(--mode-muted);
+  --glass-surface: var(--mode-surface); --glass-soft: var(--mode-soft); --glass-ink: var(--mode-ink); --glass-muted: var(--mode-muted); --glass-border: var(--mode-border);
+}
+/* Include shell classes to override the existing fixed surface colors. */
+html:is([data-theme="warm"], [data-theme="ocean"], [data-theme="midnight"]) :is(.admin-shell, .dashboard-shell).organized-workspace:is(.dark-mode, :not(.dark-mode)) {
+  background: var(--mode-canvas); color: var(--mode-ink);
+  --utility-canvas: var(--mode-canvas); --utility-surface: var(--mode-surface); --utility-input: var(--mode-canvas); --utility-border: var(--mode-border); --utility-ink: var(--mode-ink); --utility-muted: var(--mode-muted);
+}
+html:is([data-theme="warm"], [data-theme="ocean"], [data-theme="midnight"]) :is(.admin-shell, .dashboard-shell).organized-workspace:is(.dark-mode, :not(.dark-mode)) :is(.app-header, .admin-panel, .dashboard-panel, .admin-stat, .dashboard-stat, .admin-topline, .dashboard-welcome, .notification-menu, .search-results, .profile-modal) { background: var(--mode-surface); color: var(--mode-ink); border-color: var(--mode-border); }
+html:is([data-theme="warm"], [data-theme="ocean"], [data-theme="midnight"]) .organized-workspace :is(.panel-heading, .admin-panel-heading, .record-toolbar) { background: var(--mode-soft); border-color: var(--mode-border); }
+@media (max-width: 480px) { .utility-shell .appearance-card .utility-theme-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

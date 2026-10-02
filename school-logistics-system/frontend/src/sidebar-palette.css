@@ -1,5 +1,8 @@
 /* Shared navigation palette. Keep selection colors together for every role. */
 .app-sidebar {
+  --footer-surface: #142b43;
+  --footer-text: #dce8f4;
+  --footer-muted: #aac1d7;
   --nav-heading: #b8cee3;
   --nav-divider: #a6c8e540;
   --nav-text: #c5d5e6;
@@ -15,6 +18,102 @@
   --nav-icon-text: #a9c8e4;
   --nav-selected-icon-bg: #305b78;
   --nav-selected-icon-text: #c5edff;
+}
+
+.organized-workspace.dark-mode .app-sidebar {
+  --footer-surface: #0e1b2c;
+  --footer-text: #e5eff9;
+  --footer-muted: #adbed3;
+}
+
+/* One footer layout across roles and themes, including short viewports. */
+.organized-workspace .app-sidebar .sidebar-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 12px 14px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--nav-divider);
+  background: var(--footer-surface);
+}
+
+.organized-workspace .app-sidebar .sidebar-footer .sidebar-utility-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--footer-text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.organized-workspace .app-sidebar .sidebar-utility-link .dashboard-icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.organized-workspace .app-sidebar .sidebar-footer .sidebar-utility-link:is(:hover, [aria-current="page"]) {
+  background: var(--nav-hover-bg);
+  border-color: var(--nav-hover-border);
+  color: var(--nav-selected-text);
+}
+
+.organized-workspace .app-sidebar .sidebar-utility-link:focus-visible {
+  outline: 2px solid var(--nav-accent);
+  outline-offset: 2px;
+}
+
+.organized-workspace .app-sidebar .sidebar-footer .sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  margin: 10px 0 0;
+  padding: 14px 4px 0;
+  border-top: 1px solid var(--nav-divider);
+}
+
+.organized-workspace .app-sidebar .sidebar-user > :is(img, b) {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #dcecf7;
+  color: #16334d;
+  font-size: 12px;
+}
+
+.organized-workspace .app-sidebar .sidebar-user > span { flex: 1; min-width: 0; }
+.organized-workspace .app-sidebar .sidebar-user :is(strong, small) {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.organized-workspace .app-sidebar .sidebar-user strong { color: var(--footer-text); font-size: 13px; }
+.organized-workspace .app-sidebar .sidebar-user small { color: var(--footer-muted); font-size: 11px; margin-top: 2px; }
+
+@media (min-width: 761px) {
+  .dashboard-shell.organized-workspace > .app-sidebar { overflow: hidden; }
+  .dashboard-shell.organized-workspace .app-sidebar .sidebar-nav {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .organized-workspace .app-sidebar > :is(.sidebar-brand, .campus-switch) { flex-shrink: 0; }
 }
 
 /* The sidebar stays navy in light mode, so its headings need their own ink.

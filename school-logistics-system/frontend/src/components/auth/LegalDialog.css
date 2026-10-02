@@ -1,0 +1,64 @@
+﻿/* Shared palette: ink, iris, lavender, sea glass, and warm ivory. */
+.signup-legal-dialog {
+  --legal-ink: #24334b;
+  --legal-muted: #56657b;
+  --legal-primary: #6554b3;
+  --legal-primary-hover: #514192;
+  --legal-lavender: #eeeafa;
+  --legal-teal: #246b67;
+  --legal-mint: #eaf5f1;
+  --legal-paper: #f8f9fc;
+  --legal-border: #dce3ed;
+}
+.signup-legal-dialog { width: min(720px, calc(100vw - 40px)); max-width: none; max-height: calc(100dvh - 40px); margin: auto; padding: 0; border: 1px solid var(--legal-border); border-radius: 22px; background: #fff; color: var(--legal-ink); box-shadow: 0 32px 100px #09122b55; overflow: hidden; }
+.signup-legal-dialog::backdrop { background: #10182eb3; backdrop-filter: blur(6px); }
+.signup-legal-content { display: flex; flex-direction: column; max-height: calc(100dvh - 42px); }
+.signup-legal-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; padding: 24px 28px; border-bottom: 1px solid var(--legal-border); background: linear-gradient(115deg, #eeeafa 0%, #f5f5fc 55%, #eaf5f1 100%); }
+.signup-legal-header p { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; color: #74718b; font-size: 11px; font-weight: 600; }
+.signup-legal-badge { padding: 3px 8px; border-radius: 6px; background: var(--legal-mint); color: var(--legal-teal); font-size: 10px; font-weight: 500; }
+.signup-legal-header h2 { margin: 0; color: var(--legal-ink); font-size: clamp(22px, 4vw, 28px); font-weight: 700; letter-spacing: -.035em; line-height: 1.25; }
+.signup-legal-close { flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #e7e4ef; border-radius: 12px; background: #fff; color: #747087; font-size: 26px; cursor: pointer; }
+.signup-legal-close:hover { background: #f0ebfb; color: #6846bd; }
+.signup-legal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cac4dc transparent; padding: 24px 28px 28px; background: var(--legal-paper); font-size: 14px; line-height: 1.7; }
+.signup-legal-draft { padding: 14px 16px; border: 1px solid #e9dcc3; border-left: 3px solid #b78b45; border-radius: 12px; background: #fbf6eb; }
+.signup-legal-draft strong { display: flex; align-items: center; gap: 7px; color: #795b2f; font-size: 12px; font-weight: 700; }
+.signup-legal-draft strong::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #b78b45; }
+.signup-legal-draft p { margin: 5px 0 0; color: #766448; font-size: 12px; line-height: 1.6; }
+.signup-legal-intro { margin: 20px 0; color: var(--legal-muted); }
+.signup-legal-nav { margin-bottom: 24px; }
+.signup-legal-nav > p { margin: 0 0 10px; color: var(--legal-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+.signup-legal-nav > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.signup-legal-nav button { display: inline-flex; align-items: center; gap: 9px; padding: 7px 10px; min-height: 36px; border: 1px solid #e6e7ee; border-radius: 8px; background: #fff; color: #596078; font: inherit; font-size: 11px; cursor: pointer; }
+.signup-legal-nav button span { color: var(--legal-teal); }
+.signup-legal-nav button:hover { background: var(--legal-mint); border-color: #a6cbc2; color: var(--legal-teal); }
+.signup-legal-sections { display: grid; gap: 12px; }
+.signup-legal-sections section { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border: 1px solid var(--legal-border); border-radius: 13px; background: #fff; scroll-margin-top: 12px; }
+.signup-legal-number { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; background: var(--legal-lavender); color: var(--legal-primary); font-size: 11px; font-weight: 700; }
+.signup-legal-sections h3 { margin: 3px 0 7px; color: var(--legal-ink); font-size: 14px; font-weight: 700; line-height: 1.5; }
+.signup-legal-sections p { margin: 0; color: var(--legal-muted); font-size: 13px; line-height: 1.8; }
+.signup-legal-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; padding: 18px 28px; border-top: 1px solid var(--legal-border); background: #fff; }
+.signup-legal-footer p { margin: 0; color: var(--legal-muted); font-size: 11px; line-height: 1.6; }
+.signup-legal-footer p span { display: block; color: var(--legal-muted); font-size: 10px; }
+.signup-legal-footer button { display: flex; align-items: center; justify-content: center; gap: 16px; flex-shrink: 0; min-height: 44px; padding: 11px 18px; border: 1px solid var(--legal-primary); border-radius: 10px; background: var(--legal-primary); color: #fff; font: inherit; font-size: 12px; font-weight: 600; box-shadow: 0 3px 8px #6846bd24; cursor: pointer; }
+.signup-legal-footer button:hover { background: var(--legal-primary-hover); }
+.signup-legal-dialog button:focus-visible, .signup-legal-sections section:focus-visible { outline: 2px solid #9273dd; outline-offset: 3px; }
+@media (max-width: 480px) {
+  .signup-legal-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); border-radius: 16px; }
+  .signup-legal-content { max-height: calc(100dvh - 22px); }
+  .signup-legal-header { gap: 10px; padding: 18px 16px; }
+  .signup-legal-header h2 { font-size: 22px; }
+  .signup-legal-body { padding: 16px; }
+  .signup-legal-sections section { padding: 14px; gap: 10px; }
+  .signup-legal-footer { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+  .signup-legal-footer p { width: 100%; }
+  .signup-legal-footer button { width: 100%; }
+}
+
+.signup-legal-sections section { box-shadow: 0 2px 6px #24334b04; border-left: 3px solid #c8bee9; }
+.signup-legal-sections section:nth-child(even) { border-left-color: #a6cbc2; }
+.signup-legal-sections section:nth-child(even) .signup-legal-number { color: var(--legal-teal); background: var(--legal-mint); }
+.signup-legal-sections section:focus { background: #f6f3fd; }
+.signup-legal-nav button { font-size: 12px; min-height: 40px; }
+.signup-legal-footer { background: #fdfdff; }
+.signup-legal-footer button { background: linear-gradient(135deg, var(--legal-primary), #7564c3); }
+.signup-legal-footer button:hover { background: var(--legal-primary-hover); }

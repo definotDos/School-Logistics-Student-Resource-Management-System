@@ -5,6 +5,7 @@ import { campusAPI } from "../services/api";
 import DashboardIcon from "./DashboardIcon";
 import { campuses as campusDirectory } from "../data/campuses";
 import useMobileNavigation from "../hooks/useMobileNavigation";
+import "./AccountUtilities.css";
 
 const studentLinks = [
   { name: "Dashboard", path: "/student", icon: "home" },
@@ -151,7 +152,8 @@ function Sidebar({ type = "student" }) {
         </button>
       </nav>
       <div className="sidebar-footer">
-        <button>◌ Help and Support</button><button>⚙ Settings</button>
+        <NavLink to="/help" className="sidebar-utility-link" onClick={() => setNavigationOpen(false)}><DashboardIcon name="help" />Help and Support</NavLink>
+        <NavLink to="/settings" className="sidebar-utility-link" onClick={() => setNavigationOpen(false)}><DashboardIcon name="settings" />Settings</NavLink>
         <div className="sidebar-user">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{type === "admin" ? "Administrator" : type === "staff" ? "Staff Member" : `${user?.grade || "Grade 11"} | ${user?.strand || "STEM"}`}</small></span></div>
       </div>
       {isLoggingOut && <div className="logout-notice" role="status"><span className="logout-spinner" aria-hidden="true" /><span><strong>Signed out successfully</strong><small>Please come back soon.</small></span></div>}

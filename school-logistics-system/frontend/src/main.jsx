@@ -12,6 +12,10 @@ import "./light-theme.css";
 import "./sidebar-palette.css";
 import "./landing-palette.css";
 import "./responsive.css";
+import "./appearance.css";
+import { initializeAppearance } from "./utils/appearance";
+
+initializeAppearance();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
