@@ -6,6 +6,10 @@ const Resource = require("./models/Resource");
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
+  const emailProvider = (process.env.EMAIL_PROVIDER || 'mailtrap').trim().toLowerCase();
+  console.info(JSON.stringify({ event: 'deployment_configuration',
+    revision: process.env.RENDER_GIT_COMMIT || 'local',
+    emailTransport: emailProvider === 'resend' ? 'resend_https' : 'smtp' }));
   const { signingKey } = require('./utils/session');
   signingKey();
   require('./services/loginFactor').secret();

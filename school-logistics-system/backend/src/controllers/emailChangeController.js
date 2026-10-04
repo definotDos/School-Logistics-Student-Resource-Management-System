@@ -26,7 +26,7 @@ async function confirmEmailChange(req, res) {
     const user = await User.findOneAndUpdate({ _id: req.user._id, pendingEmail: email.trim().toLowerCase(), emailChangeHash: hash(code), emailChangeExpiresAt: { $gt: new Date() } }, {
       $set: { email: email.trim().toLowerCase(), emailVerified: true },
       $unset: { pendingEmail: 1, emailChangeHash: 1, emailChangeExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1 },
-    }, { new: true, runValidators: true });
+    }, { returnDocument: 'after', runValidators: true });
     if (!user) return res.status(400).json({ message: "Code invalid or expired. Request a new code and try again." });
     res.json({ user: publicUser(user), message: "Email changed and verified." });
   } catch (error) {

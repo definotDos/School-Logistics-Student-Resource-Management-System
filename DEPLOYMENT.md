@@ -1,140 +1,141 @@
-# Deploy to Vercel
+﻿# Deployment: Vercel frontend + Render backend
 
-The repository-level `vercel.json` builds the frontend in
-`school-logistics-system/frontend` and serves its `dist` directory.
+## Current diagnosis
 
-1. Commit and push the deployment configuration to the branch connected to Vercel.
-2. In Vercel project Settings, set Root Directory to the repository root (leave it blank).
-3. Use the Vite framework preset. Clear any dashboard overrides for Install Command,
-   Build Command, and Output Directory so `vercel.json` supplies these settings.
-4. Set `VITE_API_URL=/api` in Vercel's production environment variables (or remove
-   the variable to use the default). Both Vercel configurations proxy `/api/*` to
-   `https://school-logistics-student-resource.onrender.com/api/*` before the SPA
-   fallback. Keeping requests on the frontend domain also supports the backend's
-   same-site trusted-device cookie.
-5. Deploy the latest commit. Changing environment variables requires a new build.
-6. Open `/`, then open and refresh `/login` to check the SPA fallback. Check login
-   with an existing account after connecting the backend.
+On October 5, 2026, read-only checks returned HTTP 200 JSON from both:
+- https://school-logistics-student-resource.onrender.com/
+- https://school-logistics-student-resource-m-beta.vercel.app/api/campuses/public
 
-The frontend-folder `vercel.json` also supports projects whose Root Directory is
-`school-logistics-system/frontend`; in that case use `npm ci`, `npm run build`, and
-`dist`. Do not mix those paths with the repository-root configuration.
+The API and frontend proxy are reachable. This does not prove email delivery.
+The screenshot shows commit `3f91b76`, which already contains Resend support.
+Render's reported email provider is Gmail. Render Free blocks SMTP ports 25,
+465, and 587, including Gmail SMTP. If using Free, choose an email option below.
+Redeploying unchanged Gmail settings will not remove this restriction.
 
-## Backend
+The screenshot's `login_error` status 429 is the application's login-code cooldown,
+not evidence of a Resend rate limit. Wait 60 seconds between login attempts.
+For the browser's 503, find the matching `login_code_delivery_failed` event.
 
-This static frontend deployment does not run the Express backend. Vite proxies
-`/api` locally; the Vercel rewrite proxies it in production. If the backend URL
-changes, update both `vercel.json` files.
+## 1. Render service settings
 
-Deploy `school-logistics-system/backend` to a Node.js host using `npm ci` as the
-install command and `npm start` as the start command. Set `MONGODB_URI` to a database
-reachable from that host and set `JWT_SECRET` to a strong private value. Configure
-`EMAIL_PROVIDER`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`,
-and `EMAIL_FROM` as required by your email provider for verification and password
-reset emails. The server uses the host's `PORT` environment variable.
+| Setting | Value |
+| --- | --- |
+| Repository | `definotDos/School-Logistics-Student-Resource-Management-System` |
+| Branch | `main` |
+| Root Directory | `school-logistics-system/backend` |
+| Build Command | `npm ci` |
+| Start Command | `npm start` |
 
-Store database, JWT, and SMTP credentials only on the backend host. `VITE_`
-variables are included in public frontend assets; `VITE_API_URL` is a public URL.
+Set these in **Render > Environment**. Local `.env` edits do not update Render.
 
-## Required Render settings for this deployment
+| Variable | Production value |
+| --- | --- |
+| `NODE_ENV` | `production` |
+| `FRONTEND_ORIGIN` | `https://school-logistics-student-resource-m-beta.vercel.app` |
+| `TRUST_PROXY_HOPS` | `1` for this Render proxy setup |
+| `MONGODB_URI` | Existing database connection string; legacy `MONGO_URI` also works |
+| `JWT_SECRET` | Existing private value, at least 32 bytes |
+| `OTP_SECRET` | Existing independent private value, at least 32 bytes |
+| `AUTH_AUDIT_SECRET` | Existing independent private value, at least 32 bytes |
 
-Use root directory `school-logistics-system/backend`, build command `npm ci`, and
-start command `npm start`. Configure these environment variables on Render:
+Use Render's supplied `PORT`. Permit database connections from Render.
+Preserve existing secrets when fixing email or routing.
+
+## 2. Choose email delivery
+
+### Option A: HTTPS email on Render Free
+
+Verify a domain you own in Resend, create a sending API key, then set on Render:
 
 ```dotenv
-NODE_ENV=production
-FRONTEND_ORIGIN=https://school-logistics-student-resource-m-beta.vercel.app
-TRUST_PROXY_HOPS=1
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=<private sending API key>
+EMAIL_FROM=School Logistics <noreply@your-verified-domain.com>
 ```
 
-Render terminates HTTPS at its reverse proxy. `TRUST_PROXY_HOPS=1` lets Express
-recognize the forwarded HTTPS request; without it the API responds with
-`HTTPS is required.` even when the browser uses HTTPS. Use this value only for
-this deployment behind the hosting proxy. The frontend origin is the browser's
-exact scheme and hostname, without a path or trailing slash.
+Replace the example sender. A student mailbox does not give you control of the
+school's domain. Resend's test sender cannot deliver to arbitrary students.
+SMTP settings are ignored in Resend mode.
 
-Also set `MONGODB_URI`, `JWT_SECRET`, `OTP_SECRET`, `AUTH_AUDIT_SECRET`, and the
-SMTP settings from `backend/.env.example`. Each of the three secrets must be
-independent, private values of at least 32 bytes. Preserve existing secrets when
-fixing routing. Use a database reachable from Render and an SMTP provider/port
-supported by your hosting plan; email is required for verification and login OTP.
+### Option B: Keep Gmail
 
-After deploying the backend and frontend changes:
+Use a Render plan or backend host that allows outbound Gmail SMTP. Changing a
+paid plan is an account/billing action, not a code fix.
 
-1. Open `https://school-logistics-student-resource.onrender.com/`; expect JSON
-   with `success: true`, not `HTTPS is required.`
-2. Open `/api/campuses/public` on the Vercel domain; expect JSON, not HTML or 405.
-3. Sign in with an existing account and complete email verification/OTP if asked.
-4. Check registration, password reset, and the dashboards with authorized accounts.
+```dotenv
+EMAIL_PROVIDER=gmail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=<sender Gmail address>
+SMTP_PASS=<Google App Password for that sender>
+EMAIL_FROM=School Logistics <sender Gmail address>
+```
 
-Editing a local `.env` or `.env.example` does not update Vercel or Render settings.
-Vercel environment changes need a new deployment/build.
+Preserve valid credentials. Use an App Password, not the normal Google password.
+Mailtrap sandbox does not deliver codes to student inboxes. Keep MFA enabled.
 
-## Login returns 503 after HTTPS and routing are fixed
+## 3. Vercel settings
 
-First open `/api/campuses/public` on the Vercel domain. A 200 response containing
-campuses confirms that routing and database reads work. It does not verify SMTP.
+Use the existing project. Leave **Root Directory blank** for repository-root
+configuration. Select Vite and clear dashboard install/build/output overrides:
 
-Check Render logs for `login_code_delivery_failed` at the failed login time:
-
-| Code | Action |
+| Setting | Value from root `vercel.json` |
 | --- | --- |
-| `ETIMEDOUT` / `ESOCKET` / `ECONNECTION` | Check the host's outbound SMTP restrictions and provider port. |
-| `EAUTH` | Correct the sender credentials; Gmail requires an App Password for the sender account. |
-| `EMAIL_DELIVERY_FAILED` | Check SMTP configuration and sender/recipient acceptance. |
+| Install Command | `npm ci --prefix school-logistics-system/frontend` |
+| Build Command | `npm run build --prefix school-logistics-system/frontend` |
+| Output Directory | `school-logistics-system/frontend/dist` |
+| Production `VITE_API_URL` | `/api` (also the default) |
 
-Render Free web services block outbound SMTP ports 25, 465 and 587. Gmail SMTP
-on 587 therefore cannot deliver login codes from that plan, even if it works on
-your laptop. Use a hosting plan that permits your SMTP connection, or an email
-provider offering a supported port (such as 2525), or the Resend HTTPS integration
-described below.
-Mailtrap sandbox captures messages for testing; use a production delivery service
-to send actual student emails. Keep MFA enabled while repairing delivery.
+The API rewrite runs before the SPA fallback. Keeping requests on the frontend
+domain also supports trusted-device cookies.
 
-Run `npm run email:check` in the deployed backend environment to check SMTP
-authentication without sending mail. Running it locally only checks your local
-network/settings. After correcting deployment settings, wait 60 seconds after the
-last login attempt before retrying, then complete the emailed code challenge.
+If your existing Vercel Root Directory is `school-logistics-system/frontend`,
+keep that layout and use its `vercel.json`: install `npm ci`, build `npm run build`,
+output `dist`. Do not mix directory layouts. If the backend hostname changes,
+update the API destinations in both Vercel configuration files.
 
-Provider restriction reference: https://render.com/docs/free
+Never put database, email, or authentication secrets in frontend variables.
+Every `VITE_` value is public in the built assets.
 
-## Fix SMTP connection timeouts with HTTPS email
+## 4. Check and deploy
 
-The backend supports `EMAIL_PROVIDER=resend` for all verification, login, email
-change, and password-reset messages. Existing SMTP delivery remains supported.
+1. Run `npm run deployment:check` from the repository root for a secret-safe
+   production configuration check. Local development values intentionally fail
+   production checks; leave the local development `.env` intact.
+2. Where a Render shell is available, run `npm run deployment:check` there to
+   inspect the actual deployment environment. It does not send mail or connect to MongoDB.
+3. Commit and push reviewed changes to the connected branch. Save Render environment
+   settings, then choose **Manual Deploy > Deploy latest commit**.
+4. Check `deployment_configuration` in startup logs for the expected revision.
+   Resend must show `emailTransport: resend_https`; Gmail shows `smtp`.
+5. Redeploy Vercel after frontend environment changes, which require a new build.
+6. Check the two public URLs above for HTTP 200 JSON. Refresh Vercel `/login` to
+   confirm the SPA route works.
+7. Wait 60 seconds after the last login attempt, sign in once, and complete the
+   emailed code. Then check registration, password reset, and authorized dashboards.
 
-1. Create a Resend account and verify a sending domain you own by adding the DNS
-   records Resend provides. A student mailbox does not give you control of the
-   school's domain. Use your own verified domain for the sender; students can
-   still receive messages at their school addresses.
-2. Create a Resend API key with sending permission for that domain.
-3. In Render's **Environment** settings, configure:
+`npm run email:check` verifies SMTP authentication without sending mail. In Resend
+mode it checks only the presence of settings, not credentials or delivery.
+A successful real application email flow is required before deployment is complete.
 
-   ```dotenv
-   EMAIL_PROVIDER=resend
-   RESEND_API_KEY=<your private Resend API key>
-   EMAIL_FROM=School Logistics <noreply@your-verified-domain.com>
-   ```
+## Troubleshooting
 
-   Replace the example sender. Do not use a Gmail address or an unverified school
-   domain as the Resend sender. Set these only on Render, never in Vercel or a
-   `VITE_` variable. Old SMTP settings are ignored in Resend mode.
-4. Push/deploy the backend code containing `src/config/resend.js`, save the Render
-   environment changes, and wait for the backend deployment to finish.
-5. Wait 60 seconds after the last login attempt. Log in, check the recipient inbox
-   and spam folder, and enter the sign-in code. Check the Resend dashboard if an
-   accepted message does not reach the inbox.
+| Symptom or log | Action |
+| --- | --- |
+| `ETIMEDOUT`, `ESOCKET`, `ECONNECTION` in delivery logs | Check SMTP network restrictions and hosting plan. |
+| `EAUTH` | Check Gmail sender and App Password. |
+| `EMAIL_CONFIGURATION` | Set required Resend key/sender on Render. |
+| `EMAIL_PROVIDER_REJECTED`, `responseCode: 401/403` | Check Resend key permissions, verified domain, and recipient restrictions. |
+| `EMAIL_PROVIDER_REJECTED`, `responseCode: 429` | Check provider throttling in its dashboard. |
+| `login_error`, `status: 429` | Wait 60 seconds. The separate request limiter may require 15 minutes, as stated in its response. |
+| Browser login 503 | Match the time to backend logs; email or database failures can cause this. |
+| `HTTPS is required.` | Check Render `TRUST_PROXY_HOPS=1`. |
+| `Untrusted request origin.` | Check exact frontend origin with no path or trailing slash. |
+| API returns HTML | Check Vercel project root and API rewrite ordering. |
+| Mongoose `new` warning | Replaced locally with `returnDocument: 'after'`; unrelated to email delivery. |
 
-`npm run email:check` checks only the presence of settings in Resend mode; it does
-not send email or claim to validate API credentials. A real application email
-flow is needed to verify delivery. HTTP 401/403 in delivery logs means you should
-check the key's permissions and sender domain; 429 means provider rate limiting.
-The backend does not fall back to SMTP or skip verification when delivery fails.
+Share only log event names, codes, and statuses, never environment secrets or OTPs.
 
-If you do not control a sending domain, keep Gmail SMTP and use hosting that
-allows Gmail's SMTP port, or choose a delivery provider whose sender verification
-requirements you can meet. Resend's test sender is not a production solution for
-arbitrary student recipients.
-
-References: https://resend.com/docs/api-reference/emails/send-email and
-https://resend.com/docs/dashboard/domains/introduction
+References: [Render Free restrictions](https://render.com/docs/free),
+[Resend domain setup](https://resend.com/docs/dashboard/domains/introduction).

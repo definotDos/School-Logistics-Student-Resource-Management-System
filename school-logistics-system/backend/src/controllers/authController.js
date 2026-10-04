@@ -91,7 +91,7 @@ async function login(req, res) {
 		user = await User.findOneAndUpdate({ _id: user._id, $expr: { $eq: [{ $ifNull: ["$sessionVersion", 0] }, user.sessionVersion || 0] } }, [
 			{ $set: { failedLoginAttempts: { $cond: [activeLock, "$failedLoginAttempts", nextAttempts] } } },
 			{ $set: { loginLockedUntil: { $cond: [activeLock, "$loginLockedUntil", { $cond: [{ $gte: ["$failedLoginAttempts", 3] }, { $add: ["$$NOW", 3 * 60 * 1000] }, "$$REMOVE"] }] } } },
-		], { new: true, updatePipeline: true }).select("+failedLoginAttempts +loginLockedUntil");
+		], { returnDocument: 'after', updatePipeline: true }).select("+failedLoginAttempts +loginLockedUntil");
 		if (!user) return res.status(401).json({ message: "Invalid email or password." });
 		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
 		if (!validPassword) return res.status(401).json({ message: "Invalid email or password." });
@@ -170,7 +170,7 @@ async function resetPassword(req, res) {
  try {
   const { email, code, password } = req.body || {};
   if (!emailValid(email) || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code) || !passwordValid(password)) return res.status(400).json({ message: "Enter your email, reset code, and a password of 8 to 72 bytes." });
-  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), passwordResetHash: hashResetCode(code), passwordResetExpiresAt: { $gt: new Date() } }, { $set: { password: await bcrypt.hash(password, 12) }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 }, $inc: { sessionVersion: 1 } }, { new: true });
+  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), passwordResetHash: hashResetCode(code), passwordResetExpiresAt: { $gt: new Date() } }, { $set: { password: await bcrypt.hash(password, 12) }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 }, $inc: { sessionVersion: 1 } }, { returnDocument: 'after' });
   if (!user) return res.status(400).json({ message: "That reset code is invalid or expired. Request a new code." });
   res.json({ message: "Password reset successfully. Log in with your new password." });
  } catch {

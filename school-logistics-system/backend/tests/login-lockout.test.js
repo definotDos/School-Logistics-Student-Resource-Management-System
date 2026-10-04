@@ -66,7 +66,7 @@ test('at the expiry boundary a correct password can log in and resets the failur
   expect(res.json.mock.calls[0][0].requiresMfa).toBe(true);
   expect(res.json.mock.calls[0][0].token).toBeUndefined();
   const [, pipeline, options] = write.mock.calls[0];
-  expect(options).toEqual({ new: true, updatePipeline: true });
+  expect(options).toEqual({ returnDocument: 'after', updatePipeline: true });
   expect(pipeline[0].$set.failedLoginAttempts.$cond[2]).toBe(0);
 });
 

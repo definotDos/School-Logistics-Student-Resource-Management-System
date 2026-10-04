@@ -18,7 +18,7 @@ exports.verify = handle(async (req, res) => {
   // Reserve each attempt atomically, including concurrent requests with the right code.
   const filter = { 'loginFactor.challengeHash': factor.hash(challenge), 'loginFactor.used': false,
     'loginFactor.ready': true, 'loginFactor.expiresAt': { $gt: new Date() }, 'loginFactor.attempts': { $lt: 5 } };
-  const user = await User.findOneAndUpdate(filter, { $inc: { 'loginFactor.attempts': 1 } }, { new: true }).select('+loginFactor');
+  const user = await User.findOneAndUpdate(filter, { $inc: { 'loginFactor.attempts': 1 } }, { returnDocument: 'after' }).select('+loginFactor');
   if (!user) throw invalid();
   req.authAuditUser = String(user._id);
   const pending = user.loginFactor;
@@ -29,7 +29,7 @@ exports.verify = handle(async (req, res) => {
     'loginFactor.challengeHash': factor.hash(challenge), 'loginFactor.used': false,
     'loginFactor.expiresAt': { $gt: new Date() }, email: pending.email, status: 'active', emailVerified: true,
     $expr: { $eq: [{ $ifNull: ['$sessionVersion', 0] }, pending.sessionVersion] } },
-  { $set: { 'loginFactor.used': true }, $unset: { 'loginFactor.codeHash': 1 } }, { new: true });
+  { $set: { 'loginFactor.used': true }, $unset: { 'loginFactor.codeHash': 1 } }, { returnDocument: 'after' });
   if (!consumed || !authorized(consumed)) throw invalid();
   if (rememberDevice) await devices.remember(req, res, consumed);
   res.json({ user: publicUser(consumed), token: createSessionToken(consumed, pending.rememberMe, 'otp') });
