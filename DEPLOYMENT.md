@@ -69,3 +69,31 @@ After deploying the backend and frontend changes:
 
 Editing a local `.env` or `.env.example` does not update Vercel or Render settings.
 Vercel environment changes need a new deployment/build.
+
+## Login returns 503 after HTTPS and routing are fixed
+
+First open `/api/campuses/public` on the Vercel domain. A 200 response containing
+campuses confirms that routing and database reads work. It does not verify SMTP.
+
+Check Render logs for `login_code_delivery_failed` at the failed login time:
+
+| Code | Action |
+| --- | --- |
+| `ETIMEDOUT` / `ESOCKET` / `ECONNECTION` | Check the host's outbound SMTP restrictions and provider port. |
+| `EAUTH` | Correct the sender credentials; Gmail requires an App Password for the sender account. |
+| `EMAIL_DELIVERY_FAILED` | Check SMTP configuration and sender/recipient acceptance. |
+
+Render Free web services block outbound SMTP ports 25, 465 and 587. Gmail SMTP
+on 587 therefore cannot deliver login codes from that plan, even if it works on
+your laptop. Use a hosting plan that permits your SMTP connection, or an email
+provider offering a supported port (such as 2525). The current application uses
+SMTP; an HTTP email provider requires a code integration before configuring it.
+Mailtrap sandbox captures messages for testing; use a production delivery service
+to send actual student emails. Keep MFA enabled while repairing delivery.
+
+Run `npm run email:check` in the deployed backend environment to check SMTP
+authentication without sending mail. Running it locally only checks your local
+network/settings. After correcting deployment settings, wait 60 seconds after the
+last login attempt before retrying, then complete the emailed code challenge.
+
+Provider restriction reference: https://render.com/docs/free

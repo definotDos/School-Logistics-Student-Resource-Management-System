@@ -30,7 +30,11 @@ async function issue(user, rememberMe, previousChallenge) {
     await sendLoginCode(user.email, code);
     const ready = await User.updateOne({ _id: user._id, 'loginFactor.challengeHash': factor.challengeHash }, { $set: { 'loginFactor.ready': true } });
     if (!ready.modifiedCount) throw new Error('Superseded challenge');
-  } catch {
+  } catch (error) {
+    // Log only transport metadata: never recipient addresses, credentials or OTPs.
+    console.error(JSON.stringify({ event: 'login_code_delivery_failed',
+      code: error.code || 'EMAIL_DELIVERY_FAILED', responseCode: error.responseCode,
+      command: error.command }));
     await User.updateOne({ _id: user._id, 'loginFactor.challengeHash': factor.challengeHash }, { $set: { 'loginFactor.used': true, 'loginFactor.ready': false } });
     throw failure('Email delivery is unavailable. Wait a minute, then sign in again.', 503);
   }
