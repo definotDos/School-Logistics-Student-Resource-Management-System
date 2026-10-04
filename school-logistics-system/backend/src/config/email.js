@@ -21,6 +21,7 @@ function getDefaultSmtpConfig() {
 }
 
 async function getTransporter() {
+    if (process.env.EMAIL_PROVIDER?.trim().toLowerCase() === 'resend') return require('./resend');
 	if (transporter) return transporter;
 	const smtpHost = process.env.SMTP_HOST || getDefaultSmtpConfig().host;
 	const smtpUser = (process.env.SMTP_USER || "").trim();
@@ -65,6 +66,10 @@ async function sendPasswordResetEmail(email, code) {
   text: `Your password reset code is ${code}. Paste it into the password recovery form. It expires in 15 minutes and can be used once. If you did not request this, ignore this email.` });
 }
 async function verifyEmailConnection() {
+	if (process.env.EMAIL_PROVIDER?.trim().toLowerCase() === 'resend') {
+		require('./resend').configuration();
+		return { configurationOnly: true };
+	}
 	const mailer = await getTransporter();
 	return mailer.verify();
 }

@@ -86,8 +86,8 @@ Check Render logs for `login_code_delivery_failed` at the failed login time:
 Render Free web services block outbound SMTP ports 25, 465 and 587. Gmail SMTP
 on 587 therefore cannot deliver login codes from that plan, even if it works on
 your laptop. Use a hosting plan that permits your SMTP connection, or an email
-provider offering a supported port (such as 2525). The current application uses
-SMTP; an HTTP email provider requires a code integration before configuring it.
+provider offering a supported port (such as 2525), or the Resend HTTPS integration
+described below.
 Mailtrap sandbox captures messages for testing; use a production delivery service
 to send actual student emails. Keep MFA enabled while repairing delivery.
 
@@ -97,3 +97,44 @@ network/settings. After correcting deployment settings, wait 60 seconds after th
 last login attempt before retrying, then complete the emailed code challenge.
 
 Provider restriction reference: https://render.com/docs/free
+
+## Fix SMTP connection timeouts with HTTPS email
+
+The backend supports `EMAIL_PROVIDER=resend` for all verification, login, email
+change, and password-reset messages. Existing SMTP delivery remains supported.
+
+1. Create a Resend account and verify a sending domain you own by adding the DNS
+   records Resend provides. A student mailbox does not give you control of the
+   school's domain. Use your own verified domain for the sender; students can
+   still receive messages at their school addresses.
+2. Create a Resend API key with sending permission for that domain.
+3. In Render's **Environment** settings, configure:
+
+   ```dotenv
+   EMAIL_PROVIDER=resend
+   RESEND_API_KEY=<your private Resend API key>
+   EMAIL_FROM=School Logistics <noreply@your-verified-domain.com>
+   ```
+
+   Replace the example sender. Do not use a Gmail address or an unverified school
+   domain as the Resend sender. Set these only on Render, never in Vercel or a
+   `VITE_` variable. Old SMTP settings are ignored in Resend mode.
+4. Push/deploy the backend code containing `src/config/resend.js`, save the Render
+   environment changes, and wait for the backend deployment to finish.
+5. Wait 60 seconds after the last login attempt. Log in, check the recipient inbox
+   and spam folder, and enter the sign-in code. Check the Resend dashboard if an
+   accepted message does not reach the inbox.
+
+`npm run email:check` checks only the presence of settings in Resend mode; it does
+not send email or claim to validate API credentials. A real application email
+flow is needed to verify delivery. HTTP 401/403 in delivery logs means you should
+check the key's permissions and sender domain; 429 means provider rate limiting.
+The backend does not fall back to SMTP or skip verification when delivery fails.
+
+If you do not control a sending domain, keep Gmail SMTP and use hosting that
+allows Gmail's SMTP port, or choose a delivery provider whose sender verification
+requirements you can meet. Resend's test sender is not a production solution for
+arbitrary student recipients.
+
+References: https://resend.com/docs/api-reference/emails/send-email and
+https://resend.com/docs/dashboard/domains/introduction

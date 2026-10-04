@@ -2,7 +2,11 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env"), quiet: true });
 const { verifyEmailConnection } = require("../src/config/email");
 
-verifyEmailConnection().then(() => {
+verifyEmailConnection().then(result => {
+  if (result?.configurationOnly) {
+    console.log('Resend settings are present. No network authentication or delivery was tested. Verify the sender domain in Resend, then complete an application email flow.');
+    return;
+  }
   console.log("Email server connection and authentication succeeded. No email was sent.");
 }).catch(error => {
   if (error.code === "EAUTH") {
