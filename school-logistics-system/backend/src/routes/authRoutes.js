@@ -6,9 +6,9 @@ router.use((req, res, next) => {
  res.set('Cache-Control', 'no-store');
  res.on('finish', () => {
   // Structured security events: never include request bodies, passwords, tokens, codes, or secrets.
-  console.info(JSON.stringify({ event: 'authentication', path: req.path, method: req.method,
+  require('../services/authAudit')({ event: 'authentication', path: req.route?.path || 'unknown', method: req.method,
    status: res.statusCode, outcome: res.statusCode < 400 ? 'success' : 'failure',
-   userId: req.authAuditUser, ip: req.ip, time: new Date().toISOString() }));
+   userId: req.authAuditUser || (req.user ? String(req.user._id) : undefined), ip: req.ip, time: new Date().toISOString() });
  });
  next();
 });
@@ -33,6 +33,13 @@ router.post("/reset-password", resetPassword);
 router.post("/signup", require("../middleware/accountCreationReady"), signup);
 router.post("/check-employee-id", require("../controllers/authController").checkEmployeeId);
 router.post("/login", login);
+const mfa = require('../controllers/mfaController');
+const protect = require('../middleware/authMiddleware');
+router.post('/mfa/verify', mfa.verify);
+router.post('/mfa/resend', mfa.resend);
+router.get('/devices', protect, mfa.listDevices);
+router.delete('/devices', protect, mfa.revokeDevices);
+router.post('/logout', protect, mfa.logout);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-verification-code", resendVerificationCode);
 module.exports = router;

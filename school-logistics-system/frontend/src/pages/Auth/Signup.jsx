@@ -14,7 +14,7 @@ export function SignupPage({
   onVerifyEmail,
   onResendVerificationCode,
 }) {
-  const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: '' })
+  const [form, setForm] = useState({ name: '', email: '', studentId: '', employeeId: '', password: '', role: 'student', campus: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [legalDocument, setLegalDocument] = useState(null)
   const [employeeIdChecked, setEmployeeIdChecked] = useState(false)
@@ -32,7 +32,7 @@ export function SignupPage({
     if (employeeIdChecked) detailsHeading.current?.focus()
   }, [employeeIdChecked])
   const changeAccountType = role => {
-    setForm(current => ({ ...current, role, studentId: '', password: '' }))
+    setForm(current => ({ ...current, role, studentId: '', employeeId: '', password: '' }))
     setEmployeeIdChecked(false)
     setEmployeeIdError('')
     setValidationErrors({})
@@ -41,15 +41,15 @@ export function SignupPage({
   const checkEmployeeId = async event => {
     event.preventDefault()
     if (isCheckingId) return
-    if (idType(form.studentId) !== 'employee') {
-      setEmployeeIdError(form.studentId.trim() ? 'Use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' : 'Enter your employee ID to continue.')
+    if (idType(form.employeeId) !== 'employee') {
+      setEmployeeIdError(form.employeeId.trim() ? 'Use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' : 'Enter your employee ID to continue.')
       return
     }
     setIsCheckingId(true)
     setEmployeeIdError('')
     try {
-      const result = await authAPI.checkEmployeeId(form.studentId)
-      setForm(current => ({ ...current, studentId: result.studentId }))
+      const result = await authAPI.checkEmployeeId(form.employeeId)
+      setForm(current => ({ ...current, employeeId: result.employeeId }))
       setEmployeeIdChecked(true)
     } catch (checkError) {
       setEmployeeIdError(checkError.message || 'We could not check your employee ID. Please try again.')
@@ -87,6 +87,7 @@ export function SignupPage({
   }
   const identityLabel = form.role === 'student' ? 'Student ID' : 'Employee ID'
 
+  const identityField = form.role === 'student' ? 'studentId' : 'employeeId'
   const submit = async event => {
     event.preventDefault()
     if (isSubmitting) return
@@ -95,7 +96,7 @@ export function SignupPage({
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
     try {
-      const result = await onSignup(form)
+      const result = await onSignup({ ...form, [form.role === 'student' ? 'employeeId' : 'studentId']: undefined })
       if (result?.requiresVerification) setForm(current => ({ ...current, password: '' }))
       if (result?.requiresVerification) { const email = result.email || form.email.trim().toLowerCase(); sessionStorage.setItem('srmsVerificationEmail', email); setVerificationEmail(email) }
     } catch {
@@ -235,7 +236,7 @@ export function SignupPage({
           <div className="signup-section-heading form-wide"><span>STEP 1 OF 3</span><h3>Enter your employee ID</h3><p>We’ll check if your ID is available for registration.</p></div>
           <label className="auth-field compact-field form-wide">
             <span>Employee ID</span>
-            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.studentId} onChange={event => { setForm(current => ({ ...current, studentId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. UP-25-12345-A" maxLength={13} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-error' : undefined} />
+            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.employeeId} onChange={event => { setForm(current => ({ ...current, employeeId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. UP-25-12345-A" maxLength={13} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-error' : undefined} />
           </label>
           {employeeIdError && <div id="employee-id-error" className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Check your employee ID</strong><p>{employeeIdError}</p></div></div>}
           <AuthLoadingButton className="auth-submit form-wide" loading={isCheckingId} loadingText="Checking employee ID...">Continue to account details <span aria-hidden="true">→</span></AuthLoadingButton>
@@ -243,7 +244,7 @@ export function SignupPage({
         </form>
       ) : (
       <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
-        {form.role === 'staff' && <div className="signup-id-summary form-wide"><span>Employee ID: <strong>{form.studentId}</strong></span><button type="button" disabled={isSubmitting} onClick={() => { setEmployeeIdChecked(false); setEmployeeIdError(''); setForm(current => ({ ...current, password: '' })) }}>Change ID</button></div>}
+        {form.role === 'staff' && <div className="signup-id-summary form-wide"><span>Employee ID: <strong>{form.employeeId}</strong></span><button type="button" disabled={isSubmitting} onClick={() => { setEmployeeIdChecked(false); setEmployeeIdError(''); setForm(current => ({ ...current, password: '' })) }}>Change ID</button></div>}
         {error && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to create account</strong><p>{error}</p></div></div>}
         {campusError && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to load campuses</strong><p>{campusError}</p></div></div>}
         <label className="auth-field compact-field form-wide signup-campus-field">
@@ -262,8 +263,8 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors.studentId ? 'input-invalid' : ''} placeholder={identityLabel} maxLength={16} value={form.studentId} onChange={update('studentId')} readOnly={form.role === 'staff'} required aria-invalid={Boolean(validationErrors.studentId)} />
-          {validationErrors.studentId && <small className="field-error">{validationErrors.studentId}</small>}
+          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={identityLabel} maxLength={16} value={form[identityField]} onChange={update(identityField)} readOnly={form.role === 'staff'} required aria-invalid={Boolean(validationErrors[identityField])} />
+          {validationErrors[identityField] && <small className="field-error">{validationErrors[identityField]}</small>}
         </label>
         <label className="auth-field compact-field form-wide">
           <span>School email</span>

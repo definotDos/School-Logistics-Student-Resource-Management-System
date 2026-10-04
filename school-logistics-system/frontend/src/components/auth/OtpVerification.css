@@ -1,0 +1,53 @@
+.otp-verification { width: 100%; min-width: 0; }
+.auth-page.is-login:has(.otp-verification) { height: auto; min-height: 100dvh; overflow: visible; }
+.auth-page.is-login .auth-panel:has(.otp-verification) { overflow: visible; }
+.auth-page.is-login .auth-panel-inner:has(.otp-verification) { margin-block: auto; padding: 24px 30px; max-height: none; overflow: visible; }
+.otp-verification .auth-heading { text-align: center; margin: 0 0 18px; }
+.otp-mail-icon { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 12px; border: 1px solid #c4b5fd45; border-radius: 14px; background: #a78bfa18; color: #ddd6fe; }
+.otp-mail-icon svg { width: 28px; height: 28px; }
+.otp-eyebrow { display: block; margin-bottom: 8px; color: #d2c5ff; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
+.auth-page.is-login .otp-verification .auth-heading h2 { margin: 0; font-size: clamp(26px, 3vw, 32px); line-height: 1.2; letter-spacing: -.8px; }
+.is-login .otp-verification .auth-heading p { max-width: 330px; margin: 10px auto 0; font-size: 14px; line-height: 1.5; }
+.is-login .otp-verification .auth-form { gap: 12px; }
+.otp-code-group { display: grid; gap: 8px; }
+.is-login .otp-verification .compact-field { margin: 0; gap: 8px; }
+.is-login .otp-verification .compact-field input { height: 54px; text-align: center; font-size: 26px; font-weight: 600; letter-spacing: .35em; padding-left: calc(16px + .35em); font-variant-numeric: tabular-nums; }
+.is-login .otp-verification .compact-field input::placeholder { color: #8995b2; opacity: .55; }
+.otp-verification .otp-expiry { margin: 0; text-align: center; color: #bdc8df; font-size: 12px; line-height: 1.5; }
+.otp-expiry strong { color: #e2d9ff; font-weight: 600; font-variant-numeric: tabular-nums; }
+.otp-verification .otp-expiry.is-expired { color: #fda4af; }
+.otp-device { padding: 12px 14px; border: 1px solid #ffffff17; border-radius: 12px; background: #0b122433; }
+.otp-device label { display: flex; align-items: center; gap: 11px; cursor: pointer; color: #eff0ff; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.otp-device input { flex: 0 0 auto; width: 17px; height: 17px; margin: 0; accent-color: #a78bfa; }
+.otp-device label > span { display: flex; flex: 1; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; }
+.otp-device small { padding: 2px 8px; border-radius: 6px; background: #a78bfa18; color: #d2c5ff; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.is-login .otp-verification .auth-form .auth-submit { margin: 0; height: 48px; }
+.otp-verification .otp-error { margin: 0; padding: 12px 14px; border: 1px solid #fb718555; border-radius: 10px; background: #88133733; color: #fecdd3; font-size: 13px; }
+.otp-verification .auth-submit .auth-loading-label { display: flex; justify-content: center; align-items: center; gap: 12px; }
+.otp-resend { display: flex; justify-content: center; align-items: center; gap: 6px 10px; flex-wrap: wrap; color: #bdc8dd; font-size: 12px; }
+.otp-verification .otp-resend button, .otp-verification .otp-footer button { min-height: 36px; padding: 6px 4px; border: 0; background: transparent; color: #ddd2ff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.otp-verification .otp-resend button:disabled, .otp-verification .otp-footer button:disabled { color: #adb9d2; cursor: default; }
+.otp-verification .otp-resend button:hover:not(:disabled), .otp-verification .otp-footer button:hover:not(:disabled) { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+.otp-footer { padding-top: 8px; border-top: 1px solid #ffffff1a; text-align: center; }
+.otp-footer button span { margin-right: 6px; }
+@media (max-width: 380px) {
+  .otp-device { padding: 12px; }
+}
+@media (max-height: 800px) {
+  .auth-page.is-login .auth-panel-inner:has(.otp-verification) { padding-block: 22px; }
+  .otp-verification .auth-heading { margin-bottom: 18px; }
+  .is-login .otp-verification .auth-form { gap: 12px; }
+}
+@media (max-width: 700px) {
+  .auth-page.is-login .auth-panel-inner:has(.otp-verification) { padding-inline: 22px; }
+}
+@media (max-height: 700px) {
+  .auth-page.is-login .auth-panel-inner:has(.otp-verification) { padding-block: 18px; }
+  .otp-verification .auth-heading { margin-bottom: 14px; }
+  .otp-mail-icon { width: 36px; height: 36px; margin-bottom: 8px; border-radius: 11px; }
+  .otp-mail-icon svg { width: 22px; height: 22px; }
+  .otp-eyebrow { margin-bottom: 6px; }
+  .is-login .otp-verification .auth-heading p { margin-top: 6px; }
+  .is-login .otp-verification .auth-form { gap: 10px; }
+  .otp-footer { padding-top: 4px; }
+}

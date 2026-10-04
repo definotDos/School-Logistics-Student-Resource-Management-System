@@ -1,4 +1,5 @@
 const http = require("supertest");
+jest.mock('../../src/config/email', () => ({ sendLoginCode: jest.fn(async () => {}) }));
 const mongoose = require("mongoose");
 const app = require("../../src/app");
 const { connectTestDatabase, fixtures } = require("../helpers/database");
@@ -41,7 +42,13 @@ async function stock(expected) {
 }
 
 test("login to database catalog to completed distribution, reports, notifications and audit", async () => {
-  await http(app).post("/api/auth/login").send({ email: data.users.student.email, password: "TestPassword123" }).expect(200);
+  for (const role of ['student', 'staff', 'admin']) {
+    const login = await http(app).post('/api/auth/login').send({ email: data.users[role].email, password: 'TestPassword123' }).expect(200);
+    expect(login.body.token).toBeUndefined();
+    const code = require('../../src/config/email').sendLoginCode.mock.calls.at(-1)[1];
+    const verified = await http(app).post('/api/auth/mfa/verify').send({ challenge: login.body.challenge, code }).expect(200);
+    data.tokens[role] = verified.body.token;
+  }
   const catalog = await api("get", "/resources").expect(200);
   expect(catalog.body.resources.map(r => r._id)).toContain(String(data.resource._id));
   const flow = await scheduled();
@@ -55,12 +62,12 @@ test("login to database catalog to completed distribution, reports, notification
   await api("post", `/distribution/allocations/${flow.allocationId}/release`, "staff").send({ quantity: 2 }).expect(201);
   await stock({ available: 8, reserved: 0, issued: 2 });
   expect((await Request.findById(flow.id)).status).toBe("completed");
-  expect((await ClaimSchedule.findById(flow.scheduleId)).status).toBe("completed");
+  expect((await ClaimSchedule.findById(flow.scheduleId)).status).toBe("Completed");
   expect((await api("get", "/distribution")).body.distributions).toHaveLength(1);
   expect((await api("get", "/distribution", "peer")).body.distributions).toEqual([]);
   const report = await api("get", `/reports/requests/workflow?campus=${encodeURIComponent(data.campus)}`, "admin").expect(200);
   expect(report.body.summary.completed).toBe(1);
-  expect(await AuditLog.countDocuments({ campus: data.campus })).toBeGreaterThanOrEqual(7);
+  expect(await AuditLog.countDocuments({ actor: { $in: [data.users.student._id, data.users.staff._id, data.users.admin._id] } })).toBeGreaterThanOrEqual(7);
   await api("post", `/distribution/allocations/${flow.allocationId}/release`, "staff").send({}).expect(409);
 });
 

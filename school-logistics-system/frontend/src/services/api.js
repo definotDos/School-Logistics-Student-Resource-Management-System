@@ -1,5 +1,5 @@
 import { emailValid, policy, courses } from "../utils/accountValidation";
-import { getToken, clearSession } from "./session";
+import { getToken } from "./session";
 
 const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 
@@ -22,6 +22,7 @@ export async function apiRequest(endpoint, options = {}) {
   let response;
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
+      credentials: 'include',
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +54,11 @@ export async function apiRequest(endpoint, options = {}) {
 // ============================================
 
 export const authAPI = {
-  checkEmployeeId: studentId => apiRequest("/auth/check-employee-id", { method: "POST", body: JSON.stringify({ studentId }) }),
+  verifyMfa: details => apiRequest('/auth/mfa/verify', { method: 'POST', body: JSON.stringify(details) }),
+  resendMfa: challenge => apiRequest('/auth/mfa/resend', { method: 'POST', body: JSON.stringify({ challenge }) }),
+  listDevices: () => apiRequest('/auth/devices'),
+  revokeDevices: () => apiRequest('/auth/devices', { method: 'DELETE' }),
+  checkEmployeeId: employeeId => apiRequest("/auth/check-employee-id", { method: "POST", body: JSON.stringify({ employeeId }) }),
   forgotPassword: email => apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: details => apiRequest("/auth/reset-password", { method: "POST", body: JSON.stringify(details) }),
   /**
@@ -96,9 +101,7 @@ export const authAPI = {
   /**
    * Logout (client-side only, clears token)
    */
-  logout: () => {
-    clearSession();
-  },
+  logout: () => apiRequest('/auth/logout', { method: 'POST', body: '{}' }),
 };
 
 // ============================================

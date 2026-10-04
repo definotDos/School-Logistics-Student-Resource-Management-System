@@ -18,7 +18,21 @@ dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
 const app = express();
 
 // Middleware
-app.use(cors());
+if (process.env.TRUST_PROXY_HOPS) app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS));
+const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: frontendOrigin, credentials: true }));
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.set('Strict-Transport-Security', 'max-age=31536000');
+    if (!req.secure) return res.status(400).json({ message: 'HTTPS is required.' });
+  }
+  // Browser mutations must come from the configured frontend. API bearer clients may omit Origin.
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
+      (req.get('origin') && req.get('origin') !== frontendOrigin || req.get('sec-fetch-site') === 'cross-site')) {
+    return res.status(403).json({ message: 'Untrusted request origin.' });
+  }
+  next();
+});
 app.use(express.json({ limit: "5mb" }));
 
 // Routes

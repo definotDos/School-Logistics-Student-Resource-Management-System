@@ -26,6 +26,14 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password, rememberMe = false) => {
     const result = await authAPI.login({ email, password, rememberMe });
+    if (result.requiresMfa) return result;
+    saveSession(result);
+    setUser(result.user);
+    return result.user;
+  };
+
+  const verifyMfa = async details => {
+    const result = await authAPI.verifyMfa(details);
     saveSession(result);
     setUser(result.user);
     return result.user;
@@ -44,9 +52,12 @@ export function AuthProvider({ children }) {
 
   const resendVerificationCode = async (email) => authAPI.resendVerificationCode(email);
 
-  const logout = () => {
+  const logout = async () => {
+    try { await authAPI.logout(); }
+    catch (error) { if (![401, 403].includes(error.status)) { window.alert('Unable to revoke your session. Check your connection and try signing out again.'); return false; } }
     setUser(null);
     clearSession();
+    return true;
   };
 
   const updateUser = async (updates) => {
@@ -64,6 +75,7 @@ export function AuthProvider({ children }) {
         user,
         isRestoring,
         login,
+        verifyMfa,
         signup,
         verifyEmail,
         resendVerificationCode,

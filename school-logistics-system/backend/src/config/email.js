@@ -35,6 +35,7 @@ async function getTransporter() {
 		host: smtpHost,
 		port: Number(process.env.SMTP_PORT || getDefaultSmtpConfig().port),
 		secure: process.env.SMTP_SECURE === "true" || getDefaultSmtpConfig().secure,
+        requireTLS: process.env.NODE_ENV === 'production',
 		auth: { user: smtpUser, pass: smtpPass },
 		connectionTimeout: 15000,
 		greetingTimeout: 15000,
@@ -68,4 +69,11 @@ async function verifyEmailConnection() {
 	return mailer.verify();
 }
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail, verifyEmailConnection };
+async function sendLoginCode(email, code) {
+ const mailer = await getTransporter();
+ const result = await mailer.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to: email,
+  subject: 'School Logistics sign-in code',
+  text: `Your sign-in code is ${code}. It expires in five minutes and can be used once. Never share this code. If you did not try to sign in, change your password.` });
+ if (!result.accepted?.length || result.rejected?.length) throw new Error('Email was not accepted');
+}
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendLoginCode, verifyEmailConnection };

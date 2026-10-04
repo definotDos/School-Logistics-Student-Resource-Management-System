@@ -65,12 +65,12 @@ test('expired, reused or incorrect email codes are rejected', async () => {
 });
 const { prepareStudentIds } = require('../src/utils/studentIds');
 test('legacy duplicates stop startup before any account is changed', async () => {
- const model = { find: () => ({ select: () => ({ lean: async () => [{ _id: '1', studentId: ' abc ' }, { _id: '2', studentId: 'ABC' }] }) }), collection: { updateOne: jest.fn() }, createIndexes: jest.fn() };
+ const model = { find: filter => ({ select: () => ({ lean: async () => filter.role ? [] : [{ _id: '1', studentId: ' abc ' }, { _id: '2', studentId: 'ABC' }] }) }), collection: { updateOne: jest.fn() }, createIndexes: jest.fn() };
  await expect(prepareStudentIds(model)).rejects.toThrow('Duplicate student ID ABC');
  expect(model.collection.updateOne).not.toHaveBeenCalled(); expect(model.createIndexes).not.toHaveBeenCalled();
 });
 test('legacy normalization clears blanks before creating indexes', async () => {
- const model = { find: () => ({ select: () => ({ lean: async () => [{ _id: '1', studentId: ' abc ' }, { _id: '2', studentId: '' }] }) }), collection: { updateOne: jest.fn() }, createIndexes: jest.fn() };
+ const model = { find: filter => ({ select: () => ({ lean: async () => filter.role ? [] : [{ _id: '1', studentId: ' abc ' }, { _id: '2', studentId: '' }] }) }), collection: { updateOne: jest.fn() }, createIndexes: jest.fn() };
  await prepareStudentIds(model);
  expect(model.collection.updateOne).toHaveBeenCalledWith({ _id: '1', studentId: ' abc ' }, { $set: { studentId: 'ABC' } });
  expect(model.collection.updateOne).toHaveBeenCalledWith({ _id: '2', studentId: '' }, { $unset: { studentId: 1 } });

@@ -9,7 +9,7 @@ const publicUser = (user) => ({
 	id: user._id,
 	name: user.name,
 	email: user.email,
-	studentId: user.studentId,
+	...(user.role === 'student' ? { studentId: user.studentId } : { employeeId: user.employeeId }),
 	role: user.role,
 	status: user.status,
 	grade: user.grade,
@@ -23,15 +23,15 @@ const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
 const verificationExpiry = () => new Date(Date.now() + 15 * 60 * 1000);
 
 async function checkEmployeeId(req, res) {
-    if (Object.keys(req.body || {}).some(key => key !== 'studentId') || idType(req.body?.studentId) !== 'employee') {
+    if (Object.keys(req.body || {}).some(key => key !== 'employeeId') || idType(req.body?.employeeId) !== 'employee') {
         return res.status(400).json({ message: 'Enter an employee ID with UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' });
     }
-    const studentId = normalize(req.body.studentId).toUpperCase();
+    const employeeId = normalize(req.body.employeeId).toUpperCase();
     try {
-        if (await User.findOne({ studentId }).collation({ locale: 'en', strength: 2 })) {
+        if (await User.findOne({ employeeId }).collation({ locale: 'en', strength: 2 })) {
             return res.status(409).json({ message: 'That employee ID is already registered. Log in or contact your administrator.' });
         }
-        return res.json({ studentId });
+        return res.json({ employeeId });
     } catch {
         return res.status(503).json({ message: 'Unable to check your employee ID. Please try again.' });
     }
@@ -40,10 +40,10 @@ async function checkEmployeeId(req, res) {
 async function signup(req, res) {
 	try {
         const fields = accountFields(req.body);
-        const { email: normalizedEmail, studentId: normalizedStudentId } = fields;
+        const { email: normalizedEmail } = fields;
         if (!await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus." });
         if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });
-        if (await User.findOne({ studentId: normalizedStudentId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
+        if (await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
 		const verificationCode = createVerificationCode();
 		const user = await User.create({
             ...fields,
@@ -83,6 +83,7 @@ async function login(req, res) {
 		};
 		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
 		const validPassword = await bcrypt.compare(password, user.password);
+        const suspicious = Boolean(user.failedLoginAttempts || user.loginLockedUntil);
 		// One atomic update serializes concurrent attempts and never extends an active lock.
 		const activeLock = { $gt: [{ $ifNull: ["$loginLockedUntil", new Date(0)] }, "$$NOW"] };
 		const previousAttempts = { $cond: [{ $and: [{ $ne: [{ $ifNull: ["$loginLockedUntil", null] }, null] }, { $lte: ["$loginLockedUntil", "$$NOW"] }] }, 0, { $ifNull: ["$failedLoginAttempts", 0] }] };
@@ -96,11 +97,14 @@ async function login(req, res) {
 		if (!validPassword) return res.status(401).json({ message: "Invalid email or password." });
 		if (user.emailVerified === false) return res.status(403).json({ message: "Please verify your email before logging in.", requiresVerification: true, email: user.email });
 		if (!authorized(user)) return res.status(403).json({ message: "Unable to sign in with this account." });
-        return res.json({ user: publicUser(user), token: createSessionToken(user, req.body.rememberMe) });
+        if (!suspicious && await require('../services/trustedDevices').validate(req, user)) {
+            return res.json({ user: publicUser(user), token: createSessionToken(user, req.body.rememberMe, 'device') });
+        }
+        return res.json(await require('../services/loginFactor').issue(user, req.body.rememberMe));
 	} catch (error) {
         console.error(JSON.stringify({ event: 'login_error', name: error.name, code: error.code, status: error.status }));
-        const status = [409, 423].includes(error.status) ? error.status : 503;
-        res.status(status).json({ message: status === 409 ? 'Login changed. Please try again.' : 'Sign-in is temporarily unavailable. Please try again shortly.' });
+        const status = [409, 423, 429].includes(error.status) ? error.status : 503;
+        res.status(status).json({ message: status === 429 ? 'Please wait 60 seconds before signing in again.' : status === 409 ? 'Login changed. Please try again.' : 'Sign-in or email delivery is temporarily unavailable. Please try again shortly.' });
 	}
 }
 

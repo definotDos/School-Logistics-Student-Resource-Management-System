@@ -4,6 +4,7 @@ import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import EmailChange from "../../components/EmailChange";
 import AppearancePanel from "../../components/AppearancePanel";
+import TrustedDevices from "../../components/TrustedDevices";
 import DashboardIcon from "../../components/DashboardIcon";
 import { useAuth } from "../../context/useAuth";
 import useStudentTheme from "../../hooks/useStudentTheme";
@@ -93,8 +94,9 @@ function SettingsPanel({ user }) {
       <section className="utility-card"><SectionHeading icon="audit" title="Email and verification" description="Keep your school email up to date and secure." /><EmailChange /></section>
     </div>
     <div className="utility-stack">
-      <section className="utility-card"><SectionHeading icon="school" title="Account access" description="Your school and workspace details." /><dl className="utility-details"><div><dt>Role</dt><dd><span className="utility-role">{user.role}</span></dd></div><div><dt>Campus</dt><dd>{user.campus || "Not assigned"}</dd></div>{user.studentId && <div><dt>Student ID</dt><dd>{user.studentId}</dd></div>}</dl><div className="utility-support"><p className="utility-muted">Need to correct your campus or account access?</p><Link to="/help">Get account support <span aria-hidden="true">→</span></Link></div></section>
+      <section className="utility-card"><SectionHeading icon="school" title="Account access" description="Your school and workspace details." /><dl className="utility-details"><div><dt>Role</dt><dd><span className="utility-role">{user.role}</span></dd></div><div><dt>Campus</dt><dd>{user.campus || "Not assigned"}</dd></div>{(user.studentId || user.employeeId) && <div><dt>{user.role === "student" ? "Student ID" : "Employee ID"}</dt><dd>{user.role === "student" ? user.studentId : user.employeeId}</dd></div>}</dl><div className="utility-support"><p className="utility-muted">Need to correct your campus or account access?</p><Link to="/help">Get account support <span aria-hidden="true">→</span></Link></div></section>
       <AppearancePanel />
+      <TrustedDevices />
     </div>
   </>;
 }

@@ -7,7 +7,7 @@ async function protect(req, res, next) {
 		const token = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7) : null;
 		if (!token) return res.status(401).json({ message: "Authentication required." });
 		const decoded = jwt.verify(token, signingKey(), { algorithms: ["HS256"], issuer: "school-logistics", audience: "school-logistics-api" });
-		if (decoded.purpose !== "session" || !Array.isArray(decoded.amr) || !decoded.amr.includes("pwd") || !Number.isFinite(decoded.exp)) return res.status(401).json({ message: "Please log in to continue." });
+		if (decoded.purpose !== "session" || !Array.isArray(decoded.amr) || !decoded.amr.includes("pwd") || !decoded.amr.some(method => ['otp', 'device'].includes(method)) || !Number.isFinite(decoded.exp)) return res.status(401).json({ message: "Please log in to continue." });
 		req.user = await User.findById(decoded.id);
 		if (req.user && (decoded.sessionVersion || 0) !== (req.user.sessionVersion || 0)) return res.status(401).json({ message: "Your session has expired. Please log in again." });
 		if (!req.user) return res.status(401).json({ message: "User account was not found." });

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+jest.mock('../../src/config/email', () => ({ sendLoginCode: jest.fn(async () => {}) }));
 const bcrypt = require('bcryptjs');
 const request = require('supertest');
 const User = require('../../src/models/User');
@@ -13,17 +14,19 @@ beforeEach(async () => {
 });
 afterEach(async () => { if (user) await User.deleteOne({ _id: user._id }); });
 
-test('password login grants protected access even for previously enrolled accounts', async () => {
+test('password login requires email MFA even for previously enrolled accounts', async () => {
   await User.collection.updateOne({ _id: user._id }, { $set: { mfaEnabled: true, mfaSecret: 'retired', twoFactorEnabled: true, twoFactor: { secret: 'retired' } } });
   const login = await request(app).post('/api/auth/login').send({ email: user.email, password: 'Test-password-123' });
   expect(login.status).toBe(200);
-  expect(login.body.token).toEqual(expect.any(String));
-  expect(login.body.user.id).toBe(String(user._id));
-  expect(login.body.challenge).toBeUndefined();
-  const profile = await request(app).get('/api/users/me').set('Authorization', `Bearer ${login.body.token}`);
+  expect(login.body.token).toBeUndefined();
+  expect(login.body.requiresMfa).toBe(true);
+  const code = require('../../src/config/email').sendLoginCode.mock.calls.at(-1)[1];
+  const verified = await request(app).post('/api/auth/mfa/verify').send({ challenge: login.body.challenge, code });
+  expect(verified.status).toBe(200);
+  const profile = await request(app).get('/api/users/me').set('Authorization', `Bearer ${verified.body.token}`);
   expect(profile.status).toBe(200);
   await User.updateOne({ _id: user._id }, { $inc: { sessionVersion: 1 } });
-  expect((await request(app).get('/api/users/me').set('Authorization', `Bearer ${login.body.token}`)).status).toBe(401);
+  expect((await request(app).get('/api/users/me').set('Authorization', `Bearer ${verified.body.token}`)).status).toBe(401);
 });
 
 test('retired enrollment data is removed idempotently without changing the password', async () => {

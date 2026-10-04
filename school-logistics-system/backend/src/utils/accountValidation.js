@@ -34,12 +34,15 @@ function profileFields(body, role, current = {}) {
 }
 function accountFields(body, administrator = false) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) fail('Provide account information.');
-  const allowed = ['name', 'email', 'password', 'campus', 'role', 'studentId', 'strand', 'grade'];
+  const allowed = ['name', 'email', 'password', 'campus', 'role', 'studentId', 'employeeId', 'strand', 'grade'];
   if (Object.keys(body).some(key => !allowed.includes(key))) fail('Unsupported account field.');
   if (!administrator && body.role !== undefined && !['student', 'staff'].includes(body.role)) { const error = new Error('Administrator accounts must be created by an administrator.'); error.status = 403; throw error; }
-  const type = idType(body.studentId);
-  if (!type) fail(policy.idHelp);
   const role = administrator ? body.role : (body.role || 'student');
+  const field = role === 'student' ? 'studentId' : 'employeeId';
+  const other = role === 'student' ? 'employeeId' : 'studentId';
+  if (normalize(body[other])) fail('The ID does not match the account role.');
+  const type = idType(body[field]);
+  if (!type) fail(policy.idHelp);
   if (!policy.roles.includes(role)) fail('Choose a valid role.');
   if ((role === 'student') !== (type === 'student')) fail('The ID does not match the account role. ' + policy.idHelp);
   if (!emailValid(body.email)) fail('Use a valid @phinmaed.com email address.');
@@ -48,6 +51,6 @@ function accountFields(body, administrator = false) {
   const profile = profileFields(body, role);
   if (!profile.name) fail('Full name is required.');
   if (administrator && role === 'student' && !profile.strand) fail('Choose a supported course or strand.');
-  return { ...profile, email: normalize(body.email).toLowerCase(), campus: normalize(body.campus), studentId: normalize(body.studentId).toUpperCase(), role };
+  return { ...profile, email: normalize(body.email).toLowerCase(), campus: normalize(body.campus), [field]: normalize(body[field]).toUpperCase(), role };
 }
 module.exports = { policy, courses, normalize, emailValid, idType, passwordValid, profileFields, accountFields };

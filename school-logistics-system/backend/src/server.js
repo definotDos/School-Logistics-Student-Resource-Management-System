@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   const { signingKey } = require('./utils/session');
   signingKey();
+  require('./services/loginFactor').secret();
+  if (!process.env.AUTH_AUDIT_SECRET || Buffer.byteLength(process.env.AUTH_AUDIT_SECRET) < 32) throw new Error('AUTH_AUDIT_SECRET must contain at least 32 bytes');
   await connectDB();
   await require('./utils/removeLegacyAuthenticator')(require('./models/User'));
   // Existing users must still be able to sign in and correct legacy ID conflicts.

@@ -9,9 +9,10 @@ function signingKey() {
 
 const authorized = user => user && user.status === 'active' && user.emailVerified === true && ['student', 'staff', 'admin'].includes(user.role);
 
-function createSessionToken(user, rememberMe) {
+function createSessionToken(user, rememberMe, secondFactor) {
+  if (!['otp', 'device'].includes(secondFactor)) throw new Error('Verified second factor required');
   return jwt.sign({ id: user._id, role: user.role, sessionVersion: user.sessionVersion || 0,
-    amr: ['pwd'], purpose: 'session' }, signingKey(), {
+    amr: ['pwd', secondFactor], purpose: 'session' }, signingKey(), {
     algorithm: 'HS256', issuer: 'school-logistics', audience: 'school-logistics-api',
     jwtid: crypto.randomUUID(), expiresIn: rememberMe === true ? '7d' : '8h',
   });

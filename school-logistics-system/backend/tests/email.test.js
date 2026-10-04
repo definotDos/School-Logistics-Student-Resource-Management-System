@@ -39,3 +39,12 @@ test("non-Gmail passwords retain their whitespace", async () => {
     auth: { user: "sender@gmail.com", pass: "abcd efgh ijkl mnop" },
   }));
 });
+
+test('login email contains a five-minute code and rejects provider refusal', async () => {
+  const sendMail = jest.fn().mockResolvedValueOnce({ accepted: ['student@phinmaed.com'], rejected: [] }).mockResolvedValueOnce({ accepted: [], rejected: ['student@phinmaed.com'] });
+  require('nodemailer').createTransport.mockReturnValue({ sendMail });
+  const { sendLoginCode } = require('../src/config/email');
+  await sendLoginCode('student@phinmaed.com', '012345');
+  expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: 'student@phinmaed.com', text: expect.stringContaining('five minutes') }));
+  await expect(sendLoginCode('student@phinmaed.com', '012345')).rejects.toThrow('Email was not accepted');
+});

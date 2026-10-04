@@ -1,5 +1,6 @@
 // Audit before normalization so existing conflicting accounts are never merged or deleted.
 async function prepareStudentIds(User) {
+  await require('./employeeIds').prepareEmployeeIds(User);
   const users = await User.find({ studentId: { $type: "string" } }).select("_id studentId").lean();
   const owners = new Map();
   for (const user of users) {

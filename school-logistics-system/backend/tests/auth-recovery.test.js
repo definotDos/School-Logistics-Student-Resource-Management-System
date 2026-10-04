@@ -23,13 +23,13 @@ test('public signup rejects administrator roles before creating an account', asy
  await auth.signup({ body: { name: 'Admin', email: 'a@phinmaed.com', password: 'password123', campus: 'Main', role: 'admin' } }, res);
  expect(res.status).toHaveBeenCalledWith(403); expect(create).not.toHaveBeenCalled();
 });
-test.each([false, true])('remember me %s sets the password session lifetime', async rememberMe => {
+test.each([false, true])('remember me %s is passed to the pending MFA challenge', async rememberMe => {
+ const issue = jest.spyOn(require('../src/services/loginFactor'), 'issue').mockResolvedValue({ requiresMfa: true });
  jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', emailVerified: true, role: 'student', status: 'active' }) });
  jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', password: await bcrypt.hash('password123', 4), emailVerified: true, role: 'student', status: 'active' }) });
  const res = response(); await auth.login({ body: { email: 'a@phinmaed.com', password: 'password123', rememberMe } }, res);
- const token = require('jsonwebtoken').verify(res.json.mock.calls[0][0].token, process.env.JWT_SECRET);
- expect(token.amr).toEqual(['pwd']);
- expect(token.exp - token.iat).toBe(rememberMe ? 7 * 86400 : 8 * 3600);
+ expect(res.json.mock.calls[0][0]).toEqual({ requiresMfa: true });
+ expect(issue).toHaveBeenCalledWith(expect.objectContaining({ _id: '123' }), rememberMe);
 });
 test('unverified login provides resumable email after password validation', async () => {
  jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ email: 'a@phinmaed.com', emailVerified: false }) });

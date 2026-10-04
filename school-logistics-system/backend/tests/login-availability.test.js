@@ -1,4 +1,5 @@
 const request = require('supertest');
+jest.mock('../src/services/loginFactor', () => ({ issue: jest.fn(async () => ({ requiresMfa: true, challenge: 'test-challenge' })) }));
 const bcrypt = require('bcryptjs');
 const app = require('../src/app');
 const User = require('../src/models/User');
@@ -11,7 +12,7 @@ test('existing users can log in while duplicate IDs pause signup', async () => {
   jest.spyOn(User, 'findOneAndUpdate').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active' }) });
   jest.spyOn(User, 'findOne').mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: '123', role: 'student', emailVerified: true, status: 'active', password: await bcrypt.hash('test-password', 4) }) });
   const result = await request(app).post('/api/auth/login').send({ email: 'test@phinmaed.com', password: 'test-password' });
-  expect(result.status).toBe(200); expect(result.body.token).toEqual(expect.any(String)); expect(result.body.user.id).toBe("123");
+  expect(result.status).toBe(200); expect(result.body.token).toBeUndefined(); expect(result.body.requiresMfa).toBe(true);
   const signup = await request(app).post('/api/auth/signup').send({});
   expect(signup.status).toBe(503); expect(signup.body.message).toContain('Existing users can still log in');
 });

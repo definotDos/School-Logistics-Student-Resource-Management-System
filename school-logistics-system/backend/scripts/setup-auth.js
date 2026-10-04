@@ -13,7 +13,9 @@ function setupAuth(envPath) {
     contents = contents.replace(line, '').trimEnd() + `\n${name}=${value}\n`;
     changed.push(name);
   };
-  if (!values.JWT_SECRET || Buffer.byteLength(values.JWT_SECRET) < 32) set('JWT_SECRET', crypto.randomBytes(48).toString('hex'));
+  for (const name of ['JWT_SECRET', 'OTP_SECRET', 'AUTH_AUDIT_SECRET']) {
+    if (!values[name] || Buffer.byteLength(values[name]) < 32) set(name, crypto.randomBytes(48).toString('hex'));
+  }
   if (changed.length) fs.writeFileSync(envPath, contents, { mode: 0o600 });
   return changed;
 }

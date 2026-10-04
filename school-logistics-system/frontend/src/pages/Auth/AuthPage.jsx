@@ -4,18 +4,22 @@ import { AuthLayout } from '../../components/auth/AuthLayout'
 import { useAuth } from '../../context/useAuth'
 import { LoginPage } from './Login'
 import { SignupPage } from './Signup'
+import OtpVerification from '../../components/auth/OtpVerification'
 
 export function AuthPage() {
   const location = useLocation()
   const mode = location.pathname === '/login' ? 'login' : 'signup'
   const [selectedCampus, setSelectedCampus] = useState(undefined)
+  const [pending, setPending] = useState(null)
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { login, signup, verifyEmail, resendVerificationCode } = useAuth()
+  const { login, verifyMfa, signup, verifyEmail, resendVerificationCode } = useAuth()
+  const openDashboard = user => navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student', { replace: true })
 
   const handleModeChange = nextMode => {
     setAuthError('')
+    setPending(null)
     if (nextMode === mode) return
     if (nextMode === 'signup') {
       setSelectedCampus(undefined)
@@ -31,7 +35,8 @@ export function AuthPage() {
     setAuthError('')
     try {
       const user = await login(email, password, rememberMe)
-      navigate(user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/student', { replace: true })
+      if (user.requiresMfa) setPending(user)
+      else openDashboard(user)
     } catch (error) {
       setAuthError(error.lockedUntil ? '' : error.message)
       if (error.requiresVerification) {
@@ -70,7 +75,7 @@ export function AuthPage() {
       campus={selectedCampus}
     >
       {mode === 'login' ? (
-        <LoginPage isSubmitting={isSubmitting} onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
+        pending ? <OtpVerification pending={pending} onPending={setPending} onCancel={() => setPending(null)} onVerify={async details => openDashboard(await verifyMfa(details))} /> : <LoginPage isSubmitting={isSubmitting} onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
         <SignupPage
           onSignup={handleSignup}

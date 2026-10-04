@@ -6,12 +6,12 @@ const cleanup = require('../src/utils/removeLegacyAuthenticator');
 
 afterEach(() => jest.restoreAllMocks());
 
-test.each(['student', 'staff', 'admin'])('password session permits an active %s account', async role => {
+test.each(['student', 'staff', 'admin'])('verified MFA session permits an active %s account', async role => {
   const user = { _id: '000000000000000000000001', role, status: 'active', emailVerified: true, sessionVersion: 2 };
   jest.spyOn(User, 'findById').mockResolvedValue(user);
-  const token = createSessionToken(user, false);
+  const token = createSessionToken(user, false, 'otp');
   const claims = jwt.verify(token, signingKey());
-  expect(claims.amr).toEqual(['pwd']);
+  expect(claims.amr).toEqual(['pwd', 'otp']);
   expect(claims.exp - claims.iat).toBe(8 * 60 * 60);
   const next = jest.fn();
   const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
@@ -21,7 +21,7 @@ test.each(['student', 'staff', 'admin'])('password session permits an active %s 
 });
 
 test('remember me retains the seven-day session duration', () => {
-  const claims = jwt.verify(createSessionToken({ _id: 'id', role: 'student' }, true), signingKey());
+  const claims = jwt.verify(createSessionToken({ _id: 'id', role: 'student' }, true, 'otp'), signingKey());
   expect(claims.exp - claims.iat).toBe(7 * 24 * 60 * 60);
 });
 

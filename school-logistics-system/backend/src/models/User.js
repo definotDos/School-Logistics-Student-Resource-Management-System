@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema(
 		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @phinmaed.com email address." } },
 		emailVerified: { type: Boolean, default: false },
 		sessionVersion: { type: Number, default: 0 },
+        loginFactor: { type: new mongoose.Schema({
+          challengeHash: String, codeHash: String, expiresAt: Date, resendAt: Date,
+          attempts: Number, used: Boolean, ready: Boolean, sessionVersion: Number,
+          email: String, rememberMe: Boolean,
+        }, { _id: false }), select: false },
 		failedLoginAttempts: { type: Number, default: 0, select: false },
 		loginLockedUntil: { type: Date, select: false },
 		passwordResetHash: { type: String, select: false },
@@ -15,6 +20,7 @@ const userSchema = new mongoose.Schema(
 		verificationCode: { type: String, select: false },
 		verificationExpiresAt: { type: Date, select: false },
 		studentId: { type: String, trim: true, uppercase: true, set: value => typeof value === "string" ? value.trim().toUpperCase() || undefined : value },
+		employeeId: { type: String, trim: true, uppercase: true, set: value => typeof value === "string" ? value.trim().toUpperCase() || undefined : value },
         pendingEmail: { type: String, lowercase: true, trim: true, select: false },
         emailChangeHash: { type: String, select: false },
         emailChangeExpiresAt: { type: Date, select: false },
@@ -31,12 +37,16 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ studentId: 1 }, { unique: true, partialFilterExpression: { studentId: { $type: "string" } }, collation: { locale: "en", strength: 2 } });
+userSchema.index({ employeeId: 1 }, { unique: true, partialFilterExpression: { employeeId: { $type: "string" } }, collation: { locale: "en", strength: 2 } });
+userSchema.index({ 'loginFactor.challengeHash': 1 }, { sparse: true });
 
 // Check related fields together; a valid prefix is never proof of staff authority.
 userSchema.pre('validate', function () {
-  if (this.isNew || this.isModified('studentId') || this.isModified('role')) {
-    const type = idType(this.studentId);
-    if (!type || (this.role === 'student') !== (type === 'student')) this.invalidate('studentId', 'ID must match the account role. ' + policy.idHelp);
+  if (this.isNew || this.isModified('studentId') || this.isModified('role') || this.isModified('employeeId')) {
+    const field = this.role === 'student' ? 'studentId' : 'employeeId';
+    const other = this.role === 'student' ? 'employeeId' : 'studentId';
+    if (this[other]) this.invalidate(other, 'ID field does not match the account role.');
+    if (idType(this[field]) !== (this.role === 'student' ? 'student' : 'employee')) this.invalidate(field, 'ID must match the account role. ' + policy.idHelp);
   }
   if (this.isModified('strand')) {
     if (this.role === 'student' && !courses.includes(this.strand)) this.invalidate('strand', 'Choose a supported course or strand.');

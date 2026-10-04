@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 // database tests must fail safely instead of loading the development database.
 process.env.MONGODB_URI ||= "mongodb://127.0.0.1:1/srms_unconfigured_test";
 process.env.JWT_SECRET ||= "isolated-test-secret-not-for-application-use";
+process.env.OTP_SECRET = 'isolated-test-otp-secret-not-for-application-use';
+process.env.AUTH_AUDIT_SECRET = 'isolated-test-audit-secret-not-for-application-use';
 
 // Database suites require an explicitly configured disposable database.
 if (process.env.MONGODB_URI && !new URL(process.env.MONGODB_URI).pathname.endsWith("_test")) {
@@ -31,4 +33,3 @@ afterAll(async () => {
 // NOTE: End-to-end workflow tests intentionally keep state across steps.
 // Do not delete collections before each test here because that breaks
 // the complete request lifecycle under test.
-

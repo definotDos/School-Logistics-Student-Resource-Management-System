@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+jest.mock('../../src/services/loginFactor', () => ({ issue: jest.fn(async () => ({ requiresMfa: true })) }));
 const bcrypt = require('bcryptjs');
 const User = require('../../src/models/User');
 const { login } = require('../../src/controllers/authController');

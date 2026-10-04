@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+jest.mock('../src/services/loginFactor', () => ({ issue: jest.fn(async () => ({ requiresMfa: true })) }));
 const User = require('../src/models/User');
 const { login } = require('../src/controllers/authController');
 
@@ -62,7 +63,8 @@ test('at the expiry boundary a correct password can log in and resets the failur
   jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
   const write = update({ ...account, failedLoginAttempts: 0 });
   const res = await attempt('correct');
-  expect(res.json.mock.calls[0][0].token).toEqual(expect.any(String));
+  expect(res.json.mock.calls[0][0].requiresMfa).toBe(true);
+  expect(res.json.mock.calls[0][0].token).toBeUndefined();
   const [, pipeline, options] = write.mock.calls[0];
   expect(options).toEqual({ new: true, updatePipeline: true });
   expect(pipeline[0].$set.failedLoginAttempts.$cond[2]).toBe(0);

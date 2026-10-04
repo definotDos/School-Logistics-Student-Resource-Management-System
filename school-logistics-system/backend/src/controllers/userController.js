@@ -84,7 +84,7 @@ async function createUser(req, res) {
         const fields = accountFields(req.body, true);
         if (!require("../middleware/campusScope").canAccessCampus(req, fields) || !await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus in your workspace." });
         if (await User.exists({ email: fields.email })) return res.status(409).json({ message: "Email already exists." });
-        if (await User.findOne({ studentId: fields.studentId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
+        if (await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
         const verificationCode = String(require("crypto").randomInt(100000, 1000000));
         const user = await User.create({ ...fields, password: await require("bcryptjs").hash(req.body.password, 12), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
         try {
@@ -95,6 +95,6 @@ async function createUser(req, res) {
         }
 
 		res.status(201).json({ user: publicUser(user) });
-	} catch (error) { res.status(error.code === 11000 ? 409 : error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.code === 11000 ? error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to create account." }); }
+	} catch (error) { res.status(error.code === 11000 ? 409 : error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.code === 11000 ? error.keyPattern?.employeeId ? "That employee ID is already registered." : error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to create account." }); }
 }
 module.exports = { getMe, getAllUsers, updateUserStatus, deleteUser, updateMe, createUser };

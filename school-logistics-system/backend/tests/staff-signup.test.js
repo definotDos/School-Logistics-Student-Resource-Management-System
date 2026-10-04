@@ -4,19 +4,19 @@ jest.mock('../src/config/email', () => ({ sendVerificationEmail: jest.fn() }));
 const { sendVerificationEmail } = require('../src/config/email');
 const { checkEmployeeId, signup } = require('../src/controllers/authController');
 const { accountFields } = require('../src/utils/accountValidation');
-const details = { name: 'Staff Member', email: 'staff@phinmaed.com', studentId: 'UP-25-12345-A', password: 'password123', campus: 'Main', role: 'staff' };
+const details = { name: 'Staff Member', email: 'staff@phinmaed.com', employeeId: 'UP-25-12345-A', password: 'password123', campus: 'Main', role: 'staff' };
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); });
 
-test.each(['UP-00-000-A', 'UP-25-1234-M', 'UP-99-99999-Z'])('accepts employee ID %s in signup and model validation', async studentId => {
-  expect(accountFields({ ...details, studentId }).studentId).toBe(studentId);
-  await expect(new User({ ...details, studentId }).validate()).resolves.toBeUndefined();
+test.each(['UP-00-000-A', 'UP-25-1234-M', 'UP-99-99999-Z'])('accepts employee ID %s in signup and model validation', async employeeId => {
+  expect(accountFields({ ...details, employeeId }).employeeId).toBe(employeeId);
+  await expect(new User({ ...details, employeeId }).validate()).resolves.toBeUndefined();
 });
 
-test.each(['', 'EMP-123456', 'UP-2-123-A', 'UP-123-123-A', 'UP-25-12-A', 'UP-25-123456-A', 'UP-25-123-AA', 'UP-25-123-1', 'UP25123A', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async studentId => {
+test.each(['', 'EMP-123456', 'UP-2-123-A', 'UP-123-123-A', 'UP-25-12-A', 'UP-25-123456-A', 'UP-25-123-AA', 'UP-25-123-1', 'UP25123A', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async employeeId => {
   const lookup = jest.spyOn(User, 'findOne');
   const res = response();
-  await checkEmployeeId({ body: { studentId } }, res);
+  await checkEmployeeId({ body: { employeeId } }, res);
   expect(res.status).toHaveBeenCalledWith(400);
   expect(lookup).not.toHaveBeenCalled();
 });
@@ -24,21 +24,21 @@ test('ID gate normalizes IDs and checks availability case-insensitively', async 
   const collation = jest.fn().mockResolvedValue(null);
   const lookup = jest.spyOn(User, 'findOne').mockReturnValue({ collation });
   const res = response();
-  await checkEmployeeId({ body: { studentId: ' up-25-12345-a ' } }, res);
-  expect(lookup).toHaveBeenCalledWith({ studentId: details.studentId });
+  await checkEmployeeId({ body: { employeeId: ' up-25-12345-a ' } }, res);
+  expect(lookup).toHaveBeenCalledWith({ employeeId: details.employeeId });
   expect(collation).toHaveBeenCalledWith({ locale: 'en', strength: 2 });
-  expect(res.json).toHaveBeenCalledWith({ studentId: details.studentId });
+  expect(res.json).toHaveBeenCalledWith({ employeeId: details.employeeId });
 });
 test('ID gate rejects registered IDs', async () => {
   jest.spyOn(User, 'findOne').mockReturnValue({ collation: jest.fn().mockResolvedValue({}) });
   const res = response();
-  await checkEmployeeId({ body: { studentId: details.studentId } }, res);
+  await checkEmployeeId({ body: { employeeId: details.employeeId } }, res);
   expect(res.status).toHaveBeenCalledWith(409);
 });
 test('ID gate handles database unavailability', async () => {
   jest.spyOn(User, 'findOne').mockReturnValue({ collation: jest.fn().mockRejectedValue(new Error('offline')) });
   const res = response();
-  await checkEmployeeId({ body: { studentId: details.studentId } }, res);
+  await checkEmployeeId({ body: { employeeId: details.employeeId } }, res);
   expect(res.status).toHaveBeenCalledWith(503);
 });
 test('staff signup creates an unverified staff account and sends a code', async () => {
@@ -48,7 +48,7 @@ test('staff signup creates an unverified staff account and sends a code', async 
   const res = response();
   await signup({ body: details }, res);
   expect(res.status).toHaveBeenCalledWith(201);
-  expect(create).toHaveBeenCalledWith(expect.objectContaining({ role: 'staff', studentId: details.studentId, emailVerified: false }));
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ role: 'staff', employeeId: details.employeeId, emailVerified: false }));
   expect(sendVerificationEmail).toHaveBeenCalledWith(details.email, expect.stringMatching(/^\d{6}$/));
 });
 test('signup rechecks duplicate IDs even after the initial gate', async () => {
@@ -62,6 +62,6 @@ test('signup rechecks duplicate IDs even after the initial gate', async () => {
 });
 test('public signup still rejects administrators and mismatched IDs', () => {
   expect(() => accountFields({ ...details, role: 'admin' })).toThrow('Administrator accounts');
-  expect(() => accountFields({ ...details, studentId: '03-2425-1234' })).toThrow('ID does not match');
+  expect(() => accountFields({ ...details, employeeId: '03-2425-1234' })).toThrow('ID does not match');
   expect(() => accountFields({ ...details, role: 'student' })).toThrow('ID does not match');
 });

@@ -96,11 +96,11 @@ function Sidebar({ type = "student" }) {
     catch (e) { setCampusError(e.message); } finally { setCampusBusy(false); }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    logout();
-    window.setTimeout(() => navigate("/login", { replace: true }), 1300);
+    if (await logout()) navigate("/login", { replace: true });
+    else setIsLoggingOut(false);
   };
 
   return (
