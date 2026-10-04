@@ -5,6 +5,7 @@
   "buildCommand": "npm run build --prefix school-logistics-system/frontend",
   "outputDirectory": "school-logistics-system/frontend/dist",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://school-logistics-student-resource.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

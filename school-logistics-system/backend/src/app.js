@@ -19,7 +19,7 @@ const app = express();
 
 // Middleware
 if (process.env.TRUST_PROXY_HOPS) app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS));
-const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const frontendOrigin = new URL(process.env.FRONTEND_ORIGIN || 'http://localhost:5173').origin;
 app.use(cors({ origin: frontendOrigin, credentials: true }));
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   }
   // Browser mutations must come from the configured frontend. API bearer clients may omit Origin.
   if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
-      (req.get('origin') && req.get('origin') !== frontendOrigin || req.get('sec-fetch-site') === 'cross-site')) {
+      (req.get('origin') ? req.get('origin') !== frontendOrigin : req.get('sec-fetch-site') === 'cross-site')) {
     return res.status(403).json({ message: 'Untrusted request origin.' });
   }
   next();
