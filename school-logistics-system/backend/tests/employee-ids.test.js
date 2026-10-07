@@ -28,7 +28,6 @@ test('already migrated accounts require no changes', async () => {
 test.each([
   [{ _id: '1', studentId: details.employeeId }, { _id: '2', employeeId: details.employeeId }],
   [{ _id: '1', studentId: details.employeeId, employeeId: 'UP-25-12345-B' }],
-  [{ _id: '1', studentId: '03-2425-1234' }],
 ])('conflicts stop migration before any write', async users => {
   const model = modelFor(users);
   await expect(prepareEmployeeIds(model)).rejects.toThrow();
@@ -39,4 +38,10 @@ test('concurrent changes stop migration without overwriting the changed record',
   const model = modelFor([{ _id: '1', role: 'staff', studentId: details.employeeId }]);
   model.collection.updateOne.mockResolvedValue({ matchedCount: 0 });
   await expect(prepareEmployeeIds(model)).rejects.toThrow('Account changed');
+});
+
+test('legacy staff IDs are preserved without blocking new registrations', async () => {
+  const model = modelFor([{ _id: '1', role: 'admin', studentId: 'ADMIN-001' }]);
+  await expect(prepareEmployeeIds(model)).resolves.toBeUndefined();
+  expect(model.collection.updateOne).not.toHaveBeenCalled();
 });

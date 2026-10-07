@@ -2,19 +2,19 @@
 
 ## Current diagnosis
 
-On October 5, 2026, read-only checks returned HTTP 200 JSON from both:
+Public endpoints to check after deployment:
 - https://school-logistics-student-resource.onrender.com/
 - https://school-logistics-student-resource-m-beta.vercel.app/api/campuses/public
 
-The API and frontend proxy are reachable. This does not prove email delivery.
-The screenshot shows commit `3f91b76`, which already contains Resend support.
-Render's reported email provider is Gmail. Render Free blocks SMTP ports 25,
-465, and 587, including Gmail SMTP. If using Free, choose an email option below.
-Redeploying unchanged Gmail settings will not remove this restriction.
+The October 7 screenshot shows `emailTransport: smtp`, followed by
+`login_code_delivery_failed` with `ETIMEDOUT` on `CONN`, and login status 503.
+The request reaches the backend, but its SMTP connection times out. Render Free
+blocks SMTP ports 25, 465, and 587, including Gmail SMTP. If using Free, choose
+HTTPS email below. Redeploying unchanged Gmail settings will not fix this.
+The repository already implements Resend HTTPS delivery.
 
-The screenshot's `login_error` status 429 is the application's login-code cooldown,
-not evidence of a Resend rate limit. Wait 60 seconds between login attempts.
-For the browser's 503, find the matching `login_code_delivery_failed` event.
+Successful public endpoint checks do not prove email delivery. Wait 60 seconds
+between login attempts and complete a real email-code sign-in after configuration.
 
 ## 1. Render service settings
 
@@ -56,6 +56,11 @@ EMAIL_FROM=School Logistics <noreply@your-verified-domain.com>
 Replace the example sender. A student mailbox does not give you control of the
 school's domain. Resend's test sender cannot deliver to arbitrary students.
 SMTP settings are ignored in Resend mode.
+
+If `schoollogistics26.com` is your domain and Resend reports it as **Verified**,
+use `EMAIL_FROM=School Logistics <noreply@schoollogistics26.com>`.
+Enter the API key privately in Render; never put it in Vercel frontend variables.
+Choose **Save and deploy** in Render after changing the environment.
 
 ### Option B: Keep Gmail
 
@@ -133,7 +138,7 @@ A successful real application email flow is required before deployment is comple
 | `HTTPS is required.` | Check Render `TRUST_PROXY_HOPS=1`. |
 | `Untrusted request origin.` | Check exact frontend origin with no path or trailing slash. |
 | API returns HTML | Check Vercel project root and API rewrite ordering. |
-| Mongoose `new` warning | Replaced locally with `returnDocument: 'after'`; unrelated to email delivery. |
+| `Account creation paused: Invalid employee ID` | Correct the identified staff/admin account using its real employee ID, then restart Render. Existing-user login remains available; do not invent an ID or delete the account. |
 
 Share only log event names, codes, and statuses, never environment secrets or OTPs.
 

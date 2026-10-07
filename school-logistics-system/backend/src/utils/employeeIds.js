@@ -11,7 +11,9 @@ async function prepareEmployeeIds(User) {
     if (legacy && existing && legacy !== existing) throw new Error(`Conflicting employee IDs on account ${user._id}. Correct before restarting.`);
     const employeeId = existing || legacy;
     if (!employeeId) continue;
-    if (idType(employeeId) !== 'employee') throw new Error(`Invalid employee ID on account ${user._id}. Correct before restarting.`);
+    // Preserve legacy identifiers for administrator correction. Their format alone
+    // must not block registration; the unique indexes still enforce ownership.
+    if (idType(employeeId) !== 'employee') continue;
     if (owners.has(employeeId)) throw new Error(`Duplicate employee ID on accounts ${owners.get(employeeId)} and ${user._id}. Correct before restarting.`);
     owners.set(employeeId, user._id);
     if (user.studentId !== undefined || employeeId !== user.employeeId) changes.push({ user, employeeId });

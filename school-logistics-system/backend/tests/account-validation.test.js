@@ -5,13 +5,13 @@ const auth = require('../src/controllers/authController');
 const users = require('../src/controllers/userController');
 const emailChange = require('../src/controllers/emailChangeController');
 const { accountFields, emailValid, policy } = require('../src/utils/accountValidation');
-const valid = { name: 'Student Name', email: 'student@phinmaed.com', password: 'password123', studentId: '03-01-2425-23456', role: 'student', campus: 'Main', strand: 'BS Information Technology' };
+const valid = { name: 'Student Name', email: 'student@phinmaed.com', password: 'password123', studentId: '03-01-2425-023456', role: 'student', campus: 'Main', strand: 'BS Information Technology' };
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => jest.restoreAllMocks());
 
 test.each(['a@gmail.com', 'a@phinmaed.com.evil.test', 'a@sub.phinmaed.com', 'a..b@phinmaed.com', '.a@phinmaed.com', 'a@phinmaed.com\nother', { $ne: null }, ['a@phinmaed.com'], null])('rejects invalid school email %j', email => expect(emailValid(email)).toBe(false));
 test('normalizes valid emails and IDs', () => {
-  expect(accountFields({ ...valid, email: ' Student@PHINMAED.COM ', studentId: ' 03-01-2425-23456 ' })).toMatchObject({ email: valid.email, studentId: valid.studentId });
+  expect(accountFields({ ...valid, email: ' Student@PHINMAED.COM ', studentId: ' 03-01-2425-023456 ' })).toMatchObject({ email: valid.email, studentId: valid.studentId });
 });
 test.each([
   { email: 'a@gmail.com' }, { studentId: 'UP-25-12345-A' }, { studentId: 'STU-123' },
@@ -91,10 +91,10 @@ test('public signup can defer course selection, while administrator creation req
   expect(() => accountFields(details, true)).toThrow('Choose a supported course');
 });
 
- test.each(['03-01-2425-00001', '03-2425-0001'])('accepts student ID %s', async studentId => {
+ test.each(['03-01-2425-045768', '03-01-2425-000001', '12-34-2026-234567'])('accepts student ID %s', async studentId => {
   expect(accountFields({ ...valid, studentId }).studentId).toBe(studentId);
   await expect(new User({ ...valid, studentId }).validate()).resolves.toBeUndefined();
 });
-test.each(['STU-123456', '03-01-2425-1234', '03-01-2425-123456', '03-2425-123', '03-2425-12345', '03-2425-abcd', '03-01-2526-12345', ''])('rejects invalid student ID %s', studentId => {
+test.each(['STU-123456', '03-01-2425-1234', '03-01-2425-1234567', '03-2425-123', '03-2425-12345', '03-2425-abcd', '03-01-2526-12345', ''])('rejects invalid student ID %s', studentId => {
   expect(() => accountFields({ ...valid, studentId })).toThrow();
 });

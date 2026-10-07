@@ -46,7 +46,7 @@ userSchema.pre('validate', function () {
     const field = this.role === 'student' ? 'studentId' : 'employeeId';
     const other = this.role === 'student' ? 'employeeId' : 'studentId';
     if (this[other]) this.invalidate(other, 'ID field does not match the account role.');
-    if (idType(this[field]) !== (this.role === 'student' ? 'student' : 'employee')) this.invalidate(field, 'ID must match the account role. ' + policy.idHelp);
+    if (idType(this[field]) !== (this.role === 'student' ? 'student' : 'employee')) this.invalidate(field, 'ID must match the account role. ' + (this.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp));
   }
   if (this.isModified('strand')) {
     if (this.role === 'student' && !courses.includes(this.strand)) this.invalidate('strand', 'Choose a supported course or strand.');

@@ -15,7 +15,7 @@ beforeEach(async () => {
   clientNumber++;
   sendLoginCode.mockReset().mockResolvedValue(undefined);
   user = await User.create({ name: 'MFA Test', email: `mfa-${new mongoose.Types.ObjectId()}@phinmaed.com`,
-    studentId: `03-01-2425-${String(clientNumber).padStart(5, '0')}`, strand: 'BS Information Technology',
+    studentId: `03-01-2425-${String(clientNumber).padStart(7, '0')}`, strand: 'BS Information Technology',
     password: await bcrypt.hash('Test-password-123', 4), campus: 'Test', emailVerified: true });
 });
 afterEach(async () => { await Device.deleteMany({ user: user._id }); await User.deleteOne({ _id: user._id }); });
@@ -60,7 +60,7 @@ test('registration and email verification feed into mandatory login MFA', async 
   const email = `registration-${user._id}@phinmaed.com`;
   try {
     const registered = await api('post', '/auth/signup').send({ name: 'New Student', email, password: 'Test-password-123',
-      campus: campus.name, studentId: '03-01-2425-99990', strand: 'BS Information Technology', grade: '1st Year', role: 'student' });
+      campus: campus.name, studentId: '03-01-2425-099990', strand: 'BS Information Technology', grade: '1st Year', role: 'student' });
     expect(registered.status).toBe(201); expect(registered.body.token).toBeUndefined();
     const signupCode = require('../../src/config/email').sendVerificationEmail.mock.calls.at(-1)[1];
     expect((await api('post', '/auth/verify-email').send({ email, code: signupCode })).status).toBe(200);

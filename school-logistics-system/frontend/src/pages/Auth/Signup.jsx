@@ -1,4 +1,4 @@
-import { idType, validateAccount } from '../../utils/accountValidation'
+import { formatStudentId, idType, validateAccount } from '../../utils/accountValidation'
 import { useEffect, useRef, useState } from 'react'
 import { authAPI, campusAPI } from '../../services/api'
 import { campuses as campusDirectory } from '../../data/campuses'
@@ -82,7 +82,7 @@ export function SignupPage({
     ...selectedCampusRecord,
   }
   const update = key => event => {
-    setForm({ ...form, [key]: event.target.value })
+    setForm({ ...form, [key]: key === 'studentId' ? formatStudentId(event.target.value) : event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
   }
   const identityLabel = form.role === 'student' ? 'Student ID' : 'Employee ID'
@@ -263,7 +263,7 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={identityLabel} maxLength={16} value={form[identityField]} onChange={update(identityField)} readOnly={form.role === 'staff'} required aria-invalid={Boolean(validationErrors[identityField])} />
+          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={form.role === 'student' ? '03-01-2425-045768' : identityLabel} maxLength={form.role === 'student' ? 17 : 13} inputMode={form.role === 'student' ? 'numeric' : undefined} value={form[identityField]} onChange={update(identityField)} readOnly={form.role === 'staff'} required aria-invalid={Boolean(validationErrors[identityField])} />
           {validationErrors[identityField] && <small className="field-error">{validationErrors[identityField]}</small>}
         </label>
         <label className="auth-field compact-field form-wide">

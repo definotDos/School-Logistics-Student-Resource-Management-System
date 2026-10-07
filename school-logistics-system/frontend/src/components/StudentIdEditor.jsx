@@ -9,7 +9,7 @@ export default function StudentIdEditor({ user, onUpdated }) {
   const [error, setError] = useState("");
   const save = async event => {
     event.preventDefault();
-    if (idType(value) !== "student") return setError(policy.idHelp);
+    if (idType(value) !== "student") return setError(policy.studentIdHelp);
     if (busy) return;
     setBusy(true); setError("");
     try {
@@ -20,8 +20,8 @@ export default function StudentIdEditor({ user, onUpdated }) {
   };
   return <div className="student-id-editor">
     {editing ? <form onSubmit={save}>
-      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={16} placeholder="03-01-2425-12345" disabled={busy} /></label>
-      <small>Required format: 03-01-2425-_____ (5 digits) or 03-2425-____ (4 digits).</small>
+      <label>Student ID for {user.name}<input value={value} onChange={e => setValue(e.target.value)} required maxLength={17} placeholder="03-01-2425-045768" disabled={busy} /></label>
+      <small>Required format: 00-00-0000-000000 (2-2-4-6 digits).</small>
       <div><button className="row-action" disabled={busy} type="submit">{busy ? "Saving..." : "Save ID"}</button><button className="row-action" disabled={busy} type="button" onClick={() => setEditing(false)}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form> : <><span>{user.studentId || "Not assigned"}</span><button className="row-action" type="button" onClick={() => { setValue(user.studentId || ""); setError(""); setEditing(true); }}>Correct ID</button></>}

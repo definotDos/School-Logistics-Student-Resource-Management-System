@@ -1,9 +1,10 @@
 {
   "emailDomain": "phinmaed.com",
   "emailPattern": "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@phinmaed\\.com$",
-  "studentIdPattern": "^(03-01-2425-[0-9]{5}|03-2425-[0-9]{4})$",
+  "studentIdPattern": "^[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{6}$",
   "employeeIdPattern": "^UP-[0-9]{2}-[0-9]{3,5}-[A-Z]$",
-  "idHelp": "Student IDs must use 03-01-2425-12345 or 03-2425-1234. Employee IDs must use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens (example UP-25-12345-A).",
+  "studentIdHelp": "Use 2-2-4-6 digits separated by hyphens. Example: 03-01-2425-045768.",
+  "employeeIdHelp": "Use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.",
   "roles": [
     "student",
     "staff",

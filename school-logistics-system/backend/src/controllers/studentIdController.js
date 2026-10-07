@@ -10,7 +10,7 @@ module.exports = (req, res) => {
   const task = correction.then(async () => {
     try {
       const studentId = typeof req.body.studentId === "string" ? req.body.studentId.trim().toUpperCase() : "";
-      if (idType(studentId) !== "student") return res.status(400).json({ message: policy.idHelp });
+      if (idType(studentId) !== "student") return res.status(400).json({ message: policy.studentIdHelp });
       const user = await User.findById(req.params.id);
       if (!user) return res.status(404).json({ message: "Account not found." });
       if (!canAccessCampus(req, user)) return res.status(403).json({ message: "User belongs to another campus." });

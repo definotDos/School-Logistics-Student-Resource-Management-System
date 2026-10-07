@@ -12,8 +12,13 @@ export function validateAccount(form, administrator = false) {
  if (!form.password || form.password.length < 8 || new TextEncoder().encode(form.password).length > 72) errors.password = 'Password must contain at least 8 characters and at most 72 UTF-8 bytes.';
  const field = form.role === 'student' ? 'studentId' : 'employeeId';
  const type = idType(form[field]);
- if (!type || (form.role === 'student') !== (type === 'student')) errors[field] = policy.idHelp;
+ if (!type || (form.role === 'student') !== (type === 'student')) errors[field] = form.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp;
  if (!policy.roles.includes(form.role) || (!administrator && !['student', 'staff'].includes(form.role))) errors.role = 'Choose a student or staff account.';
  if (form.role === 'student' && (administrator || form.strand !== undefined) && !courses.includes(form.strand)) errors.strand = 'Choose a supported course or strand.';
  return errors;
+}
+
+export function formatStudentId(value) {
+ const digits = String(value).replace(/\D/g, '').slice(0, 14);
+ return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8), digits.slice(8, 14)].filter(Boolean).join('-');
 }

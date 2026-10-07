@@ -42,9 +42,9 @@ function accountFields(body, administrator = false) {
   const other = role === 'student' ? 'employeeId' : 'studentId';
   if (normalize(body[other])) fail('The ID does not match the account role.');
   const type = idType(body[field]);
-  if (!type) fail(policy.idHelp);
+  if (!type) fail(role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp);
   if (!policy.roles.includes(role)) fail('Choose a valid role.');
-  if ((role === 'student') !== (type === 'student')) fail('The ID does not match the account role. ' + policy.idHelp);
+  if ((role === 'student') !== (type === 'student')) fail('The ID does not match the account role. ' + (role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp));
   if (!emailValid(body.email)) fail('Use a valid @phinmaed.com email address.');
   if (!passwordValid(body.password)) fail('Password must contain at least 8 characters and at most 72 UTF-8 bytes.');
   if (typeof body.campus !== 'string' || !normalize(body.campus) || body.campus.length > 150) fail('Choose an active campus.');

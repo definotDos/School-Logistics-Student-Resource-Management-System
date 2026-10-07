@@ -24,7 +24,7 @@ async function fixtures() {
   const tokens = {};
   let accountNumber = 20000 + await User.countDocuments();
   for (const [key, role, assigned] of [["student", "student", campus], ["peer", "student", campus], ["staff", "staff", campus], ["otherStaff", "staff", otherCampus], ["admin", "admin", campus]]) {
-    users[key] = await User.create({ name: key, email: `${key}-${suffix}@phinmaed.com`, studentId: role === 'student' ? `03-01-2425-${accountNumber++}` : `UP-25-${accountNumber++}-A`, ...(role === "student" ? { strand: "BS Information Technology" } : {}), password: await bcrypt.hash("TestPassword123", 4), role, campus: assigned, emailVerified: true });
+    users[key] = await User.create({ name: key, email: `${key}-${suffix}@phinmaed.com`, [role === 'student' ? 'studentId' : 'employeeId']: role === 'student' ? `03-01-2425-${String(accountNumber++).padStart(7, "0")}` : `UP-25-${accountNumber++}-A`, ...(role === "student" ? { strand: "BS Information Technology" } : {}), password: await bcrypt.hash("TestPassword123", 4), role, campus: assigned, emailVerified: true });
     tokens[key] = jwt.sign({ id: users[key]._id, purpose: "session", amr: ["pwd", "otp"] }, process.env.JWT_SECRET, { issuer: "school-logistics", audience: "school-logistics-api", expiresIn: "1h" });
   }
   const resource = await Resource.create({ name: `Book-${suffix}`, campus, category: "Books", maxQuantityPerStudent: 10 });

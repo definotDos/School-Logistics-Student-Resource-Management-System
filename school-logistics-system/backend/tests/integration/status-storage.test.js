@@ -14,7 +14,7 @@ beforeAll(async () => {
 });
 
 test("request creation, cancellation, user update and reports persist canonical statuses", async () => {
-  const user = await User.create({ name: "Status Test", studentId: "03-01-2425-00002", strand: "BS Information Technology", emailVerified: true, email: `status-${new mongoose.Types.ObjectId()}@phinmaed.com`, password: "test-only", campus: "Status Test", status: "Active" });
+  const user = await User.create({ name: "Status Test", studentId: "03-01-2425-000002", strand: "BS Information Technology", emailVerified: true, email: `status-${new mongoose.Types.ObjectId()}@phinmaed.com`, password: "test-only", campus: "Status Test", status: "Active" });
   const request = await Request.create({ student: user._id, resource: "Book", campus: "Status Test", status: "Pending" });
   expect((await Request.collection.findOne({ _id: request._id })).status).toBe("pending");
   const res = response();

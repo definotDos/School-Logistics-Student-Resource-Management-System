@@ -13,7 +13,7 @@ test.each(['UP-00-000-A', 'UP-25-1234-M', 'UP-99-99999-Z'])('accepts employee ID
   await expect(new User({ ...details, employeeId }).validate()).resolves.toBeUndefined();
 });
 
-test.each(['', 'EMP-123456', 'UP-2-123-A', 'UP-123-123-A', 'UP-25-12-A', 'UP-25-123456-A', 'UP-25-123-AA', 'UP-25-123-1', 'UP25123A', '03-2425-1234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async employeeId => {
+test.each(['', 'EMP-123456', 'UP-2-123-A', 'UP-123-123-A', 'UP-25-12-A', 'UP-25-123456-A', 'UP-25-123-AA', 'UP-25-123-1', 'UP25123A', '03-01-2425-001234', { $ne: '' }])('ID gate rejects invalid employee ID %j without a lookup', async employeeId => {
   const lookup = jest.spyOn(User, 'findOne');
   const res = response();
   await checkEmployeeId({ body: { employeeId } }, res);
@@ -62,6 +62,6 @@ test('signup rechecks duplicate IDs even after the initial gate', async () => {
 });
 test('public signup still rejects administrators and mismatched IDs', () => {
   expect(() => accountFields({ ...details, role: 'admin' })).toThrow('Administrator accounts');
-  expect(() => accountFields({ ...details, employeeId: '03-2425-1234' })).toThrow('ID does not match');
+  expect(() => accountFields({ ...details, employeeId: '03-01-2425-001234' })).toThrow('ID does not match');
   expect(() => accountFields({ ...details, role: 'student' })).toThrow('ID does not match');
 });

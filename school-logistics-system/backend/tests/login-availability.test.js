@@ -19,16 +19,16 @@ test('existing users can log in while duplicate IDs pause signup', async () => {
 test('ID corrections reject whitespace and case duplicates', async () => {
   const save = jest.fn();
   jest.spyOn(User, 'findById').mockResolvedValue({ _id: '123', role: 'student', campus: 'Main', save });
-  jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [{ studentId: ' 03-01-2425-23456 ' }] }) });
+  jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [{ studentId: ' 03-01-2425-023456 ' }] }) });
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: '03-01-2425-23456' } }, res);
+  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: '03-01-2425-023456' } }, res);
   expect(res.status).toHaveBeenCalledWith(409); expect(save).not.toHaveBeenCalled();
 });
 test('ID corrections enforce campus scope', async () => {
   const save = jest.fn();
   jest.spyOn(User, 'findById').mockResolvedValue({ _id: '123', role: 'student', campus: 'Other', save });
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin', activeCampus: 'Main' }, params: { id: '123' }, body: { studentId: '03-01-2425-23456' } }, res);
+  await correctStudentId({ app, user: { role: 'admin', activeCampus: 'Main' }, params: { id: '123' }, body: { studentId: '03-01-2425-023456' } }, res);
   expect(res.status).toHaveBeenCalledWith(403); expect(save).not.toHaveBeenCalled();
 });
 test('correcting final conflict restores registration after index creation', async () => {
@@ -38,7 +38,7 @@ test('correcting final conflict restores registration after index creation', asy
   jest.spyOn(User, 'find').mockReturnValue({ select: () => ({ lean: async () => [] }) });
   const indexes = jest.spyOn(User, 'createIndexes').mockResolvedValue([]);
   const res = response();
-  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: ' 03-01-2425-54321 ' } }, res);
-  expect(user.studentId).toBe('03-01-2425-54321'); expect(user.save).toHaveBeenCalled();
+  await correctStudentId({ app, user: { role: 'admin' }, params: { id: '123' }, body: { studentId: ' 03-01-2425-054321 ' } }, res);
+  expect(user.studentId).toBe('03-01-2425-054321'); expect(user.save).toHaveBeenCalled();
   expect(indexes).toHaveBeenCalled(); expect(app.locals.accountCreationReady).toBe(true);
 });
