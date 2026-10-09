@@ -7,7 +7,7 @@ function signingKey() {
   return key;
 }
 
-const authorized = user => user && user.status === 'active' && user.emailVerified === true && ['student', 'staff', 'admin'].includes(user.role);
+const authorized = user => user && user.status === 'active' && !user.activationPending && user.emailVerified === true && ['student', 'staff', 'admin'].includes(user.role);
 
 function createSessionToken(user, rememberMe, secondFactor) {
   if (!['otp', 'device'].includes(secondFactor)) throw new Error('Verified second factor required');

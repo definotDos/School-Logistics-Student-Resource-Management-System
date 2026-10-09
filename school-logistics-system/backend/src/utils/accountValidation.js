@@ -46,7 +46,7 @@ function accountFields(body, administrator = false) {
   if (!policy.roles.includes(role)) fail('Choose a valid role.');
   if ((role === 'student') !== (type === 'student')) fail('The ID does not match the account role. ' + (role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp));
   if (!emailValid(body.email)) fail('Use a valid @phinmaed.com email address.');
-  if (!passwordValid(body.password)) fail('Password must contain at least 8 characters and at most 72 UTF-8 bytes.');
+  if (!(administrator && role === 'staff') && !passwordValid(body.password)) fail('Password must contain at least 8 characters and at most 72 UTF-8 bytes.');
   if (typeof body.campus !== 'string' || !normalize(body.campus) || body.campus.length > 150) fail('Choose an active campus.');
   const profile = profileFields(body, role);
   if (!profile.name) fail('Full name is required.');

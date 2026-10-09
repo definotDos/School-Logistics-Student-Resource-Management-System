@@ -1,42 +1,72 @@
 /* Landing page palette: edit semantic tokens here to keep every section aligned.
-   Navy = structure, blue = actions, teal = highlights. */
+   Forest green = structure, gold = highlights, sage = supporting surfaces. */
 .landing-page.landing-palette {
   color-scheme: light;
-  --landing-bg: #f4f7fb;
+  --landing-bg: #f7f8f1;
   --landing-surface: #ffffff;
-  --landing-soft: #eaf0f7;
-  --landing-border: #cbd7e5;
-  --landing-text: #14243b;
-  --landing-muted: #52647a;
-  --landing-primary: #245dcc;
-  --landing-primary-hover: #194aa8;
+  --landing-soft: #edf2e8;
+  --landing-border: #cfdbca;
+  --landing-text: #183c2d;
+  --landing-muted: #53695c;
+  --landing-primary: #236244;
+  --landing-primary-hover: #174a32;
   --landing-on-primary: #ffffff;
-  --landing-accent: #087e83;
-  --landing-accent-soft: #e0f2f1;
-  --landing-action-soft: #e6efff;
-  --landing-shadow: 0 12px 30px #14243b0d;
+  --landing-accent: #856014;
+  --landing-accent-soft: #f7edcf;
+  --landing-action-soft: #e2eddf;
+  --landing-shadow: 0 12px 30px #173b2910;
+  --landing-gold: #e5bf69;
+  --landing-gold-hover: #f0d18a;
+  --landing-on-gold: #193b29;
+  --landing-chart: #357b53;
+  --landing-chart-top: #78a66a;
   background: var(--landing-bg);
   color: var(--landing-text);
 }
 
 .landing-page.landing-palette.dark-mode {
   color-scheme: dark;
-  --landing-bg: #0b1424;
-  --landing-surface: #142238;
-  --landing-soft: #1c2d45;
-  --landing-border: #334761;
-  --landing-text: #edf3fc;
-  --landing-muted: #aabbd1;
-  --landing-primary: #9bbdff;
-  --landing-primary-hover: #bdd3ff;
-  --landing-on-primary: #102347;
-  --landing-accent: #69d6cc;
-  --landing-accent-soft: #193c42;
-  --landing-action-soft: #243b60;
-  --landing-shadow: 0 12px 30px #02081733;
+  --landing-bg: #0b2119;
+  --landing-surface: #143629;
+  --landing-soft: #1c4232;
+  --landing-border: #3c604b;
+  --landing-text: #f6f7ed;
+  --landing-muted: #b8cbbb;
+  --landing-primary: #edcc85;
+  --landing-primary-hover: #f7dfa6;
+  --landing-on-primary: #193b29;
+  --landing-accent: #edcc85;
+  --landing-accent-soft: #3b3823;
+  --landing-action-soft: #284934;
+  --landing-shadow: 0 12px 30px #03130d33;
+  --landing-chart: #43835d;
+  --landing-chart-top: #94be83;
 }
 
 /* Surfaces and readable text hierarchy. */
+.landing-page.landing-palette .landing-header {
+  border-bottom: 2px solid var(--landing-gold);
+}
+
+.landing-page.landing-palette .landing-brand-mark {
+  background: var(--landing-surface);
+  border-color: var(--landing-gold);
+  box-shadow: none;
+}
+
+.landing-page.landing-palette .dashboard-preview {
+  border-top: 3px solid var(--landing-gold);
+}
+
+.landing-page.landing-palette .chart-bars span:nth-child(3n) {
+  background: linear-gradient(180deg, var(--landing-gold-hover), var(--landing-gold));
+}
+
+.landing-page.landing-palette ::selection {
+  background: var(--landing-gold);
+  color: var(--landing-on-gold);
+}
+
 .landing-page.landing-palette :is(.landing-header, .dashboard-preview, .benefit-card, .audience-card, .feature-tile, .contact-card) {
   background: var(--landing-surface);
   border-color: var(--landing-border);
@@ -67,7 +97,7 @@
   scroll-margin-top: 120px;
 }
 
-/* Blue consistently identifies navigation and actions. */
+/* Green navigation and gold calls to action establish a clear hierarchy. */
 .landing-page.landing-palette .nav-link-btn {
   color: var(--landing-text);
 }
@@ -84,13 +114,14 @@
 }
 
 .landing-page.landing-palette .primary-btn {
-  background: var(--landing-primary);
-  color: var(--landing-on-primary);
+  background: linear-gradient(120deg, var(--landing-gold), var(--landing-gold-hover));
+  color: var(--landing-on-gold);
+  border: 1px solid var(--landing-gold);
   box-shadow: var(--landing-shadow);
 }
 
 .landing-page.landing-palette .primary-btn:hover {
-  background: var(--landing-primary-hover);
+  background: var(--landing-gold-hover);
 }
 
 .landing-page.landing-palette :is(.secondary-btn, .nav-theme-toggle) {
@@ -110,7 +141,7 @@
   outline-offset: 4px;
 }
 
-/* Teal ties the headline, icons, and illustration together. */
+/* Gold ties the headline, section labels, and icon badges together. */
 .landing-page.landing-palette .hero-copy h1 .hero-stretch-accent {
   color: var(--landing-accent);
 }
@@ -160,7 +191,7 @@
 }
 
 .landing-page.landing-palette .chart-bars span {
-  background: linear-gradient(180deg, var(--landing-primary), var(--landing-accent));
+  background: linear-gradient(180deg, var(--landing-chart-top), var(--landing-chart));
   box-shadow: none;
 }
 

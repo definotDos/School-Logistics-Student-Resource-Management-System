@@ -1,7 +1,5 @@
-import { formatStudentId, idType, validateAccount } from '../../utils/accountValidation'
+import { formatStudentId, validateAccount } from '../../utils/accountValidation'
 import { useEffect, useRef, useState } from 'react'
-import { authAPI, campusAPI } from '../../services/api'
-import { campuses as campusDirectory } from '../../data/campuses'
 import { AuthLoadingButton } from '../../components/auth/AuthLoadingButton'
 import { LegalDialog } from '../../components/auth/LegalDialog'
 import './Signup.css'
@@ -14,53 +12,9 @@ export function SignupPage({
   onVerifyEmail,
   onResendVerificationCode,
 }) {
-  const [form, setForm] = useState({ name: '', email: '', studentId: '', employeeId: '', password: '', role: 'student', campus: '' })
+  const [form, setForm] = useState({ name: '', email: '', studentId: '', password: '', role: 'student', campus: 'PHINMA University of Pangasinan' })
   const [showPassword, setShowPassword] = useState(false)
   const [legalDocument, setLegalDocument] = useState(null)
-  const [employeeIdChecked, setEmployeeIdChecked] = useState(false)
-  const [isCheckingId, setIsCheckingId] = useState(false)
-  const [employeeIdError, setEmployeeIdError] = useState('')
-  const detailsHeading = useRef(null)
-  const employeeIdInput = useRef(null)
-  useEffect(() => {
-    if (form.role === 'staff') employeeIdInput.current?.focus()
-  }, [form.role])
-  useEffect(() => {
-    if (employeeIdError && !isCheckingId) employeeIdInput.current?.focus()
-  }, [employeeIdError, isCheckingId])
-  useEffect(() => {
-    if (employeeIdChecked) detailsHeading.current?.focus()
-  }, [employeeIdChecked])
-  const changeAccountType = role => {
-    setForm(current => ({ ...current, role, studentId: '', employeeId: '', password: '' }))
-    setEmployeeIdChecked(false)
-    setEmployeeIdError('')
-    setValidationErrors({})
-    setCampusMenuOpen(false)
-  }
-  const checkEmployeeId = async event => {
-    event.preventDefault()
-    if (isCheckingId) return
-    if (idType(form.employeeId) !== 'employee') {
-      setEmployeeIdError(form.employeeId.trim() ? 'Use UP-, 2 digits, 3 to 5 digits, and one letter (A-Z), separated by hyphens. Example: UP-25-12345-A.' : 'Enter your employee ID to continue.')
-      return
-    }
-    setIsCheckingId(true)
-    setEmployeeIdError('')
-    try {
-      const result = await authAPI.checkEmployeeId(form.employeeId)
-      setForm(current => ({ ...current, employeeId: result.employeeId }))
-      setEmployeeIdChecked(true)
-    } catch (checkError) {
-      setEmployeeIdError(checkError.message || 'We could not check your employee ID. Please try again.')
-    } finally {
-      setIsCheckingId(false)
-    }
-  }
-  const [campusMenuOpen, setCampusMenuOpen] = useState(false)
-  const [availableCampuses, setAvailableCampuses] = useState([])
-  const [campusError, setCampusError] = useState('')
-  useEffect(() => { campusAPI.getPublic().then(r => setAvailableCampuses(r.campuses)).catch(e => setCampusError(e.message)) }, [])
   const [validationErrors, setValidationErrors] = useState({})
   const [verificationEmail, setVerificationEmail] = useState(() => sessionStorage.getItem('srmsVerificationEmail') || '')
   const [verificationCode, setVerificationCode] = useState('')
@@ -76,27 +30,21 @@ export function SignupPage({
       verificationHeading.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
     }
   }, [verificationEmail])
-  const selectedCampusRecord = availableCampuses.find(campus => campus.name === form.campus)
-  const selectedCampus = selectedCampusRecord && {
-    ...campusDirectory.find(campus => campus.name === selectedCampusRecord.name),
-    ...selectedCampusRecord,
-  }
   const update = key => event => {
     setForm({ ...form, [key]: key === 'studentId' ? formatStudentId(event.target.value) : event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
   }
-  const identityLabel = form.role === 'student' ? 'Student ID' : 'Employee ID'
+  const identityLabel = 'Student ID'
 
-  const identityField = form.role === 'student' ? 'studentId' : 'employeeId'
+  const identityField = 'studentId'
   const submit = async event => {
     event.preventDefault()
     if (isSubmitting) return
-    if (form.role === 'staff' && !employeeIdChecked) return
     const errors = validateAccount(form)
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
     try {
-      const result = await onSignup({ ...form, [form.role === 'student' ? 'employeeId' : 'studentId']: undefined })
+      const result = await onSignup({ ...form })
       if (result?.requiresVerification) setForm(current => ({ ...current, password: '' }))
       if (result?.requiresVerification) { const email = result.email || form.email.trim().toLowerCase(); sessionStorage.setItem('srmsVerificationEmail', email); setVerificationEmail(email) }
     } catch {
@@ -194,68 +142,13 @@ export function SignupPage({
   )
 
   return (
-    <div className="auth-form-wrap signup-form-wrap" style={{ '--selected-campus-logo': selectedCampus?.logo ? `url("${selectedCampus.logo}")` : 'none' }}>
+    <div className="auth-form-wrap signup-form-wrap">
       <div className="auth-heading">
-        <h2 ref={detailsHeading} tabIndex={-1}>{form.role === 'staff' ? 'Create staff account' : 'Create account'}</h2>
-        <p>Join your campus. Get the resources you need.</p>
+        <h2>Create student account</h2>
+        <p>please sign up to access the resources</p>
       </div>
-      {form.role === 'staff' ? (
-        <div className="signup-id-summary signup-role-summary">
-          <span>Account type: <strong>Staff / Employee</strong></span>
-          <button type="button" disabled={isCheckingId || isSubmitting} onClick={() => changeAccountType('student')}>Change account type</button>
-        </div>
-      ) : (
-      <fieldset className="signup-role-picker" disabled={isCheckingId || isSubmitting}>
-        <legend>Choose your account type</legend>
-        <p className="signup-role-help">Select the role you use on campus.</p>
-        <div className="signup-role-options">
-          {[
-            ['student', 'Student', 'Use your student ID'],
-            ['staff', 'Staff / Employee', 'Use your employee ID'],
-          ].map(([role, label, description]) => (
-            <label key={role} className={form.role === role ? 'selected' : ''}>
-              <input type="radio" name="signup-role" value={role} checked={form.role === role} onChange={() => changeAccountType(role)} />
-              <span className="signup-role-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  {role === 'student' ? <><path d="m2 9 10-5 10 5-10 5-10-5Z" /><path d="M6 11v6c4 3 8 3 12 0v-6M22 9v7" /></> : <><rect x="3" y="7" width="18" height="14" rx="3" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M12 12v3" /></>}
-                </svg>
-              </span>
-              <span className="signup-role-copy"><strong>{label}</strong><small>{description}</small></span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      )}
-      {form.role === 'staff' && <ol className="signup-steps" aria-label="Staff signup progress">
-        <li className={employeeIdChecked ? 'is-complete' : ''} aria-current={!employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">{employeeIdChecked ? '✓' : '1'}</span><span>Employee ID{employeeIdChecked && <span className="signup-step-status">Complete</span>}</span></li>
-        <li aria-current={employeeIdChecked ? 'step' : undefined}><span className="signup-step-number" aria-hidden="true">2</span><span>Account details</span></li>
-        <li><span className="signup-step-number" aria-hidden="true">3</span><span>Verify email</span></li>
-      </ol>}
-      {form.role === 'staff' && !employeeIdChecked ? (
-        <form className="auth-form signup-form signup-id-form" onSubmit={checkEmployeeId} noValidate aria-busy={isCheckingId}>
-          <div className="signup-section-heading form-wide"><span>STEP 1 OF 3</span><h3>Enter your employee ID</h3><p>We’ll check if your ID is available for registration.</p></div>
-          <label className="auth-field compact-field form-wide">
-            <span>Employee ID</span>
-            <input ref={employeeIdInput} className={employeeIdError ? 'input-invalid' : ''} value={form.employeeId} onChange={event => { setForm(current => ({ ...current, employeeId: event.target.value.toUpperCase() })); setEmployeeIdError('') }} placeholder="e.g. UP-25-12345-A" maxLength={13} required disabled={isCheckingId} autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(employeeIdError)} aria-describedby={employeeIdError ? 'employee-id-error' : undefined} />
-          </label>
-          {employeeIdError && <div id="employee-id-error" className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Check your employee ID</strong><p>{employeeIdError}</p></div></div>}
-          <AuthLoadingButton className="auth-submit form-wide" loading={isCheckingId} loadingText="Checking employee ID...">Continue to account details <span aria-hidden="true">→</span></AuthLoadingButton>
-          <p className="signup-account-note form-wide">Already registered? <button type="button" onClick={() => onChangeMode('login')}>Log in to your account</button></p>
-        </form>
-      ) : (
       <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
-        {form.role === 'staff' && <div className="signup-id-summary form-wide"><span>Employee ID: <strong>{form.employeeId}</strong></span><button type="button" disabled={isSubmitting} onClick={() => { setEmployeeIdChecked(false); setEmployeeIdError(''); setForm(current => ({ ...current, password: '' })) }}>Change ID</button></div>}
         {error && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to create account</strong><p>{error}</p></div></div>}
-        {campusError && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to load campuses</strong><p>{campusError}</p></div></div>}
-        <label className="auth-field compact-field form-wide signup-campus-field">
-          <span>Campus</span>
-          <button className="signup-campus-select" type="button" aria-label={selectedCampus ? `Selected campus: ${selectedCampus.name}` : 'Please select your campus'} aria-haspopup="listbox" aria-expanded={campusMenuOpen} onClick={() => setCampusMenuOpen(open => !open)}>
-            {selectedCampus && (selectedCampus.logo ? <img src={selectedCampus.logo} alt="" /> : <i>{selectedCampus.code}</i>)}
-            <span>{selectedCampus ? selectedCampus.name : 'Please Select Your Campus'}</span><b aria-hidden="true">⌄</b>
-          </button>
-          {validationErrors.campus && <small className="field-error">{validationErrors.campus}</small>}
-        </label>
-        {campusMenuOpen && <div className="signup-campus-menu form-wide" role="listbox" aria-label="Available campuses">{availableCampuses.map(campus => { const campusDetails = { ...campusDirectory.find(entry => entry.name === campus.name), ...campus }; return <button key={campus._id} type="button" role="option" aria-selected={form.campus === campus.name} onClick={() => { setForm({ ...form, campus: campus.name }); setCampusMenuOpen(false); }}>{campusDetails.logo ? <img src={campusDetails.logo} alt="" /> : <i>{campusDetails.code || campus.name.slice(0, 2).toUpperCase()}</i>}<span>{campus.name}</span></button> })}{!availableCampuses.length && <p>No active campuses. Contact an administrator.</p>}</div>}
         <label className="auth-field compact-field">
           <span>Full name</span>
           <input className={validationErrors.name ? 'input-invalid' : ''} placeholder="Full name" value={form.name} onChange={update('name')} autoComplete="name" required aria-invalid={Boolean(validationErrors.name)} />
@@ -263,7 +156,7 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={form.role === 'student' ? '03-01-2425-045768' : identityLabel} maxLength={form.role === 'student' ? 17 : 13} inputMode={form.role === 'student' ? 'numeric' : undefined} value={form[identityField]} onChange={update(identityField)} readOnly={form.role === 'staff'} required aria-invalid={Boolean(validationErrors[identityField])} />
+          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder="Student I'D" maxLength={17} inputMode="numeric" value={form[identityField]} onChange={update(identityField)} required aria-invalid={Boolean(validationErrors[identityField])} />
           {validationErrors[identityField] && <small className="field-error">{validationErrors[identityField]}</small>}
         </label>
         <label className="auth-field compact-field form-wide">
@@ -287,9 +180,8 @@ export function SignupPage({
           <span id="signup-terms-label"><label htmlFor="signup-terms">I agree to the </label><button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('terms')}>Terms of Service</button> and <button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('privacy')}>Privacy Policy</button>.</span>
         </div>
         <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Creating account...">Sign Up</AuthLoadingButton>
-        <p className="signup-account-note form-wide">{form.role === 'staff' ? 'Create your staff account using your school email.' : 'Create your student account using your school email.'} Email verification is required.</p>
+        <p className="signup-account-note form-wide">Create your student account using your school email. Email verification is required.</p>
       </form>
-      )}
       {legalDocument && <LegalDialog document={legalDocument} onClose={() => setLegalDocument(null)} />}
     </div>
   )

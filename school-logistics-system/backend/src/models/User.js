@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
 		name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
 		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @phinmaed.com email address." } },
 		emailVerified: { type: Boolean, default: false },
+		activationPending: { type: Boolean, default: false },
 		sessionVersion: { type: Number, default: 0 },
         loginFactor: { type: new mongoose.Schema({
           challengeHash: String, codeHash: String, expiresAt: Date, resendAt: Date,
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema(
         pendingEmail: { type: String, lowercase: true, trim: true, select: false },
         emailChangeHash: { type: String, select: false },
         emailChangeExpiresAt: { type: Date, select: false },
-		password: { type: String, required: true, select: false },
+		password: { type: String, required: function () { return !this.activationPending; }, select: false },
 		role: { type: String, enum: ["student", "admin", "staff"], default: "student" },
 		status: { type: String, enum: USER_STATUSES, set: normalizeStatus, default: "active" },
 		grade: { type: String, default: "Please Select Your Program" },

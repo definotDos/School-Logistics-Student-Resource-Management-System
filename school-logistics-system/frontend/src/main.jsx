@@ -13,6 +13,7 @@ import "./sidebar-palette.css";
 import "./landing-palette.css";
 import "./responsive.css";
 import "./appearance.css";
+import "./components/auth/AuthPalette.css";
 import { initializeAppearance } from "./utils/appearance";
 
 initializeAppearance();

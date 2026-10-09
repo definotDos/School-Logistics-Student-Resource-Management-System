@@ -1,3 +1,4 @@
+import { ActivateAccount } from './ActivateAccount'
 import { emailValid } from '../../utils/accountValidation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -10,6 +11,8 @@ import './ForgotPassword.css'
 
 
 export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }) {
+  const [activationOpen, setActivationOpen] = useState(false)
+  const [activationMessage, setActivationMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [resetCode, setResetCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -91,6 +94,7 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
         <h2>Login</h2>
         <p>Welcome back. Please enter your details.</p>
       </div>
+      {activationMessage && <p className="recovery-message is-success" role="status">{activationMessage}</p>}
       <form className="auth-form" onSubmit={submit} aria-busy={isSubmitting}>
         <label className="auth-field compact-field">
           <span>Email address</span>
@@ -114,6 +118,8 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
         {!isLocked && !isSubmitting && <LoginFeedback key={validationError || error} message={validationError || error} isValidation={Boolean(validationError)} />}
       </form>
       <p className="auth-footer"><button type="button" onClick={() => { if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setValidationError('Enter your email address to resume verification.'); sessionStorage.setItem('srmsVerificationEmail', email.trim().toLowerCase()); onChangeMode('signup') }}>Resume email verification</button></p>
+      <p className="auth-footer">Account created by your administrator? <button type="button" onClick={() => setActivationOpen(true)}>Activate account</button></p>
+      {activationOpen && <ActivateAccount initialEmail={email} onClose={() => setActivationOpen(false)} onActivated={activatedEmail => { setEmail(activatedEmail); setPassword(''); setActivationMessage('Account activated. Log in with your new password.'); setActivationOpen(false) }} />}
       {forgotOpen && createPortal(
         <dialog ref={recoveryDialog} className="recovery-dialog" aria-labelledby="forgot-title" aria-describedby="forgot-description" onCancel={event => { if (busy) event.preventDefault(); else setForgotOpen(false) }}>
           <button className="recovery-close" type="button" disabled={busy} aria-label="Close password recovery" onClick={() => setForgotOpen(false)}>×</button>

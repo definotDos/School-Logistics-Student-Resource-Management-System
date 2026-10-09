@@ -1,0 +1,41 @@
+
+.admin-shell .admin-main .create-user-card { --cu-ink: #20364d; --cu-muted: #576b80; --cu-line: #d6e1eb; --cu-soft: #f2f7fb; overflow: hidden; border-radius: 14px; color: var(--cu-ink); }
+.admin-shell.dark-mode .admin-main .create-user-card { --cu-ink: #e6eef8; --cu-muted: #b4c5d8; --cu-line: #41556d; --cu-soft: #1c3046; }
+.admin-shell .admin-main .create-user-card summary { padding: 18px 24px; cursor: pointer; }
+.create-user-summary-note { margin-left: 16px; color: var(--cu-muted); font-size: 13px; font-weight: 400; }
+.admin-shell .admin-main .create-user-form { padding: 24px; }
+.admin-shell .admin-main .create-user-intro h3 { margin: 0 0 6px; color: var(--cu-ink); font-size: 20px; }
+.admin-shell .admin-main .create-user-form p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--cu-muted); }
+.create-user-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin: 24px 0; }
+.create-user-sections fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.create-user-sections fieldset + fieldset { border-left: 1px solid var(--cu-line); padding-left: 28px; }
+.create-user-sections legend { width: 100%; padding: 0; margin-bottom: 18px; font-size: 14px; font-weight: 700; color: var(--cu-ink); }
+.admin-shell .admin-main .create-user-form label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; color: var(--cu-ink); font-size: 13px; font-weight: 600; }
+.admin-shell .admin-main .create-user-form :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; min-height: 46px; padding: 11px 14px; border: 1px solid var(--cu-line); border-radius: 9px; font: inherit; font-weight: 400; }
+.create-user-form input::placeholder { color: var(--cu-muted); opacity: 0.85; }
+.create-user-form :is(input, select, button):focus-visible { outline: 2px solid #51b6e2; outline-offset: 3px; }
+.create-user-form small { color: var(--cu-muted); font-size: 12px; font-weight: 400; line-height: 1.5; }
+.create-user-guidance { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid var(--cu-line); border-radius: 10px; background: var(--cu-soft); }
+.create-user-guidance .dashboard-icon { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.create-user-guidance strong, .create-user-message strong { display: block; margin-bottom: 5px; font-size: 13px; }
+.create-user-message { margin: 0 0 20px; padding: 16px; border: 1px solid; border-radius: 10px; }
+.create-user-success { border-color: #429f7c; background: rgb(44 154 108 / 10%); }
+.create-user-error { border-color: #ce6b77; background: rgb(206 70 90 / 10%); }
+.create-user-message button { margin-top: 12px; }
+.create-user-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--cu-line); }
+.create-user-footer button { flex-shrink: 0; }
+.create-user-form :disabled { opacity: 0.65; }
+@media (max-width: 700px) {
+ .create-user-summary-note { display: block; margin: 6px 0 0; }
+ .admin-shell .admin-main .create-user-form { padding: 20px 16px; }
+ .create-user-sections { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+ .create-user-sections fieldset + fieldset { border-left: 0; border-top: 1px solid var(--cu-line); padding: 20px 0 0; }
+ .create-user-footer { align-items: stretch; flex-direction: column; }
+}
+
+.admin-shell .admin-main .create-user-form .create-user-guidance { position: static; width: auto; height: auto; min-width: 0; box-sizing: border-box; }
+.admin-shell .admin-main .create-user-form .create-user-field-error { color: #b42336; font-weight: 600; }
+.admin-shell.dark-mode .admin-main .create-user-form .create-user-field-error { color: #ffadb7; }
+.admin-shell .admin-main .create-user-form [aria-invalid="true"] { border-color: #ce465a; box-shadow: 0 0 0 1px #ce465a; }
+.admin-shell .admin-main .create-user-form .create-user-footer { position: static; width: auto; margin: 0; }
+.create-user-guidance > div { min-width: 0; overflow-wrap: anywhere; }

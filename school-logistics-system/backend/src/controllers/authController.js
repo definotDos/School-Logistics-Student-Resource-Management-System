@@ -74,7 +74,7 @@ async function login(req, res) {
         if (Object.keys(req.body || {}).some(key => !["email", "password", "rememberMe"].includes(key)) || (req.body?.rememberMe !== undefined && typeof req.body.rememberMe !== "boolean")) return res.status(400).json({ message: "Provide email, password, and an optional boolean rememberMe value. Account roles are determined by the server." });
 		if (!emailValid(email) || typeof password !== "string" || !password || Buffer.byteLength(password) > 72) return res.status(401).json({ message: "Invalid email or password." });
 		let user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password +failedLoginAttempts +loginLockedUntil");
-		if (!user) return res.status(401).json({ message: "Invalid email or password." });
+		if (!user || user.activationPending) return res.status(401).json({ message: "Invalid email or password. If your administrator created your account, choose Activate account first." });
         req.authAuditUser = String(user._id);
 		const lockedResponse = account => {
 			const retryAfterSeconds = Math.max(1, Math.ceil((new Date(account.loginLockedUntil).getTime() - Date.now()) / 1000));
@@ -92,7 +92,7 @@ async function login(req, res) {
 			{ $set: { failedLoginAttempts: { $cond: [activeLock, "$failedLoginAttempts", nextAttempts] } } },
 			{ $set: { loginLockedUntil: { $cond: [activeLock, "$loginLockedUntil", { $cond: [{ $gte: ["$failedLoginAttempts", 3] }, { $add: ["$$NOW", 3 * 60 * 1000] }, "$$REMOVE"] }] } } },
 		], { returnDocument: 'after', updatePipeline: true }).select("+failedLoginAttempts +loginLockedUntil");
-		if (!user) return res.status(401).json({ message: "Invalid email or password." });
+		if (!user || user.activationPending) return res.status(401).json({ message: "Invalid email or password. If your administrator created your account, choose Activate account first." });
 		if (user.loginLockedUntil > new Date()) return lockedResponse(user);
 		if (!validPassword) return res.status(401).json({ message: "Invalid email or password." });
 		if (user.emailVerified === false) return res.status(403).json({ message: "Please verify your email before logging in.", requiresVerification: true, email: user.email });
@@ -115,7 +115,7 @@ async function verifyEmail(req, res) {
 		const code = typeof req.body.code === "string" ? req.body.code.trim() : "";
         if (!/^\d{6}$/.test(code)) return res.status(400).json({ message: "Enter the six-digit verification code." });
 		const user = await User.findOne({ email }).select("+verificationCode +verificationExpiresAt");
-		if (!user || user.emailVerified !== false || user.verificationCode !== code || !user.verificationExpiresAt || user.verificationExpiresAt < new Date()) return res.status(400).json({ message: "That verification code is invalid or expired." });
+		if (!user || user.activationPending || user.emailVerified !== false || user.verificationCode !== code || !user.verificationExpiresAt || user.verificationExpiresAt < new Date()) return res.status(400).json({ message: "That verification code is invalid or expired." });
 		user.emailVerified = true;
 		user.verificationCode = undefined;
 		user.verificationExpiresAt = undefined;
@@ -138,7 +138,7 @@ async function resendVerificationCode(req, res) {
 		user.verificationCode = verificationCode;
 		user.verificationExpiresAt = verificationExpiry();
 		await user.save();
-		await sendVerificationEmail(email, verificationCode);
+		await sendVerificationEmail(email, verificationCode, user.activationPending === true);
 		return res.status(200).json({ message: "A new verification code was sent to your email." });
 	} catch (error) {
 		console.error("Resend verification error:", error);
@@ -153,7 +153,7 @@ async function forgotPassword(req, res) {
   const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
   if (!emailValid(email)) return res.status(400).json({ message: "Enter a valid email address." });
   const user = await User.findOne({ email });
-  if (user) {
+  if (user && !user.activationPending) {
    const code = crypto.randomBytes(16).toString("hex");
    user.passwordResetHash = hashResetCode(code);
    user.passwordResetExpiresAt = verificationExpiry();
@@ -170,7 +170,7 @@ async function resetPassword(req, res) {
  try {
   const { email, code, password } = req.body || {};
   if (!emailValid(email) || typeof code !== "string" || !/^[a-f0-9]{32}$/.test(code) || !passwordValid(password)) return res.status(400).json({ message: "Enter your email, reset code, and a password of 8 to 72 bytes." });
-  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), passwordResetHash: hashResetCode(code), passwordResetExpiresAt: { $gt: new Date() } }, { $set: { password: await bcrypt.hash(password, 12) }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 }, $inc: { sessionVersion: 1 } }, { returnDocument: 'after' });
+  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), activationPending: { $ne: true }, passwordResetHash: hashResetCode(code), passwordResetExpiresAt: { $gt: new Date() } }, { $set: { password: await bcrypt.hash(password, 12) }, $unset: { passwordResetHash: 1, passwordResetExpiresAt: 1 }, $inc: { sessionVersion: 1 } }, { returnDocument: 'after' });
   if (!user) return res.status(400).json({ message: "That reset code is invalid or expired. Request a new code." });
   res.json({ message: "Password reset successfully. Log in with your new password." });
  } catch {
@@ -178,4 +178,24 @@ async function resetPassword(req, res) {
  }
 }
 
-module.exports = { signup, checkEmployeeId, login, verifyEmail, resendVerificationCode, forgotPassword, resetPassword, publicUser };
+
+// Consume the code and set the initial password in the same atomic update.
+async function activateAccount(req, res) {
+ try {
+  const { email, code, password, confirmPassword } = req.body || {};
+  if (!emailValid(email) || typeof code !== 'string' || !/^\d{6}$/.test(code.trim()) || !passwordValid(password) || password !== confirmPassword) {
+   return res.status(400).json({ message: 'Enter your email, six-digit code, and matching passwords of at least 8 characters and at most 72 UTF-8 bytes.' });
+  }
+  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), role: 'staff', activationPending: true, emailVerified: false,
+   verificationCode: code.trim(), verificationExpiresAt: { $gt: new Date() } }, {
+   $set: { password: await bcrypt.hash(password, 12), emailVerified: true, activationPending: false },
+   $unset: { verificationCode: 1, verificationExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1, loginLockedUntil: 1 },
+   $inc: { sessionVersion: 1 },
+  }, { returnDocument: 'after' });
+  if (!user) return res.status(400).json({ message: 'The activation code is invalid or expired, or this account is already activated. Request a new code or log in.' });
+  res.json({ message: 'Account activated. You can now log in with your new password.' });
+ } catch {
+  res.status(503).json({ message: 'Unable to activate your account. Please try again.' });
+ }
+}
+module.exports = { signup, checkEmployeeId, login, verifyEmail, resendVerificationCode, forgotPassword, resetPassword, activateAccount, publicUser };

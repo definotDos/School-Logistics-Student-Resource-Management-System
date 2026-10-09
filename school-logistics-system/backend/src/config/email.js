@@ -45,15 +45,15 @@ async function getTransporter() {
 	return transporter;
 }
 
-async function sendVerificationEmail(email, code) {
+async function sendVerificationEmail(email, code, activation = false) {
 	if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error("The signup email address is invalid.");
 	const activeTransporter = await getTransporter();
 	const result = await activeTransporter.sendMail({
 		from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 		to: email,
-		subject: "School Logistics email verification code",
-		text: `Your School Logistics verification code is ${code}. It expires in 15 minutes.`,
-		html: `<p>Your School Logistics verification code is:</p><p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${code}</p><p>This code expires in 15 minutes.</p>`,
+		subject: activation ? "Activate your School Logistics staff account" : "School Logistics email verification code",
+		text: `Your School Logistics verification code is ${code}. It expires in 15 minutes.${activation ? " Open the School Logistics login page, choose Activate account, and enter your email, this code, and your chosen password. If the code expires, use Resend code in Activate account." : ""}`,
+		html: `<p>Your School Logistics verification code is:</p><p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${code}</p><p>This code expires in 15 minutes.</p>${activation ? "<p>Open the School Logistics login page and choose <strong>Activate account</strong>. Enter your email, this code, and choose and confirm your password. If the code expires, select Resend code in Activate account.</p>" : ""}`,
 	});
 
 	return result;

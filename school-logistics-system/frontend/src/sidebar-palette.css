@@ -1,29 +1,87 @@
 /* Shared navigation palette. Keep selection colors together for every role. */
 .app-sidebar {
-  --footer-surface: #142b43;
-  --footer-text: #dce8f4;
-  --footer-muted: #aac1d7;
-  --nav-heading: #b8cee3;
-  --nav-divider: #a6c8e540;
-  --nav-text: #c5d5e6;
-  --nav-hover-bg: #20364d;
-  --nav-hover-border: #36536e;
-  --nav-selected-bg: #24445f;
-  --nav-selected-hover-bg: #2b506e;
-  --nav-selected-border: #527c99;
-  --nav-selected-text: #f1f8ff;
-  --nav-accent: #91d5f5;
-  --nav-icon-bg: #172d43;
-  --nav-icon-border: #344d65;
-  --nav-icon-text: #a9c8e4;
-  --nav-selected-icon-bg: #305b78;
-  --nav-selected-icon-text: #c5edff;
+  --nav-surface: #103b3c;
+  --footer-surface: #103b3c;
+  --footer-text: #e3f3ef;
+  --footer-muted: #a4c8c0;
+  --nav-heading: #9dc8be;
+  --nav-divider: #a4d6c926;
+  --nav-text: #c4ded7;
+  --nav-hover-bg: #1b4948;
+  --nav-hover-border: #39635d;
+  --nav-selected-bg: #245b54;
+  --nav-selected-hover-bg: #2b6b61;
+  --nav-selected-border: #609d8e;
+  --nav-selected-text: #f1fff9;
+  --nav-accent: #91e2bd;
+  --nav-icon-bg: #143f3f;
+  --nav-icon-border: #315c55;
+  --nav-icon-text: #acd6c8;
+  --nav-selected-icon-bg: #326f60;
+  --nav-selected-icon-text: #c5f6dd;
 }
 
 .organized-workspace.dark-mode .app-sidebar {
-  --footer-surface: #0e1b2c;
-  --footer-text: #e5eff9;
-  --footer-muted: #adbed3;
+  --nav-surface: #0b292c;
+  --footer-surface: #0b292c;
+  --footer-text: #e3f3ef;
+  --footer-muted: #a4c8c0;
+}
+
+/* Shared surfaces keep campus, navigation and account controls coherent. */
+.organized-workspace:is(.dashboard-shell, .admin-shell):is(.dark-mode, :not(.dark-mode)) > .app-sidebar {
+  background: var(--nav-surface);
+  border-right: 1px solid var(--nav-divider);
+  color: var(--nav-text);
+  scrollbar-color: var(--nav-hover-border) var(--nav-surface);
+}
+
+.organized-workspace .app-sidebar .sidebar-brand {
+  border-bottom: 1px solid var(--nav-divider);
+}
+
+.organized-workspace .app-sidebar .sidebar-brand strong,
+.organized-workspace .app-sidebar .campus-current b { color: var(--nav-selected-text); }
+.organized-workspace .app-sidebar .sidebar-brand small,
+.organized-workspace .app-sidebar .campus-switch small { color: var(--footer-muted); }
+
+.organized-workspace .app-sidebar .campus-switch {
+  background: var(--nav-icon-bg);
+  border: 1px solid var(--nav-divider);
+  border-radius: 10px;
+  color: var(--nav-text);
+}
+
+.organized-workspace .app-sidebar .campus-switch select {
+  background: var(--nav-surface);
+  color: var(--nav-selected-text);
+  border: 1px solid var(--nav-hover-border);
+  border-radius: 6px;
+  color-scheme: dark;
+}
+
+.organized-workspace .app-sidebar .sidebar-nav .sidebar-link {
+  gap: 12px;
+  border-radius: 8px;
+}
+
+.organized-workspace .app-sidebar .sidebar-nav .sidebar-logout {
+  margin-top: 18px;
+  border: 1px solid var(--nav-divider);
+  border-radius: 8px;
+  background: transparent;
+  color: #f4c5bd;
+}
+
+.organized-workspace .app-sidebar .sidebar-logout .nav-icon { color: inherit; }
+.organized-workspace .app-sidebar .sidebar-nav .sidebar-logout:hover {
+  background: #643c3c;
+  color: #fff1ed;
+}
+
+.organized-workspace .app-sidebar :is(.sidebar-logout, .sidebar-mobile-toggle, select):focus-visible {
+  outline: 2px solid var(--nav-accent);
+  outline-offset: 2px;
 }
 
 /* One footer layout across roles and themes, including short viewports. */
@@ -89,8 +147,8 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  background: #dcecf7;
-  color: #16334d;
+  background: #d7eee5;
+  color: #17463e;
   font-size: 12px;
 }
 
@@ -116,7 +174,7 @@
   .organized-workspace .app-sidebar > :is(.sidebar-brand, .campus-switch) { flex-shrink: 0; }
 }
 
-/* The sidebar stays navy in light mode, so its headings need their own ink.
+/* The sidebar stays dark in light mode, so its headings need their own ink.
    Scope beyond the page-wide h2 rule in light-theme.css. */
 .organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
   margin: 0 12px 8px;
@@ -148,22 +206,22 @@
 }
 
 /* Scope through navigation so page-specific styles cannot split the palette. */
-.organized-workspace:not(.dark-mode) .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
+.organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
   display: block;
   margin: 0 0 8px;
   padding: 8px 12px;
   border-radius: 6px;
-  background: #ffffff0d;
-  color: #d9e8f5;
+  background: transparent;
+  color: var(--nav-heading);
   font-size: 12px;
   letter-spacing: .02em;
-  text-transform: none;
+  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 
 /* Keep each section and its links together when the mobile menu opens. */
 @media (max-width: 760px) {
-  .organized-workspace:not(.dark-mode) .app-sidebar.navigation-open .sidebar-nav {
+  .organized-workspace .app-sidebar.navigation-open .sidebar-nav {
     grid-template-columns: minmax(0, 1fr);
   }
 }

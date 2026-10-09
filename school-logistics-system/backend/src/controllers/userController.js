@@ -86,9 +86,9 @@ async function createUser(req, res) {
         if (await User.exists({ email: fields.email })) return res.status(409).json({ message: "Email already exists." });
         if (await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
         const verificationCode = String(require("crypto").randomInt(100000, 1000000));
-        const user = await User.create({ ...fields, password: await require("bcryptjs").hash(req.body.password, 12), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+        const user = await User.create({ ...fields, activationPending: fields.role === "staff", ...(fields.role === "staff" ? {} : { password: await require("bcryptjs").hash(req.body.password, 12) }), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
         try {
-            await sendVerificationEmail(fields.email, verificationCode);
+            await sendVerificationEmail(fields.email, verificationCode, fields.role === "staff");
         } catch {
             await User.deleteOne({ _id: user._id });
             return res.status(503).json({ message: "Verification email is unavailable. The account was not created. Try again later." });

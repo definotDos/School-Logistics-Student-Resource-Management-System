@@ -40,6 +40,7 @@ router.post('/mfa/resend', mfa.resend);
 router.get('/devices', protect, mfa.listDevices);
 router.delete('/devices', protect, mfa.revokeDevices);
 router.post('/logout', protect, mfa.logout);
+router.post("/activate-account", require("../controllers/authController").activateAccount);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-verification-code", resendVerificationCode);
 module.exports = router;

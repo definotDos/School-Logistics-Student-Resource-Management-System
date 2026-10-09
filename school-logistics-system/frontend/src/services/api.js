@@ -83,6 +83,7 @@ export const authAPI = {
   /**
    * Verify email with code
    */
+  activateAccount: (details) => apiRequest("/auth/activate-account", { method: "POST", body: JSON.stringify(details) }),
   verifyEmail: (details) =>
     apiRequest("/auth/verify-email", {
       method: "POST",

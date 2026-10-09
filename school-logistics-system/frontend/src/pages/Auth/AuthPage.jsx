@@ -9,7 +9,6 @@ import OtpVerification from '../../components/auth/OtpVerification'
 export function AuthPage() {
   const location = useLocation()
   const mode = location.pathname === '/login' ? 'login' : 'signup'
-  const [selectedCampus, setSelectedCampus] = useState(undefined)
   const [pending, setPending] = useState(null)
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,7 +21,6 @@ export function AuthPage() {
     setPending(null)
     if (nextMode === mode) return
     if (nextMode === 'signup') {
-      setSelectedCampus(undefined)
       navigate('/signup', { replace: true })
     } else {
       navigate('/login', { replace: true })
@@ -56,7 +54,6 @@ export function AuthPage() {
     try {
       const result = await signup(details)
       if (!result?.requiresVerification) {
-        setSelectedCampus(undefined)
         navigate('/login', { replace: true })
       }
       return result
@@ -72,14 +69,12 @@ export function AuthPage() {
     <AuthLayout
       mode={mode}
       onChangeMode={handleModeChange}
-      campus={selectedCampus}
     >
       {mode === 'login' ? (
         pending ? <OtpVerification pending={pending} onPending={setPending} onCancel={() => setPending(null)} onVerify={async details => openDashboard(await verifyMfa(details))} /> : <LoginPage isSubmitting={isSubmitting} onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
         <SignupPage
           onSignup={handleSignup}
-          onCampusChange={setSelectedCampus}
           onChangeMode={handleModeChange}
           error={authError}
           isSubmitting={isSubmitting}
