@@ -1,0 +1,6 @@
+2026/10/12-16:46:00.419 c5c Reusing MANIFEST C:\Users\HP\OneDrive\Desktop\school-logistics-system\.tmp\browser-workflow-profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/10/12-16:46:00.430 c5c Recovering log #3
+2026/10/12-16:46:00.434 c5c Reusing old log C:\Users\HP\OneDrive\Desktop\school-logistics-system\.tmp\browser-workflow-profile\Default\EdgeCoupons/coupons_data.db/000003.log 
+2026/10/12-16:46:00.923 63f0 Level-0 table #5: started
+2026/10/12-16:46:00.927 63f0 Level-0 table #5: 683284 bytes OK
+2026/10/12-16:46:00.931 63f0 Delete type=0 #3

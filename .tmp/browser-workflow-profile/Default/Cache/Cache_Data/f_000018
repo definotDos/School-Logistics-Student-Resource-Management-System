@@ -1,0 +1,305 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/auth/OtpVerification.jsx");const useEffect = __vite__cjsImport0_react["useEffect"]; const useState = __vite__cjsImport0_react["useState"];const _jsxDEV = __vite__cjsImport4_react_jsxDevRuntime["jsxDEV"]; const _Fragment = __vite__cjsImport4_react_jsxDevRuntime["Fragment"];import __vite__cjsImport0_react from "/node_modules/.vite/deps/react.js?v=2299db29";
+import { authAPI } from "/src/services/api.js";
+import { AuthLoadingButton } from "/src/components/auth/AuthLoadingButton.jsx";
+import "/src/components/auth/OtpVerification.css";
+var _jsxFileName = "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/auth/OtpVerification.jsx";
+import __vite__cjsImport4_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=2299db29";
+var _s = $RefreshSig$();
+export default function OtpVerification({ pending, onPending, onVerify, onCancel }) {
+	_s();
+	const [code, setCode] = useState("");
+	const [rememberDevice, setRememberDevice] = useState(false);
+	const [now, setNow] = useState(Date.now);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	useEffect(() => {
+		const timer = setInterval(() => setNow(Date.now()), 1e3);
+		return () => clearInterval(timer);
+	}, []);
+	const seconds = Math.max(0, Math.ceil((new Date(pending.expiresAt) - now) / 1e3));
+	const cooldown = Math.max(0, Math.ceil((new Date(pending.resendAt) - now) / 1e3));
+	const run = async (action) => {
+		if (busy) return;
+		setBusy(true);
+		setError("");
+		try {
+			await action();
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setBusy(false);
+		}
+	};
+	return /* @__PURE__ */ _jsxDEV("div", {
+		className: "auth-form-wrap otp-verification",
+		children: [/* @__PURE__ */ _jsxDEV("div", {
+			className: "auth-heading",
+			children: [
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "otp-mail-icon",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ _jsxDEV("svg", {
+						viewBox: "0 0 24 24",
+						fill: "none",
+						stroke: "currentColor",
+						strokeWidth: "1.6",
+						children: [/* @__PURE__ */ _jsxDEV("rect", {
+							x: "3",
+							y: "5",
+							width: "18",
+							height: "14",
+							rx: "3"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 22,
+							columnNumber: 134
+						}, this), /* @__PURE__ */ _jsxDEV("path", { d: "m4 7 8 6 8-6" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 22,
+							columnNumber: 184
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 22,
+						columnNumber: 57
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 22,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("span", {
+					className: "otp-eyebrow",
+					children: "Email verification"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 23,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("h2", { children: "Check your email" }, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 24,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("p", { children: "Enter the 6-digit sign-in code sent to your registered email address." }, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 24,
+					columnNumber: 32
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 21,
+			columnNumber: 5
+		}, this), /* @__PURE__ */ _jsxDEV("form", {
+			className: "auth-form",
+			"aria-busy": busy,
+			onSubmit: (event) => {
+				event.preventDefault();
+				run(() => onVerify({
+					challenge: pending.challenge,
+					code,
+					rememberDevice
+				}));
+			},
+			children: [
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "otp-code-group",
+					children: [/* @__PURE__ */ _jsxDEV("label", {
+						className: "auth-field compact-field",
+						children: [/* @__PURE__ */ _jsxDEV("span", { children: "Verification code" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 28,
+							columnNumber: 51
+						}, this), /* @__PURE__ */ _jsxDEV("input", {
+							autoFocus: true,
+							inputMode: "numeric",
+							autoComplete: "one-time-code",
+							pattern: "[0-9]{6}",
+							maxLength: 6,
+							placeholder: "000000",
+							value: code,
+							onChange: (event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6)),
+							required: true,
+							"aria-describedby": `otp-expiry${error ? " otp-error" : ""}`,
+							"aria-invalid": Boolean(error)
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 29,
+							columnNumber: 9
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 28,
+						columnNumber: 7
+					}, this), /* @__PURE__ */ _jsxDEV("p", {
+						id: "otp-expiry",
+						className: `otp-expiry${!seconds ? " is-expired" : ""}`,
+						children: seconds ? /* @__PURE__ */ _jsxDEV(_Fragment, { children: ["Code expires in ", /* @__PURE__ */ _jsxDEV("strong", { children: [
+							Math.floor(seconds / 60),
+							":",
+							String(seconds % 60).padStart(2, "0")
+						] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 31,
+							columnNumber: 112
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 31,
+							columnNumber: 94
+						}, this) : "Code expired. Request a new code."
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 31,
+						columnNumber: 7
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 27,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "otp-device",
+					children: /* @__PURE__ */ _jsxDEV("label", { children: [/* @__PURE__ */ _jsxDEV("input", {
+						type: "checkbox",
+						checked: rememberDevice,
+						onChange: (event) => setRememberDevice(event.target.checked)
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 34,
+						columnNumber: 16
+					}, this), /* @__PURE__ */ _jsxDEV("span", { children: ["Remember this device ", /* @__PURE__ */ _jsxDEV("small", { children: "30 days" }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 34,
+						columnNumber: 153
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 34,
+						columnNumber: 126
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 34,
+						columnNumber: 9
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 33,
+					columnNumber: 7
+				}, this),
+				error && /* @__PURE__ */ _jsxDEV("p", {
+					id: "otp-error",
+					className: "otp-error",
+					role: "alert",
+					children: error
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 36,
+					columnNumber: 17
+				}, this),
+				/* @__PURE__ */ _jsxDEV(AuthLoadingButton, {
+					className: "auth-submit",
+					loading: busy,
+					disabled: !seconds || code.length !== 6,
+					loadingText: "Please wait...",
+					children: ["Verify and continue ", /* @__PURE__ */ _jsxDEV("span", {
+						"aria-hidden": "true",
+						children: "→"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 37,
+						columnNumber: 155
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 37,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "otp-resend",
+					children: [/* @__PURE__ */ _jsxDEV("span", { children: "Didn’t receive a code?" }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 38,
+						columnNumber: 35
+					}, this), /* @__PURE__ */ _jsxDEV("button", {
+						type: "button",
+						disabled: busy || cooldown > 0,
+						onClick: () => run(async () => {
+							onPending(await authAPI.resendMfa(pending.challenge));
+							setCode("");
+							setNow(Date.now());
+						}),
+						children: cooldown ? `Resend in ${cooldown}s` : "Resend code"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 38,
+						columnNumber: 70
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 38,
+					columnNumber: 7
+				}, this),
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "otp-footer",
+					children: /* @__PURE__ */ _jsxDEV("button", {
+						type: "button",
+						disabled: busy,
+						onClick: onCancel,
+						children: [/* @__PURE__ */ _jsxDEV("span", {
+							"aria-hidden": "true",
+							children: "←"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 39,
+							columnNumber: 92
+						}, this), " Back to login"]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 39,
+						columnNumber: 35
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 39,
+					columnNumber: 7
+				}, this)
+			]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 26,
+			columnNumber: 5
+		}, this)]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 20,
+		columnNumber: 10
+	}, this);
+}
+_s(OtpVerification, "eQrj7DHVMGY+RH8UJlt7Z/u5wjI=");
+_c = OtpVerification;
+var _c;
+$RefreshReg$(_c, "OtpVerification");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/components/auth/OtpVerification.jsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/auth/OtpVerification.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/auth/OtpVerification.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/auth/OtpVerification.jsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,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IjpbXSwic291cmNlcyI6WyJPdHBWZXJpZmljYXRpb24uanN4Il0sInZlcnNpb24iOjMsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHVzZUVmZmVjdCwgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCdcbmltcG9ydCB7IGF1dGhBUEkgfSBmcm9tICcuLi8uLi9zZXJ2aWNlcy9hcGknXG5pbXBvcnQgeyBBdXRoTG9hZGluZ0J1dHRvbiB9IGZyb20gJy4vQXV0aExvYWRpbmdCdXR0b24nXG5pbXBvcnQgJy4vT3RwVmVyaWZpY2F0aW9uLmNzcydcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gT3RwVmVyaWZpY2F0aW9uKHsgcGVuZGluZywgb25QZW5kaW5nLCBvblZlcmlmeSwgb25DYW5jZWwgfSkge1xuICBjb25zdCBbY29kZSwgc2V0Q29kZV0gPSB1c2VTdGF0ZSgnJylcbiAgY29uc3QgW3JlbWVtYmVyRGV2aWNlLCBzZXRSZW1lbWJlckRldmljZV0gPSB1c2VTdGF0ZShmYWxzZSlcbiAgY29uc3QgW25vdywgc2V0Tm93XSA9IHVzZVN0YXRlKERhdGUubm93KVxuICBjb25zdCBbYnVzeSwgc2V0QnVzeV0gPSB1c2VTdGF0ZShmYWxzZSlcbiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZSgnJylcbiAgdXNlRWZmZWN0KCgpID0+IHsgY29uc3QgdGltZXIgPSBzZXRJbnRlcnZhbCgoKSA9PiBzZXROb3coRGF0ZS5ub3coKSksIDEwMDApOyByZXR1cm4gKCkgPT4gY2xlYXJJbnRlcnZhbCh0aW1lcikgfSwgW10pXG4gIGNvbnN0IHNlY29uZHMgPSBNYXRoLm1heCgwLCBNYXRoLmNlaWwoKG5ldyBEYXRlKHBlbmRpbmcuZXhwaXJlc0F0KSAtIG5vdykgLyAxMDAwKSlcbiAgY29uc3QgY29vbGRvd24gPSBNYXRoLm1heCgwLCBNYXRoLmNlaWwoKG5ldyBEYXRlKHBlbmRpbmcucmVzZW5kQXQpIC0gbm93KSAvIDEwMDApKVxuICBjb25zdCBydW4gPSBhc3luYyBhY3Rpb24gPT4ge1xuICAgIGlmIChidXN5KSByZXR1cm5cbiAgICBzZXRCdXN5KHRydWUpOyBzZXRFcnJvcignJylcbiAgICB0cnkgeyBhd2FpdCBhY3Rpb24oKSB9IGNhdGNoIChlcnIpIHsgc2V0RXJyb3IoZXJyLm1lc3NhZ2UpIH0gZmluYWxseSB7IHNldEJ1c3koZmFsc2UpIH1cbiAgfVxuICByZXR1cm4gPGRpdiBjbGFzc05hbWU9XCJhdXRoLWZvcm0td3JhcCBvdHAtdmVyaWZpY2F0aW9uXCI+XG4gICAgPGRpdiBjbGFzc05hbWU9XCJhdXRoLWhlYWRpbmdcIj5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwib3RwLW1haWwtaWNvblwiIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPjxzdmcgdmlld0JveD1cIjAgMCAyNCAyNFwiIGZpbGw9XCJub25lXCIgc3Ryb2tlPVwiY3VycmVudENvbG9yXCIgc3Ryb2tlV2lkdGg9XCIxLjZcIj48cmVjdCB4PVwiM1wiIHk9XCI1XCIgd2lkdGg9XCIxOFwiIGhlaWdodD1cIjE0XCIgcng9XCIzXCIgLz48cGF0aCBkPVwibTQgNyA4IDYgOC02XCIgLz48L3N2Zz48L2Rpdj5cbiAgICAgIDxzcGFuIGNsYXNzTmFtZT1cIm90cC1leWVicm93XCI+RW1haWwgdmVyaWZpY2F0aW9uPC9zcGFuPlxuICAgICAgPGgyPkNoZWNrIHlvdXIgZW1haWw8L2gyPjxwPkVudGVyIHRoZSA2LWRpZ2l0IHNpZ24taW4gY29kZSBzZW50IHRvIHlvdXIgcmVnaXN0ZXJlZCBlbWFpbCBhZGRyZXNzLjwvcD5cbiAgICA8L2Rpdj5cbiAgICA8Zm9ybSBjbGFzc05hbWU9XCJhdXRoLWZvcm1cIiBhcmlhLWJ1c3k9e2J1c3l9IG9uU3VibWl0PXtldmVudCA9PiB7IGV2ZW50LnByZXZlbnREZWZhdWx0KCk7IHJ1bigoKSA9PiBvblZlcmlmeSh7IGNoYWxsZW5nZTogcGVuZGluZy5jaGFsbGVuZ2UsIGNvZGUsIHJlbWVtYmVyRGV2aWNlIH0pKSB9fT5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwib3RwLWNvZGUtZ3JvdXBcIj5cbiAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJhdXRoLWZpZWxkIGNvbXBhY3QtZmllbGRcIj48c3Bhbj5WZXJpZmljYXRpb24gY29kZTwvc3Bhbj5cbiAgICAgICAgPGlucHV0IGF1dG9Gb2N1cyBpbnB1dE1vZGU9XCJudW1lcmljXCIgYXV0b0NvbXBsZXRlPVwib25lLXRpbWUtY29kZVwiIHBhdHRlcm49XCJbMC05XXs2fVwiIG1heExlbmd0aD17Nn0gcGxhY2Vob2xkZXI9XCIwMDAwMDBcIiB2YWx1ZT17Y29kZX0gb25DaGFuZ2U9e2V2ZW50ID0+IHNldENvZGUoZXZlbnQudGFyZ2V0LnZhbHVlLnJlcGxhY2UoL1xcRC9nLCAnJykuc2xpY2UoMCwgNikpfSByZXF1aXJlZCBhcmlhLWRlc2NyaWJlZGJ5PXtgb3RwLWV4cGlyeSR7ZXJyb3IgPyAnIG90cC1lcnJvcicgOiAnJ31gfSBhcmlhLWludmFsaWQ9e0Jvb2xlYW4oZXJyb3IpfSAvPlxuICAgICAgPC9sYWJlbD5cbiAgICAgIDxwIGlkPVwib3RwLWV4cGlyeVwiIGNsYXNzTmFtZT17YG90cC1leHBpcnkkeyFzZWNvbmRzID8gJyBpcy1leHBpcmVkJyA6ICcnfWB9PntzZWNvbmRzID8gPD5Db2RlIGV4cGlyZXMgaW4gPHN0cm9uZz57TWF0aC5mbG9vcihzZWNvbmRzIC8gNjApfTp7U3RyaW5nKHNlY29uZHMgJSA2MCkucGFkU3RhcnQoMiwgJzAnKX08L3N0cm9uZz48Lz4gOiAnQ29kZSBleHBpcmVkLiBSZXF1ZXN0IGEgbmV3IGNvZGUuJ308L3A+XG4gICAgICA8L2Rpdj5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwib3RwLWRldmljZVwiPlxuICAgICAgICA8bGFiZWw+PGlucHV0IHR5cGU9XCJjaGVja2JveFwiIGNoZWNrZWQ9e3JlbWVtYmVyRGV2aWNlfSBvbkNoYW5nZT17ZXZlbnQgPT4gc2V0UmVtZW1iZXJEZXZpY2UoZXZlbnQudGFyZ2V0LmNoZWNrZWQpfSAvPjxzcGFuPlJlbWVtYmVyIHRoaXMgZGV2aWNlIDxzbWFsbD4zMCBkYXlzPC9zbWFsbD48L3NwYW4+PC9sYWJlbD5cbiAgICAgIDwvZGl2PlxuICAgICAge2Vycm9yICYmIDxwIGlkPVwib3RwLWVycm9yXCIgY2xhc3NOYW1lPVwib3RwLWVycm9yXCIgcm9sZT1cImFsZXJ0XCI+e2Vycm9yfTwvcD59XG4gICAgICA8QXV0aExvYWRpbmdCdXR0b24gY2xhc3NOYW1lPVwiYXV0aC1zdWJtaXRcIiBsb2FkaW5nPXtidXN5fSBkaXNhYmxlZD17IXNlY29uZHMgfHwgY29kZS5sZW5ndGggIT09IDZ9IGxvYWRpbmdUZXh0PVwiUGxlYXNlIHdhaXQuLi5cIj5WZXJpZnkgYW5kIGNvbnRpbnVlIDxzcGFuIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPiZyYXJyOzwvc3Bhbj48L0F1dGhMb2FkaW5nQnV0dG9uPlxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJvdHAtcmVzZW5kXCI+PHNwYW4+RGlkbuKAmXQgcmVjZWl2ZSBhIGNvZGU/PC9zcGFuPjxidXR0b24gdHlwZT1cImJ1dHRvblwiIGRpc2FibGVkPXtidXN5IHx8IGNvb2xkb3duID4gMH0gb25DbGljaz17KCkgPT4gcnVuKGFzeW5jICgpID0+IHsgb25QZW5kaW5nKGF3YWl0IGF1dGhBUEkucmVzZW5kTWZhKHBlbmRpbmcuY2hhbGxlbmdlKSk7IHNldENvZGUoJycpOyBzZXROb3coRGF0ZS5ub3coKSkgfSl9Pntjb29sZG93biA/IGBSZXNlbmQgaW4gJHtjb29sZG93bn1zYCA6ICdSZXNlbmQgY29kZSd9PC9idXR0b24+PC9kaXY+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cIm90cC1mb290ZXJcIj48YnV0dG9uIHR5cGU9XCJidXR0b25cIiBkaXNhYmxlZD17YnVzeX0gb25DbGljaz17b25DYW5jZWx9PjxzcGFuIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPiZsYXJyOzwvc3Bhbj4gQmFjayB0byBsb2dpbjwvYnV0dG9uPjwvZGl2PlxuICAgIDwvZm9ybT5cbiAgPC9kaXY+XG59XG4iXX0=

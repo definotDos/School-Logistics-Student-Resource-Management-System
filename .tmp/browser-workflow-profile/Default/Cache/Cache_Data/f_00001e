@@ -1,0 +1,264 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ResourceCarousel.jsx");const useRef = __vite__cjsImport0_react["useRef"]; const useState = __vite__cjsImport0_react["useState"];const _jsxDEV = __vite__cjsImport4_react_jsxDevRuntime["jsxDEV"];import __vite__cjsImport0_react from "/node_modules/.vite/deps/react.js?v=2299db29";
+import "/src/components/ResourceCarousel.css";
+import UniformGallery from "/src/components/UniformGallery.jsx";
+import { isSchoolUniform } from "/src/utils/uniforms.js";
+var _jsxFileName = "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/ResourceCarousel.jsx";
+import __vite__cjsImport4_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=2299db29";
+var _s = $RefreshSig$();
+export default function ResourceCarousel({ resources, onRequest }) {
+	_s();
+	const [index, setIndex] = useState(0);
+	const [failedImage, setFailedImage] = useState(null);
+	const touchStart = useRef(null);
+	if (!resources.length) return null;
+	const activeIndex = Math.min(index, resources.length - 1);
+	const resource = resources[activeIndex];
+	const unavailable = resource.quantity < 1 || resource.status === "Discontinued";
+	const move = (offset) => setIndex((activeIndex + offset + resources.length) % resources.length);
+	return /* @__PURE__ */ _jsxDEV("section", {
+		className: "resource-carousel",
+		"aria-label": "Explore resource images",
+		"aria-roledescription": "carousel",
+		children: [
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "resource-carousel-heading",
+				children: [/* @__PURE__ */ _jsxDEV("h2", { children: "Explore resources" }, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 17,
+					columnNumber: 48
+				}, this), /* @__PURE__ */ _jsxDEV("span", { children: [
+					activeIndex + 1,
+					" / ",
+					resources.length
+				] }, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 17,
+					columnNumber: 74
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 17,
+				columnNumber: 5
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "resource-carousel-slide",
+				role: "group",
+				"aria-roledescription": "slide",
+				"aria-label": `${activeIndex + 1} of ${resources.length}: ${resource.name}`,
+				children: [/* @__PURE__ */ _jsxDEV("div", {
+					className: "resource-carousel-image",
+					onTouchStart: (event) => {
+						touchStart.current = event.touches[0].clientX;
+					},
+					onTouchEnd: (event) => {
+						if (touchStart.current !== null) {
+							const distance = touchStart.current - event.changedTouches[0].clientX;
+							if (Math.abs(distance) > 50) move(distance > 0 ? 1 : -1);
+						}
+						touchStart.current = null;
+					},
+					onTouchCancel: () => {
+						touchStart.current = null;
+					},
+					children: isSchoolUniform(resource) ? /* @__PURE__ */ _jsxDEV(UniformGallery, {}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 20,
+						columnNumber: 38
+					}, this) : resource.image && failedImage !== resource.image ? /* @__PURE__ */ _jsxDEV("img", {
+						src: resource.image,
+						alt: resource.name,
+						onError: () => setFailedImage(resource.image)
+					}, resource._id || activeIndex, false, {
+						fileName: _jsxFileName,
+						lineNumber: 20,
+						columnNumber: 110
+					}, this) : /* @__PURE__ */ _jsxDEV("span", {
+						"aria-hidden": "true",
+						children: resource.icon
+					}, resource._id || activeIndex, false, {
+						fileName: _jsxFileName,
+						lineNumber: 20,
+						columnNumber: 242
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 19,
+					columnNumber: 7
+				}, this), /* @__PURE__ */ _jsxDEV("div", {
+					className: "resource-carousel-copy",
+					children: [
+						/* @__PURE__ */ _jsxDEV("span", {
+							className: "resource-carousel-category",
+							children: resource.category
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 23,
+							columnNumber: 9
+						}, this),
+						/* @__PURE__ */ _jsxDEV("h3", { children: resource.name }, resource._id || activeIndex, false, {
+							fileName: _jsxFileName,
+							lineNumber: 24,
+							columnNumber: 9
+						}, this),
+						/* @__PURE__ */ _jsxDEV("p", { children: "Browse school-provided resources and submit a request for review." }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 25,
+							columnNumber: 9
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", {
+							className: "resource-carousel-stock",
+							children: [/* @__PURE__ */ _jsxDEV("span", { children: unavailable ? "Currently unavailable" : "Available to request" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 26,
+								columnNumber: 50
+							}, this), /* @__PURE__ */ _jsxDEV("strong", { children: [
+								resource.quantity,
+								" ",
+								/* @__PURE__ */ _jsxDEV("small", { children: "in stock" }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 26,
+									columnNumber: 155
+								}, this)
+							] }, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 26,
+								columnNumber: 127
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 26,
+							columnNumber: 9
+						}, this),
+						/* @__PURE__ */ _jsxDEV("button", {
+							type: "button",
+							className: "resource-carousel-request",
+							disabled: unavailable,
+							onClick: () => onRequest(resource),
+							"aria-label": `Request ${resource.name}`,
+							children: [unavailable ? "Unavailable" : "Request resource", /* @__PURE__ */ _jsxDEV("span", {
+								"aria-hidden": "true",
+								children: "→"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 27,
+								columnNumber: 218
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 27,
+							columnNumber: 9
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 22,
+					columnNumber: 7
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 18,
+				columnNumber: 5
+			}, this),
+			resources.length > 1 && /* @__PURE__ */ _jsxDEV("div", {
+				className: "resource-carousel-controls",
+				children: [
+					/* @__PURE__ */ _jsxDEV("button", {
+						type: "button",
+						className: "resource-carousel-arrow",
+						"aria-label": "Previous resource",
+						onClick: () => move(-1),
+						children: "←"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 31,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "resource-carousel-dots",
+						children: resources.map((item, position) => /* @__PURE__ */ _jsxDEV("button", {
+							type: "button",
+							"aria-label": `Show ${item.name}`,
+							"aria-current": position === activeIndex ? "true" : undefined,
+							onClick: () => setIndex(position),
+							children: /* @__PURE__ */ _jsxDEV("span", {}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 32,
+								columnNumber: 248
+							}, this)
+						}, item._id, false, {
+							fileName: _jsxFileName,
+							lineNumber: 32,
+							columnNumber: 82
+						}, this))
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 32,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("button", {
+						type: "button",
+						className: "resource-carousel-arrow",
+						"aria-label": "Next resource",
+						onClick: () => move(1),
+						children: "→"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 33,
+						columnNumber: 7
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 30,
+				columnNumber: 30
+			}, this),
+			/* @__PURE__ */ _jsxDEV("span", {
+				className: "resource-carousel-announcement",
+				role: "status",
+				children: [
+					resource.name,
+					", resource ",
+					activeIndex + 1,
+					" of ",
+					resources.length
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 35,
+				columnNumber: 5
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 16,
+		columnNumber: 10
+	}, this);
+}
+_s(ResourceCarousel, "GjIQUCrEHuvZ4EW8Dux1il8P/Iw=");
+_c = ResourceCarousel;
+var _c;
+$RefreshReg$(_c, "ResourceCarousel");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/components/ResourceCarousel.jsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/ResourceCarousel.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/ResourceCarousel.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/ResourceCarousel.jsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,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Y0FBZjtLQUN2Qix3QkFBQyxVQUFEO01BQVEsTUFBSztNQUFTLFdBQVU7TUFBMEIsY0FBVztNQUFvQixlQUFlLEtBQUssQ0FBQyxDQUFDO2dCQUFHO0tBQWM7Ozs7O0tBQ2hJLHdCQUFDLE9BQUQ7TUFBSyxXQUFVO2dCQUEwQixVQUFVLEtBQUssTUFBTSxhQUFhLHdCQUFDLFVBQUQ7T0FBUSxNQUFLO09BQXdCLGNBQVksUUFBUSxLQUFLO09BQVEsZ0JBQWMsYUFBYSxjQUFjLFNBQVM7T0FBVyxlQUFlLFNBQVMsUUFBUTtpQkFBRyx3QkFBQyxRQUFELENBQU87Ozs7O01BQVMsR0FBM0osS0FBSzs7OzthQUFzSixDQUFDO0tBQU87Ozs7O0tBQ3pRLHdCQUFDLFVBQUQ7TUFBUSxNQUFLO01BQVMsV0FBVTtNQUEwQixjQUFXO01BQWdCLGVBQWUsS0FBSyxDQUFDO2dCQUFHO0tBQWM7Ozs7O0lBQ3hIOzs7Ozs7R0FDTCx3QkFBQyxRQUFEO0lBQU0sV0FBVTtJQUFpQyxNQUFLO2NBQXREO0tBQWdFLFNBQVM7S0FBSztLQUFZLGNBQWM7S0FBRTtLQUFLLFVBQVU7SUFBYTs7Ozs7O0VBQy9IOzs7Ozs7QUFDWCIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJSZXNvdXJjZUNhcm91c2VsLmpzeCJdLCJ2ZXJzaW9uIjozLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB1c2VSZWYsIHVzZVN0YXRlIH0gZnJvbSBcInJlYWN0XCI7XG5pbXBvcnQgXCIuL1Jlc291cmNlQ2Fyb3VzZWwuY3NzXCI7XG5pbXBvcnQgVW5pZm9ybUdhbGxlcnkgZnJvbSBcIi4vVW5pZm9ybUdhbGxlcnlcIjtcbmltcG9ydCB7IGlzU2Nob29sVW5pZm9ybSB9IGZyb20gXCIuLi91dGlscy91bmlmb3Jtc1wiO1xuXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSZXNvdXJjZUNhcm91c2VsKHsgcmVzb3VyY2VzLCBvblJlcXVlc3QgfSkge1xuICBjb25zdCBbaW5kZXgsIHNldEluZGV4XSA9IHVzZVN0YXRlKDApO1xuICBjb25zdCBbZmFpbGVkSW1hZ2UsIHNldEZhaWxlZEltYWdlXSA9IHVzZVN0YXRlKG51bGwpO1xuICBjb25zdCB0b3VjaFN0YXJ0ID0gdXNlUmVmKG51bGwpO1xuICBpZiAoIXJlc291cmNlcy5sZW5ndGgpIHJldHVybiBudWxsO1xuICBjb25zdCBhY3RpdmVJbmRleCA9IE1hdGgubWluKGluZGV4LCByZXNvdXJjZXMubGVuZ3RoIC0gMSk7XG4gIGNvbnN0IHJlc291cmNlID0gcmVzb3VyY2VzW2FjdGl2ZUluZGV4XTtcbiAgY29uc3QgdW5hdmFpbGFibGUgPSByZXNvdXJjZS5xdWFudGl0eSA8IDEgfHwgcmVzb3VyY2Uuc3RhdHVzID09PSBcIkRpc2NvbnRpbnVlZFwiO1xuICBjb25zdCBtb3ZlID0gKG9mZnNldCkgPT4gc2V0SW5kZXgoKGFjdGl2ZUluZGV4ICsgb2Zmc2V0ICsgcmVzb3VyY2VzLmxlbmd0aCkgJSByZXNvdXJjZXMubGVuZ3RoKTtcblxuICByZXR1cm4gPHNlY3Rpb24gY2xhc3NOYW1lPVwicmVzb3VyY2UtY2Fyb3VzZWxcIiBhcmlhLWxhYmVsPVwiRXhwbG9yZSByZXNvdXJjZSBpbWFnZXNcIiBhcmlhLXJvbGVkZXNjcmlwdGlvbj1cImNhcm91c2VsXCI+XG4gICAgPGRpdiBjbGFzc05hbWU9XCJyZXNvdXJjZS1jYXJvdXNlbC1oZWFkaW5nXCI+PGgyPkV4cGxvcmUgcmVzb3VyY2VzPC9oMj48c3Bhbj57YWN0aXZlSW5kZXggKyAxfSAvIHtyZXNvdXJjZXMubGVuZ3RofTwvc3Bhbj48L2Rpdj5cbiAgICA8ZGl2IGNsYXNzTmFtZT1cInJlc291cmNlLWNhcm91c2VsLXNsaWRlXCIgcm9sZT1cImdyb3VwXCIgYXJpYS1yb2xlZGVzY3JpcHRpb249XCJzbGlkZVwiIGFyaWEtbGFiZWw9e2Ake2FjdGl2ZUluZGV4ICsgMX0gb2YgJHtyZXNvdXJjZXMubGVuZ3RofTogJHtyZXNvdXJjZS5uYW1lfWB9PlxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJyZXNvdXJjZS1jYXJvdXNlbC1pbWFnZVwiIG9uVG91Y2hTdGFydD17KGV2ZW50KSA9PiB7IHRvdWNoU3RhcnQuY3VycmVudCA9IGV2ZW50LnRvdWNoZXNbMF0uY2xpZW50WDsgfX0gb25Ub3VjaEVuZD17KGV2ZW50KSA9PiB7IGlmICh0b3VjaFN0YXJ0LmN1cnJlbnQgIT09IG51bGwpIHsgY29uc3QgZGlzdGFuY2UgPSB0b3VjaFN0YXJ0LmN1cnJlbnQgLSBldmVudC5jaGFuZ2VkVG91Y2hlc1swXS5jbGllbnRYOyBpZiAoTWF0aC5hYnMoZGlzdGFuY2UpID4gNTApIG1vdmUoZGlzdGFuY2UgPiAwID8gMSA6IC0xKTsgfSB0b3VjaFN0YXJ0LmN1cnJlbnQgPSBudWxsOyB9fSBvblRvdWNoQ2FuY2VsPXsoKSA9PiB7IHRvdWNoU3RhcnQuY3VycmVudCA9IG51bGw7IH19PlxuICAgICAgICB7aXNTY2hvb2xVbmlmb3JtKHJlc291cmNlKSA/IDxVbmlmb3JtR2FsbGVyeSAvPiA6IHJlc291cmNlLmltYWdlICYmIGZhaWxlZEltYWdlICE9PSByZXNvdXJjZS5pbWFnZSA/IDxpbWcga2V5PXtyZXNvdXJjZS5faWQgfHwgYWN0aXZlSW5kZXh9IHNyYz17cmVzb3VyY2UuaW1hZ2V9IGFsdD17cmVzb3VyY2UubmFtZX0gb25FcnJvcj17KCkgPT4gc2V0RmFpbGVkSW1hZ2UocmVzb3VyY2UuaW1hZ2UpfSAvPiA6IDxzcGFuIGtleT17cmVzb3VyY2UuX2lkIHx8IGFjdGl2ZUluZGV4fSBhcmlhLWhpZGRlbj1cInRydWVcIj57cmVzb3VyY2UuaWNvbn08L3NwYW4+fVxuICAgICAgPC9kaXY+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlc291cmNlLWNhcm91c2VsLWNvcHlcIj5cbiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwicmVzb3VyY2UtY2Fyb3VzZWwtY2F0ZWdvcnlcIj57cmVzb3VyY2UuY2F0ZWdvcnl9PC9zcGFuPlxuICAgICAgICA8aDMga2V5PXtyZXNvdXJjZS5faWQgfHwgYWN0aXZlSW5kZXh9PntyZXNvdXJjZS5uYW1lfTwvaDM+XG4gICAgICAgIDxwPkJyb3dzZSBzY2hvb2wtcHJvdmlkZWQgcmVzb3VyY2VzIGFuZCBzdWJtaXQgYSByZXF1ZXN0IGZvciByZXZpZXcuPC9wPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlc291cmNlLWNhcm91c2VsLXN0b2NrXCI+PHNwYW4+e3VuYXZhaWxhYmxlID8gXCJDdXJyZW50bHkgdW5hdmFpbGFibGVcIiA6IFwiQXZhaWxhYmxlIHRvIHJlcXVlc3RcIn08L3NwYW4+PHN0cm9uZz57cmVzb3VyY2UucXVhbnRpdHl9IDxzbWFsbD5pbiBzdG9jazwvc21hbGw+PC9zdHJvbmc+PC9kaXY+XG4gICAgICAgIDxidXR0b24gdHlwZT1cImJ1dHRvblwiIGNsYXNzTmFtZT1cInJlc291cmNlLWNhcm91c2VsLXJlcXVlc3RcIiBkaXNhYmxlZD17dW5hdmFpbGFibGV9IG9uQ2xpY2s9eygpID0+IG9uUmVxdWVzdChyZXNvdXJjZSl9IGFyaWEtbGFiZWw9e2BSZXF1ZXN0ICR7cmVzb3VyY2UubmFtZX1gfT57dW5hdmFpbGFibGUgPyBcIlVuYXZhaWxhYmxlXCIgOiBcIlJlcXVlc3QgcmVzb3VyY2VcIn08c3BhbiBhcmlhLWhpZGRlbj1cInRydWVcIj4mcmFycjs8L3NwYW4+PC9idXR0b24+XG4gICAgICA8L2Rpdj5cbiAgICA8L2Rpdj5cbiAgICB7cmVzb3VyY2VzLmxlbmd0aCA+IDEgJiYgPGRpdiBjbGFzc05hbWU9XCJyZXNvdXJjZS1jYXJvdXNlbC1jb250cm9sc1wiPlxuICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgY2xhc3NOYW1lPVwicmVzb3VyY2UtY2Fyb3VzZWwtYXJyb3dcIiBhcmlhLWxhYmVsPVwiUHJldmlvdXMgcmVzb3VyY2VcIiBvbkNsaWNrPXsoKSA9PiBtb3ZlKC0xKX0+JmxhcnI7PC9idXR0b24+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlc291cmNlLWNhcm91c2VsLWRvdHNcIj57cmVzb3VyY2VzLm1hcCgoaXRlbSwgcG9zaXRpb24pID0+IDxidXR0b24gdHlwZT1cImJ1dHRvblwiIGtleT17aXRlbS5faWR9IGFyaWEtbGFiZWw9e2BTaG93ICR7aXRlbS5uYW1lfWB9IGFyaWEtY3VycmVudD17cG9zaXRpb24gPT09IGFjdGl2ZUluZGV4ID8gXCJ0cnVlXCIgOiB1bmRlZmluZWR9IG9uQ2xpY2s9eygpID0+IHNldEluZGV4KHBvc2l0aW9uKX0+PHNwYW4gLz48L2J1dHRvbj4pfTwvZGl2PlxuICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgY2xhc3NOYW1lPVwicmVzb3VyY2UtY2Fyb3VzZWwtYXJyb3dcIiBhcmlhLWxhYmVsPVwiTmV4dCByZXNvdXJjZVwiIG9uQ2xpY2s9eygpID0+IG1vdmUoMSl9PiZyYXJyOzwvYnV0dG9uPlxuICAgIDwvZGl2Pn1cbiAgICA8c3BhbiBjbGFzc05hbWU9XCJyZXNvdXJjZS1jYXJvdXNlbC1hbm5vdW5jZW1lbnRcIiByb2xlPVwic3RhdHVzXCI+e3Jlc291cmNlLm5hbWV9LCByZXNvdXJjZSB7YWN0aXZlSW5kZXggKyAxfSBvZiB7cmVzb3VyY2VzLmxlbmd0aH08L3NwYW4+XG4gIDwvc2VjdGlvbj47XG59XG4iXX0=

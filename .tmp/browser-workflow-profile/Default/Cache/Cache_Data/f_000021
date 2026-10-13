@@ -1,0 +1,908 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/AuditLogPanel.jsx");const useEffect = __vite__cjsImport1_react["useEffect"]; const useRef = __vite__cjsImport1_react["useRef"]; const useState = __vite__cjsImport1_react["useState"];const _jsxDEV = __vite__cjsImport5_react_jsxDevRuntime["jsxDEV"]; const _Fragment = __vite__cjsImport5_react_jsxDevRuntime["Fragment"];import { useTabState } from "/src/hooks/useTabState.js";
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=2299db29";
+import { reportsAPI, campusAPI } from "/src/services/api.js";
+import { auditStatusTone, formatAuditLabel, formatAuditTime } from "/src/utils/auditLogs.js";
+import "/src/components/AuditLogPanel.css";
+var _jsxFileName = "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/AuditLogPanel.jsx";
+import __vite__cjsImport5_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=2299db29";
+var _s = $RefreshSig$();
+const initialFilters = {
+	search: "",
+	entity: "",
+	action: "",
+	start: "",
+	end: "",
+	order: "newest"
+};
+export default function AuditLogPanel() {
+	_s();
+	const [total, setTotal] = useState(0);
+	const [optionsData, setOptionsData] = useState({});
+	const [campuses, setCampuses] = useState([]);
+	const [campus, setCampus] = useState("all");
+	useEffect(() => {
+		campusAPI.getAll().then((r) => setCampuses(r.campuses)).catch(() => {});
+	}, []);
+	const [logs, setLogs] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+	const [revision, setRevision] = useState(0);
+	const [filters, setFilters] = useTabState("AuditLogPanel.filters", initialFilters);
+	const [page, setPage] = useTabState("AuditLogPanel.page", 1);
+	const [pageSize, setPageSize] = useTabState("AuditLogPanel.pageSize", 10);
+	const [selected, setSelected] = useState(null);
+	const dialog = useRef(null);
+	useEffect(() => {
+		let cancelled = false;
+		reportsAPI.getAuditLogReport({
+			page,
+			pageSize,
+			campus,
+			search: filters.search,
+			entity: filters.entity,
+			action: filters.action,
+			startDate: filters.start,
+			endDate: filters.end,
+			order: filters.order
+		}).then((result) => {
+			if (!cancelled) {
+				setLogs((result.logs || []).map((log) => ({
+					...log,
+					eventKey: log._id
+				})));
+				setTotal(result.pagination.total);
+				setOptionsData(result.options || {});
+				setError("");
+			}
+		}).catch((failure) => {
+			if (!cancelled) setError(failure.message || "Unable to load audit logs.");
+		}).finally(() => {
+			if (!cancelled) setLoading(false);
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, [
+		revision,
+		page,
+		pageSize,
+		filters,
+		campus
+	]);
+	useEffect(() => {
+		if (selected) dialog.current?.showModal();
+		else dialog.current?.close();
+	}, [selected]);
+	const updateFilter = (name, value) => {
+		setFilters((current) => ({
+			...current,
+			[name]: value
+		}));
+		setPage(1);
+	};
+	const resetFilters = () => {
+		setFilters(initialFilters);
+		setPage(1);
+	};
+	const refresh = () => {
+		setLoading(true);
+		setError("");
+		setPage(1);
+		setRevision((current) => current + 1);
+	};
+	const invalidDates = Boolean(filters.start && filters.end && filters.start > filters.end);
+	const filtered = invalidDates ? [] : logs;
+	const pages = Math.max(1, Math.ceil(total / pageSize));
+	const currentPage = Math.min(page, pages);
+	const offset = (currentPage - 1) * pageSize;
+	const visible = filtered;
+	const options = (field) => optionsData[field === "action" ? "actions" : "entities"] || [];
+	const hasFilters = Object.keys(initialFilters).some((key) => filters[key] !== initialFilters[key]);
+	return /* @__PURE__ */ _jsxDEV("section", {
+		className: "admin-panel audit-panel",
+		"aria-labelledby": "audit-heading",
+		children: [
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "admin-panel-heading audit-heading",
+				children: [/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("h2", {
+					id: "audit-heading",
+					children: "Audit logs"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 64,
+					columnNumber: 12
+				}, this), /* @__PURE__ */ _jsxDEV("p", { children: "Review who made a change, what changed, and when it happened." }, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 64,
+					columnNumber: 50
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 64,
+					columnNumber: 7
+				}, this), /* @__PURE__ */ _jsxDEV("button", {
+					className: "admin-secondary",
+					onClick: refresh,
+					disabled: loading,
+					children: loading ? "Loading…" : "Refresh logs"
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 65,
+					columnNumber: 7
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 63,
+				columnNumber: 5
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "audit-summary",
+				"aria-label": "Audit summary",
+				children: [
+					/* @__PURE__ */ _jsxDEV("div", {
+						"data-summary-tone": "blue",
+						children: [/* @__PURE__ */ _jsxDEV("span", { children: "Loaded events" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 68,
+							columnNumber: 37
+						}, this), /* @__PURE__ */ _jsxDEV("strong", { children: loading || error ? "—" : logs.length.toLocaleString() }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 68,
+							columnNumber: 63
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 68,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						"data-summary-tone": "teal",
+						children: [/* @__PURE__ */ _jsxDEV("span", { children: "Matching events" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 69,
+							columnNumber: 37
+						}, this), /* @__PURE__ */ _jsxDEV("strong", { children: loading || error ? "—" : total.toLocaleString() }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 69,
+							columnNumber: 65
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 69,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						"data-summary-tone": "violet",
+						children: [/* @__PURE__ */ _jsxDEV("span", { children: "Event types" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 70,
+							columnNumber: 39
+						}, this), /* @__PURE__ */ _jsxDEV("strong", { children: loading || error ? "—" : options("action").length }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 70,
+							columnNumber: 63
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 70,
+						columnNumber: 7
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 67,
+				columnNumber: 5
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "audit-filters",
+				children: [
+					/* @__PURE__ */ _jsxDEV("label", { children: ["Campus", /* @__PURE__ */ _jsxDEV("select", {
+						value: campus,
+						onChange: (e) => {
+							setCampus(e.target.value);
+							setPage(1);
+						},
+						children: [/* @__PURE__ */ _jsxDEV("option", {
+							value: "all",
+							children: "All permitted campuses"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 72,
+							columnNumber: 131
+						}, this), campuses.map((c) => /* @__PURE__ */ _jsxDEV("option", {
+							value: c.name,
+							children: c.name
+						}, c._id, false, {
+							fileName: _jsxFileName,
+							lineNumber: 72,
+							columnNumber: 201
+						}, this))]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 72,
+						columnNumber: 49
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 72,
+						columnNumber: 36
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", {
+						className: "audit-search",
+						children: ["Search logs", /* @__PURE__ */ _jsxDEV("input", {
+							type: "search",
+							value: filters.search,
+							placeholder: "Search person, event, details, or record ID",
+							onChange: (event) => updateFilter("search", event.target.value)
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 73,
+							columnNumber: 50
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 73,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", { children: ["Record type", /* @__PURE__ */ _jsxDEV("select", {
+						value: filters.entity,
+						onChange: (event) => updateFilter("entity", event.target.value),
+						children: [/* @__PURE__ */ _jsxDEV("option", {
+							value: "",
+							children: "All records"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 74,
+							columnNumber: 121
+						}, this), options("entity").map((value) => /* @__PURE__ */ _jsxDEV("option", {
+							value,
+							children: formatAuditLabel(value)
+						}, value, false, {
+							fileName: _jsxFileName,
+							lineNumber: 74,
+							columnNumber: 192
+						}, this))]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 74,
+						columnNumber: 25
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 74,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", { children: ["Event", /* @__PURE__ */ _jsxDEV("select", {
+						value: filters.action,
+						onChange: (event) => updateFilter("action", event.target.value),
+						children: [/* @__PURE__ */ _jsxDEV("option", {
+							value: "",
+							children: "All events"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 75,
+							columnNumber: 115
+						}, this), options("action").map((value) => /* @__PURE__ */ _jsxDEV("option", {
+							value,
+							children: formatAuditLabel(value)
+						}, value, false, {
+							fileName: _jsxFileName,
+							lineNumber: 75,
+							columnNumber: 185
+						}, this))]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 75,
+						columnNumber: 19
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 75,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", { children: ["From date", /* @__PURE__ */ _jsxDEV("input", {
+						type: "date",
+						value: filters.start,
+						max: filters.end || undefined,
+						onChange: (event) => updateFilter("start", event.target.value),
+						"aria-invalid": invalidDates,
+						"aria-describedby": invalidDates ? "audit-date-error" : undefined
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 76,
+						columnNumber: 23
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 76,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", { children: ["To date", /* @__PURE__ */ _jsxDEV("input", {
+						type: "date",
+						value: filters.end,
+						min: filters.start || undefined,
+						onChange: (event) => updateFilter("end", event.target.value),
+						"aria-invalid": invalidDates,
+						"aria-describedby": invalidDates ? "audit-date-error" : undefined
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 77,
+						columnNumber: 21
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 77,
+						columnNumber: 7
+					}, this),
+					/* @__PURE__ */ _jsxDEV("label", { children: ["Sort by", /* @__PURE__ */ _jsxDEV("select", {
+						value: filters.order,
+						onChange: (event) => updateFilter("order", event.target.value),
+						children: [/* @__PURE__ */ _jsxDEV("option", {
+							value: "newest",
+							children: "Newest first"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 78,
+							columnNumber: 115
+						}, this), /* @__PURE__ */ _jsxDEV("option", {
+							value: "oldest",
+							children: "Oldest first"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 78,
+							columnNumber: 159
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 78,
+						columnNumber: 21
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 78,
+						columnNumber: 7
+					}, this),
+					hasFilters && /* @__PURE__ */ _jsxDEV("button", {
+						className: "admin-secondary",
+						onClick: resetFilters,
+						children: "Clear filters"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 79,
+						columnNumber: 22
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 72,
+				columnNumber: 5
+			}, this),
+			invalidDates && /* @__PURE__ */ _jsxDEV("p", {
+				className: "audit-error",
+				id: "audit-date-error",
+				role: "alert",
+				children: "Choose an end date on or after the start date."
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 81,
+				columnNumber: 22
+			}, this),
+			/* @__PURE__ */ _jsxDEV("p", {
+				className: "audit-scope",
+				children: "Filters and pagination apply to the full permitted audit history. Times use your local timezone."
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 82,
+				columnNumber: 5
+			}, this),
+			loading ? /* @__PURE__ */ _jsxDEV("div", {
+				className: "audit-empty",
+				role: "status",
+				children: "Loading audit history…"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 83,
+				columnNumber: 16
+			}, this) : error ? /* @__PURE__ */ _jsxDEV("div", {
+				className: "audit-empty",
+				role: "alert",
+				children: [
+					/* @__PURE__ */ _jsxDEV("strong", { children: "Audit logs could not be loaded" }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 83,
+						columnNumber: 140
+					}, this),
+					/* @__PURE__ */ _jsxDEV("p", { children: error }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 83,
+						columnNumber: 187
+					}, this),
+					/* @__PURE__ */ _jsxDEV("button", {
+						className: "admin-secondary",
+						onClick: refresh,
+						children: "Try again"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 83,
+						columnNumber: 201
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 83,
+				columnNumber: 98
+			}, this) : /* @__PURE__ */ _jsxDEV(_Fragment, { children: [
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "audit-table-wrap",
+					role: "region",
+					"aria-label": "Audit events",
+					tabIndex: 0,
+					children: /* @__PURE__ */ _jsxDEV("table", {
+						className: "audit-table",
+						children: [
+							/* @__PURE__ */ _jsxDEV("caption", {
+								className: "audit-results",
+								"aria-live": "polite",
+								children: filtered.length ? `Showing ${offset + 1}–${Math.min(offset + pageSize, total)} of ${total} matching events` : "No matching events"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 86,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("thead", { children: /* @__PURE__ */ _jsxDEV("tr", { children: [
+								/* @__PURE__ */ _jsxDEV("th", {
+									scope: "col",
+									children: "Event / record"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 87,
+									columnNumber: 22
+								}, this),
+								/* @__PURE__ */ _jsxDEV("th", {
+									scope: "col",
+									children: "Performed by"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 87,
+									columnNumber: 57
+								}, this),
+								/* @__PURE__ */ _jsxDEV("th", {
+									scope: "col",
+									children: "Date and time"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 87,
+									columnNumber: 90
+								}, this),
+								/* @__PURE__ */ _jsxDEV("th", {
+									scope: "col",
+									children: "Status change"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 87,
+									columnNumber: 124
+								}, this),
+								/* @__PURE__ */ _jsxDEV("th", {
+									scope: "col",
+									children: "Details"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 87,
+									columnNumber: 158
+								}, this)
+							] }, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 87,
+								columnNumber: 18
+							}, this) }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 87,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("tbody", { children: visible.map((log) => /* @__PURE__ */ _jsxDEV("tr", { children: [
+								/* @__PURE__ */ _jsxDEV("td", { children: [/* @__PURE__ */ _jsxDEV("strong", { children: formatAuditLabel(log.action) }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 89,
+									columnNumber: 17
+								}, this), /* @__PURE__ */ _jsxDEV("small", { children: formatAuditLabel(log.entity) }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 89,
+									columnNumber: 64
+								}, this)] }, void 0, true, {
+									fileName: _jsxFileName,
+									lineNumber: 89,
+									columnNumber: 13
+								}, this),
+								/* @__PURE__ */ _jsxDEV("td", { children: [/* @__PURE__ */ _jsxDEV("strong", { children: log.actor || "Unknown" }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 90,
+									columnNumber: 17
+								}, this), /* @__PURE__ */ _jsxDEV("small", { children: formatAuditLabel(log.role || "Role unavailable") }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 90,
+									columnNumber: 58
+								}, this)] }, void 0, true, {
+									fileName: _jsxFileName,
+									lineNumber: 90,
+									columnNumber: 13
+								}, this),
+								/* @__PURE__ */ _jsxDEV("td", { children: /* @__PURE__ */ _jsxDEV("time", {
+									dateTime: log.timestamp || undefined,
+									children: formatAuditTime(log.timestamp)
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 91,
+									columnNumber: 17
+								}, this) }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 91,
+									columnNumber: 13
+								}, this),
+								/* @__PURE__ */ _jsxDEV("td", { children: /* @__PURE__ */ _jsxDEV("span", {
+									className: "audit-status",
+									"data-tone": auditStatusTone(log.statusChange),
+									children: log.statusChange && log.statusChange !== "N/A" ? formatAuditLabel(log.statusChange) : "Recorded"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 92,
+									columnNumber: 17
+								}, this) }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 92,
+									columnNumber: 13
+								}, this),
+								/* @__PURE__ */ _jsxDEV("td", { children: /* @__PURE__ */ _jsxDEV("button", {
+									className: "row-action",
+									"aria-label": `View ${formatAuditLabel(log.action)} by ${log.actor || "Unknown"} at ${formatAuditTime(log.timestamp)}`,
+									onClick: () => setSelected(log),
+									children: "View details"
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 93,
+									columnNumber: 17
+								}, this) }, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 93,
+									columnNumber: 13
+								}, this)
+							] }, log.eventKey, true, {
+								fileName: _jsxFileName,
+								lineNumber: 88,
+								columnNumber: 40
+							}, this)) }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 88,
+								columnNumber: 11
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 85,
+						columnNumber: 9
+					}, this)
+				}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 84,
+					columnNumber: 7
+				}, this),
+				!visible.length && /* @__PURE__ */ _jsxDEV("div", {
+					className: "audit-empty",
+					children: [
+						/* @__PURE__ */ _jsxDEV("strong", { children: logs.length ? "No events match your filters" : "No audit events yet" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 97,
+							columnNumber: 56
+						}, this),
+						/* @__PURE__ */ _jsxDEV("p", { children: logs.length ? "Try a different search or date range." : "Recorded system changes will appear here." }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 97,
+							columnNumber: 143
+						}, this),
+						hasFilters && /* @__PURE__ */ _jsxDEV("button", {
+							className: "admin-secondary",
+							onClick: resetFilters,
+							children: "Clear filters"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 97,
+							columnNumber: 266
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 97,
+					columnNumber: 27
+				}, this),
+				/* @__PURE__ */ _jsxDEV("div", {
+					className: "audit-pagination",
+					children: [/* @__PURE__ */ _jsxDEV("label", { children: ["Rows per page", /* @__PURE__ */ _jsxDEV("select", {
+						value: pageSize,
+						onChange: (event) => {
+							setPageSize(Number(event.target.value));
+							setPage(1);
+						},
+						children: [
+							10,
+							25,
+							50
+						].map((size) => /* @__PURE__ */ _jsxDEV("option", {
+							value: size,
+							children: size
+						}, size, false, {
+							fileName: _jsxFileName,
+							lineNumber: 99,
+							columnNumber: 161
+						}, this))
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 99,
+						columnNumber: 29
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 99,
+						columnNumber: 9
+					}, this), /* @__PURE__ */ _jsxDEV("nav", {
+						"aria-label": "Audit log pages",
+						children: [
+							/* @__PURE__ */ _jsxDEV("button", {
+								className: "admin-secondary",
+								disabled: currentPage === 1,
+								onClick: () => setPage(currentPage - 1),
+								children: "Previous"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 100,
+								columnNumber: 43
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", { children: [
+								"Page ",
+								currentPage,
+								" of ",
+								pages
+							] }, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 100,
+								columnNumber: 166
+							}, this),
+							/* @__PURE__ */ _jsxDEV("button", {
+								className: "admin-secondary",
+								disabled: currentPage === pages,
+								onClick: () => setPage(currentPage + 1),
+								children: "Next"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 100,
+								columnNumber: 208
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 100,
+						columnNumber: 9
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 98,
+					columnNumber: 7
+				}, this)
+			] }, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 83,
+				columnNumber: 282
+			}, this),
+			/* @__PURE__ */ _jsxDEV("dialog", {
+				ref: dialog,
+				className: "audit-dialog",
+				"aria-labelledby": "audit-detail-title",
+				onClose: () => setSelected(null),
+				children: selected && /* @__PURE__ */ _jsxDEV(_Fragment, { children: [/* @__PURE__ */ _jsxDEV("div", {
+					className: "audit-detail-heading",
+					children: [/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("span", { children: "Audit event details" }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 104,
+						columnNumber: 65
+					}, this), /* @__PURE__ */ _jsxDEV("h2", {
+						id: "audit-detail-title",
+						children: formatAuditLabel(selected.action)
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 104,
+						columnNumber: 97
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 104,
+						columnNumber: 60
+					}, this), /* @__PURE__ */ _jsxDEV("button", {
+						className: "admin-secondary",
+						autoFocus: true,
+						onClick: () => setSelected(null),
+						children: "Close"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 104,
+						columnNumber: 171
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 104,
+					columnNumber: 22
+				}, this), /* @__PURE__ */ _jsxDEV("dl", {
+					className: "audit-detail-grid",
+					children: [
+						/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Performed by" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 106,
+							columnNumber: 16
+						}, this), /* @__PURE__ */ _jsxDEV("dd", { children: selected.actor || "Unknown" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 106,
+							columnNumber: 37
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 106,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Campus" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 16
+						}, this), /* @__PURE__ */ _jsxDEV("dd", { children: selected.campus || "Not recorded (legacy event)" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 31
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Role" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 101
+						}, this), /* @__PURE__ */ _jsxDEV("dd", { children: formatAuditLabel(selected.role || "Not available") }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 114
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 107,
+							columnNumber: 96
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Date and time" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 108,
+							columnNumber: 16
+						}, this), /* @__PURE__ */ _jsxDEV("dd", { children: formatAuditTime(selected.timestamp) }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 108,
+							columnNumber: 38
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 108,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Record type" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 109,
+							columnNumber: 16
+						}, this), /* @__PURE__ */ _jsxDEV("dd", { children: formatAuditLabel(selected.entity) }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 109,
+							columnNumber: 36
+						}, this)] }, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 109,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", {
+							className: "audit-detail-wide",
+							children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Record ID" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 110,
+								columnNumber: 46
+							}, this), /* @__PURE__ */ _jsxDEV("dd", { children: /* @__PURE__ */ _jsxDEV("code", { children: selected.entityId || "Not available" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 110,
+								columnNumber: 68
+							}, this) }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 110,
+								columnNumber: 64
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 110,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", {
+							className: "audit-detail-wide",
+							children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Status change" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 111,
+								columnNumber: 46
+							}, this), /* @__PURE__ */ _jsxDEV("dd", { children: /* @__PURE__ */ _jsxDEV("span", {
+								className: "audit-status",
+								"data-tone": auditStatusTone(selected.statusChange),
+								children: selected.statusChange && selected.statusChange !== "N/A" ? formatAuditLabel(selected.statusChange) : "No status change recorded"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 111,
+								columnNumber: 72
+							}, this) }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 111,
+								columnNumber: 68
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 111,
+							columnNumber: 11
+						}, this),
+						/* @__PURE__ */ _jsxDEV("div", {
+							className: "audit-detail-wide",
+							children: [/* @__PURE__ */ _jsxDEV("dt", { children: "Details" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 112,
+								columnNumber: 46
+							}, this), /* @__PURE__ */ _jsxDEV("dd", {
+								className: "audit-detail-description",
+								children: selected.details || "No additional details were recorded for this event."
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 112,
+								columnNumber: 62
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 112,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 105,
+					columnNumber: 9
+				}, this)] }, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 104,
+					columnNumber: 20
+				}, this)
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 103,
+				columnNumber: 5
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 62,
+		columnNumber: 10
+	}, this);
+}
+_s(AuditLogPanel, "Pjt9qAjcUgd8OUHB4rsdCiJcPpw=", false, function() {
+	return [
+		useTabState,
+		useTabState,
+		useTabState
+	];
+});
+_c = AuditLogPanel;
+var _c;
+$RefreshReg$(_c, "AuditLogPanel");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/components/AuditLogPanel.jsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/AuditLogPanel.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/AuditLogPanel.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "C:/Users/HP/OneDrive/Desktop/school-logistics-system/school-logistics-system/frontend/src/components/AuditLogPanel.jsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,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WCIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJBdWRpdExvZ1BhbmVsLmpzeCJdLCJ2ZXJzaW9uIjozLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB1c2VUYWJTdGF0ZSB9IGZyb20gXCIuLi9ob29rcy91c2VUYWJTdGF0ZVwiO1xyXG5pbXBvcnQgeyB1c2VFZmZlY3QsIHVzZVJlZiwgdXNlU3RhdGUgfSBmcm9tIFwicmVhY3RcIjtcclxuaW1wb3J0IHsgcmVwb3J0c0FQSSwgY2FtcHVzQVBJIH0gZnJvbSBcIi4uL3NlcnZpY2VzL2FwaVwiO1xyXG5pbXBvcnQgeyBhdWRpdFN0YXR1c1RvbmUsIGZvcm1hdEF1ZGl0TGFiZWwsIGZvcm1hdEF1ZGl0VGltZSB9IGZyb20gXCIuLi91dGlscy9hdWRpdExvZ3NcIjtcclxuaW1wb3J0IFwiLi9BdWRpdExvZ1BhbmVsLmNzc1wiO1xyXG5cclxuY29uc3QgaW5pdGlhbEZpbHRlcnMgPSB7IHNlYXJjaDogXCJcIiwgZW50aXR5OiBcIlwiLCBhY3Rpb246IFwiXCIsIHN0YXJ0OiBcIlwiLCBlbmQ6IFwiXCIsIG9yZGVyOiBcIm5ld2VzdFwiIH07XHJcblxyXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBdWRpdExvZ1BhbmVsKCkge1xyXG4gIGNvbnN0IFt0b3RhbCwgc2V0VG90YWxdID0gdXNlU3RhdGUoMCk7XHJcbiAgY29uc3QgW29wdGlvbnNEYXRhLCBzZXRPcHRpb25zRGF0YV0gPSB1c2VTdGF0ZSh7fSk7XHJcbiAgY29uc3QgW2NhbXB1c2VzLCBzZXRDYW1wdXNlc10gPSB1c2VTdGF0ZShbXSk7XHJcbiAgY29uc3QgW2NhbXB1cywgc2V0Q2FtcHVzXSA9IHVzZVN0YXRlKFwiYWxsXCIpO1xyXG4gIHVzZUVmZmVjdCgoKSA9PiB7IGNhbXB1c0FQSS5nZXRBbGwoKS50aGVuKHIgPT4gc2V0Q2FtcHVzZXMoci5jYW1wdXNlcykpLmNhdGNoKCgpID0+IHt9KTsgfSwgW10pO1xyXG4gIGNvbnN0IFtsb2dzLCBzZXRMb2dzXSA9IHVzZVN0YXRlKFtdKTtcclxuICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTtcclxuICBjb25zdCBbZXJyb3IsIHNldEVycm9yXSA9IHVzZVN0YXRlKFwiXCIpO1xyXG4gIGNvbnN0IFtyZXZpc2lvbiwgc2V0UmV2aXNpb25dID0gdXNlU3RhdGUoMCk7XHJcbiAgY29uc3QgW2ZpbHRlcnMsIHNldEZpbHRlcnNdID0gdXNlVGFiU3RhdGUoXCJBdWRpdExvZ1BhbmVsLmZpbHRlcnNcIiwgaW5pdGlhbEZpbHRlcnMpO1xyXG4gIGNvbnN0IFtwYWdlLCBzZXRQYWdlXSA9IHVzZVRhYlN0YXRlKFwiQXVkaXRMb2dQYW5lbC5wYWdlXCIsIDEpO1xyXG4gIGNvbnN0IFtwYWdlU2l6ZSwgc2V0UGFnZVNpemVdID0gdXNlVGFiU3RhdGUoXCJBdWRpdExvZ1BhbmVsLnBhZ2VTaXplXCIsIDEwKTtcclxuICBjb25zdCBbc2VsZWN0ZWQsIHNldFNlbGVjdGVkXSA9IHVzZVN0YXRlKG51bGwpO1xyXG4gIGNvbnN0IGRpYWxvZyA9IHVzZVJlZihudWxsKTtcclxuXHJcbiAgdXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGxldCBjYW5jZWxsZWQgPSBmYWxzZTtcclxuICAgIHJlcG9ydHNBUEkuZ2V0QXVkaXRMb2dSZXBvcnQoeyBwYWdlLCBwYWdlU2l6ZSwgY2FtcHVzLCBzZWFyY2g6IGZpbHRlcnMuc2VhcmNoLCBlbnRpdHk6IGZpbHRlcnMuZW50aXR5LCBhY3Rpb246IGZpbHRlcnMuYWN0aW9uLCBzdGFydERhdGU6IGZpbHRlcnMuc3RhcnQsIGVuZERhdGU6IGZpbHRlcnMuZW5kLCBvcmRlcjogZmlsdGVycy5vcmRlciB9KS50aGVuKChyZXN1bHQpID0+IHtcclxuICAgICAgaWYgKCFjYW5jZWxsZWQpIHsgc2V0TG9ncygocmVzdWx0LmxvZ3MgfHwgW10pLm1hcChsb2cgPT4gKHsgLi4ubG9nLCBldmVudEtleTogbG9nLl9pZCB9KSkpOyBzZXRUb3RhbChyZXN1bHQucGFnaW5hdGlvbi50b3RhbCk7IHNldE9wdGlvbnNEYXRhKHJlc3VsdC5vcHRpb25zIHx8IHt9KTsgc2V0RXJyb3IoXCJcIik7IH1cclxuICAgIH0pLmNhdGNoKChmYWlsdXJlKSA9PiB7XHJcbiAgICAgIGlmICghY2FuY2VsbGVkKSBzZXRFcnJvcihmYWlsdXJlLm1lc3NhZ2UgfHwgXCJVbmFibGUgdG8gbG9hZCBhdWRpdCBsb2dzLlwiKTtcclxuICAgIH0pLmZpbmFsbHkoKCkgPT4ge1xyXG4gICAgICBpZiAoIWNhbmNlbGxlZCkgc2V0TG9hZGluZyhmYWxzZSk7XHJcbiAgICB9KTtcclxuICAgIHJldHVybiAoKSA9PiB7IGNhbmNlbGxlZCA9IHRydWU7IH07XHJcbiAgfSwgW3JldmlzaW9uLCBwYWdlLCBwYWdlU2l6ZSwgZmlsdGVycywgY2FtcHVzXSk7XHJcblxyXG4gIHVzZUVmZmVjdCgoKSA9PiB7XHJcbiAgICBpZiAoc2VsZWN0ZWQpIGRpYWxvZy5jdXJyZW50Py5zaG93TW9kYWwoKTtcclxuICAgIGVsc2UgZGlhbG9nLmN1cnJlbnQ/LmNsb3NlKCk7XHJcbiAgfSwgW3NlbGVjdGVkXSk7XHJcblxyXG4gIGNvbnN0IHVwZGF0ZUZpbHRlciA9IChuYW1lLCB2YWx1ZSkgPT4ge1xyXG4gICAgc2V0RmlsdGVycygoY3VycmVudCkgPT4gKHsgLi4uY3VycmVudCwgW25hbWVdOiB2YWx1ZSB9KSk7XHJcbiAgICBzZXRQYWdlKDEpO1xyXG4gIH07XHJcbiAgY29uc3QgcmVzZXRGaWx0ZXJzID0gKCkgPT4geyBzZXRGaWx0ZXJzKGluaXRpYWxGaWx0ZXJzKTsgc2V0UGFnZSgxKTsgfTtcclxuICBjb25zdCByZWZyZXNoID0gKCkgPT4ge1xyXG4gICAgc2V0TG9hZGluZyh0cnVlKTtcclxuICAgIHNldEVycm9yKFwiXCIpO1xyXG4gICAgc2V0UGFnZSgxKTtcclxuICAgIHNldFJldmlzaW9uKChjdXJyZW50KSA9PiBjdXJyZW50ICsgMSk7XHJcbiAgfTtcclxuICBjb25zdCBpbnZhbGlkRGF0ZXMgPSBCb29sZWFuKGZpbHRlcnMuc3RhcnQgJiYgZmlsdGVycy5lbmQgJiYgZmlsdGVycy5zdGFydCA+IGZpbHRlcnMuZW5kKTtcclxuICBjb25zdCBmaWx0ZXJlZCA9IGludmFsaWREYXRlcyA/IFtdIDogbG9ncztcclxuICBjb25zdCBwYWdlcyA9IE1hdGgubWF4KDEsIE1hdGguY2VpbCh0b3RhbCAvIHBhZ2VTaXplKSk7XHJcbiAgY29uc3QgY3VycmVudFBhZ2UgPSBNYXRoLm1pbihwYWdlLCBwYWdlcyk7XHJcbiAgY29uc3Qgb2Zmc2V0ID0gKGN1cnJlbnRQYWdlIC0gMSkgKiBwYWdlU2l6ZTtcclxuICBjb25zdCB2aXNpYmxlID0gZmlsdGVyZWQ7XHJcbiAgY29uc3Qgb3B0aW9ucyA9IGZpZWxkID0+IG9wdGlvbnNEYXRhW2ZpZWxkID09PSBcImFjdGlvblwiID8gXCJhY3Rpb25zXCIgOiBcImVudGl0aWVzXCJdIHx8IFtdO1xyXG4gIGNvbnN0IGhhc0ZpbHRlcnMgPSBPYmplY3Qua2V5cyhpbml0aWFsRmlsdGVycykuc29tZSgoa2V5KSA9PiBmaWx0ZXJzW2tleV0gIT09IGluaXRpYWxGaWx0ZXJzW2tleV0pO1xyXG5cclxuICByZXR1cm4gPHNlY3Rpb24gY2xhc3NOYW1lPVwiYWRtaW4tcGFuZWwgYXVkaXQtcGFuZWxcIiBhcmlhLWxhYmVsbGVkYnk9XCJhdWRpdC1oZWFkaW5nXCI+XHJcbiAgICA8ZGl2IGNsYXNzTmFtZT1cImFkbWluLXBhbmVsLWhlYWRpbmcgYXVkaXQtaGVhZGluZ1wiPlxyXG4gICAgICA8ZGl2PjxoMiBpZD1cImF1ZGl0LWhlYWRpbmdcIj5BdWRpdCBsb2dzPC9oMj48cD5SZXZpZXcgd2hvIG1hZGUgYSBjaGFuZ2UsIHdoYXQgY2hhbmdlZCwgYW5kIHdoZW4gaXQgaGFwcGVuZWQuPC9wPjwvZGl2PlxyXG4gICAgICA8YnV0dG9uIGNsYXNzTmFtZT1cImFkbWluLXNlY29uZGFyeVwiIG9uQ2xpY2s9e3JlZnJlc2h9IGRpc2FibGVkPXtsb2FkaW5nfT57bG9hZGluZyA/IFwiTG9hZGluZ+KAplwiIDogXCJSZWZyZXNoIGxvZ3NcIn08L2J1dHRvbj5cclxuICAgIDwvZGl2PlxyXG4gICAgPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1zdW1tYXJ5XCIgYXJpYS1sYWJlbD1cIkF1ZGl0IHN1bW1hcnlcIj5cclxuICAgICAgPGRpdiBkYXRhLXN1bW1hcnktdG9uZT1cImJsdWVcIj48c3Bhbj5Mb2FkZWQgZXZlbnRzPC9zcGFuPjxzdHJvbmc+e2xvYWRpbmcgfHwgZXJyb3IgPyBcIuKAlFwiIDogbG9ncy5sZW5ndGgudG9Mb2NhbGVTdHJpbmcoKX08L3N0cm9uZz48L2Rpdj5cclxuICAgICAgPGRpdiBkYXRhLXN1bW1hcnktdG9uZT1cInRlYWxcIj48c3Bhbj5NYXRjaGluZyBldmVudHM8L3NwYW4+PHN0cm9uZz57bG9hZGluZyB8fCBlcnJvciA/IFwi4oCUXCIgOiB0b3RhbC50b0xvY2FsZVN0cmluZygpfTwvc3Ryb25nPjwvZGl2PlxyXG4gICAgICA8ZGl2IGRhdGEtc3VtbWFyeS10b25lPVwidmlvbGV0XCI+PHNwYW4+RXZlbnQgdHlwZXM8L3NwYW4+PHN0cm9uZz57bG9hZGluZyB8fCBlcnJvciA/IFwi4oCUXCIgOiBvcHRpb25zKFwiYWN0aW9uXCIpLmxlbmd0aH08L3N0cm9uZz48L2Rpdj5cclxuICAgIDwvZGl2PlxyXG4gICAgPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1maWx0ZXJzXCI+PGxhYmVsPkNhbXB1czxzZWxlY3QgdmFsdWU9e2NhbXB1c30gb25DaGFuZ2U9e2UgPT4geyBzZXRDYW1wdXMoZS50YXJnZXQudmFsdWUpOyBzZXRQYWdlKDEpOyB9fT48b3B0aW9uIHZhbHVlPVwiYWxsXCI+QWxsIHBlcm1pdHRlZCBjYW1wdXNlczwvb3B0aW9uPntjYW1wdXNlcy5tYXAoYyA9PiA8b3B0aW9uIGtleT17Yy5faWR9IHZhbHVlPXtjLm5hbWV9PntjLm5hbWV9PC9vcHRpb24+KX08L3NlbGVjdD48L2xhYmVsPlxyXG4gICAgICA8bGFiZWwgY2xhc3NOYW1lPVwiYXVkaXQtc2VhcmNoXCI+U2VhcmNoIGxvZ3M8aW5wdXQgdHlwZT1cInNlYXJjaFwiIHZhbHVlPXtmaWx0ZXJzLnNlYXJjaH0gcGxhY2Vob2xkZXI9XCJTZWFyY2ggcGVyc29uLCBldmVudCwgZGV0YWlscywgb3IgcmVjb3JkIElEXCIgb25DaGFuZ2U9eyhldmVudCkgPT4gdXBkYXRlRmlsdGVyKFwic2VhcmNoXCIsIGV2ZW50LnRhcmdldC52YWx1ZSl9IC8+PC9sYWJlbD5cclxuICAgICAgPGxhYmVsPlJlY29yZCB0eXBlPHNlbGVjdCB2YWx1ZT17ZmlsdGVycy5lbnRpdHl9IG9uQ2hhbmdlPXsoZXZlbnQpID0+IHVwZGF0ZUZpbHRlcihcImVudGl0eVwiLCBldmVudC50YXJnZXQudmFsdWUpfT48b3B0aW9uIHZhbHVlPVwiXCI+QWxsIHJlY29yZHM8L29wdGlvbj57b3B0aW9ucyhcImVudGl0eVwiKS5tYXAoKHZhbHVlKSA9PiA8b3B0aW9uIGtleT17dmFsdWV9IHZhbHVlPXt2YWx1ZX0+e2Zvcm1hdEF1ZGl0TGFiZWwodmFsdWUpfTwvb3B0aW9uPil9PC9zZWxlY3Q+PC9sYWJlbD5cclxuICAgICAgPGxhYmVsPkV2ZW50PHNlbGVjdCB2YWx1ZT17ZmlsdGVycy5hY3Rpb259IG9uQ2hhbmdlPXsoZXZlbnQpID0+IHVwZGF0ZUZpbHRlcihcImFjdGlvblwiLCBldmVudC50YXJnZXQudmFsdWUpfT48b3B0aW9uIHZhbHVlPVwiXCI+QWxsIGV2ZW50czwvb3B0aW9uPntvcHRpb25zKFwiYWN0aW9uXCIpLm1hcCgodmFsdWUpID0+IDxvcHRpb24ga2V5PXt2YWx1ZX0gdmFsdWU9e3ZhbHVlfT57Zm9ybWF0QXVkaXRMYWJlbCh2YWx1ZSl9PC9vcHRpb24+KX08L3NlbGVjdD48L2xhYmVsPlxyXG4gICAgICA8bGFiZWw+RnJvbSBkYXRlPGlucHV0IHR5cGU9XCJkYXRlXCIgdmFsdWU9e2ZpbHRlcnMuc3RhcnR9IG1heD17ZmlsdGVycy5lbmQgfHwgdW5kZWZpbmVkfSBvbkNoYW5nZT17KGV2ZW50KSA9PiB1cGRhdGVGaWx0ZXIoXCJzdGFydFwiLCBldmVudC50YXJnZXQudmFsdWUpfSBhcmlhLWludmFsaWQ9e2ludmFsaWREYXRlc30gYXJpYS1kZXNjcmliZWRieT17aW52YWxpZERhdGVzID8gXCJhdWRpdC1kYXRlLWVycm9yXCIgOiB1bmRlZmluZWR9IC8+PC9sYWJlbD5cclxuICAgICAgPGxhYmVsPlRvIGRhdGU8aW5wdXQgdHlwZT1cImRhdGVcIiB2YWx1ZT17ZmlsdGVycy5lbmR9IG1pbj17ZmlsdGVycy5zdGFydCB8fCB1bmRlZmluZWR9IG9uQ2hhbmdlPXsoZXZlbnQpID0+IHVwZGF0ZUZpbHRlcihcImVuZFwiLCBldmVudC50YXJnZXQudmFsdWUpfSBhcmlhLWludmFsaWQ9e2ludmFsaWREYXRlc30gYXJpYS1kZXNjcmliZWRieT17aW52YWxpZERhdGVzID8gXCJhdWRpdC1kYXRlLWVycm9yXCIgOiB1bmRlZmluZWR9IC8+PC9sYWJlbD5cclxuICAgICAgPGxhYmVsPlNvcnQgYnk8c2VsZWN0IHZhbHVlPXtmaWx0ZXJzLm9yZGVyfSBvbkNoYW5nZT17KGV2ZW50KSA9PiB1cGRhdGVGaWx0ZXIoXCJvcmRlclwiLCBldmVudC50YXJnZXQudmFsdWUpfT48b3B0aW9uIHZhbHVlPVwibmV3ZXN0XCI+TmV3ZXN0IGZpcnN0PC9vcHRpb24+PG9wdGlvbiB2YWx1ZT1cIm9sZGVzdFwiPk9sZGVzdCBmaXJzdDwvb3B0aW9uPjwvc2VsZWN0PjwvbGFiZWw+XHJcbiAgICAgIHtoYXNGaWx0ZXJzICYmIDxidXR0b24gY2xhc3NOYW1lPVwiYWRtaW4tc2Vjb25kYXJ5XCIgb25DbGljaz17cmVzZXRGaWx0ZXJzfT5DbGVhciBmaWx0ZXJzPC9idXR0b24+fVxyXG4gICAgPC9kaXY+XHJcbiAgICB7aW52YWxpZERhdGVzICYmIDxwIGNsYXNzTmFtZT1cImF1ZGl0LWVycm9yXCIgaWQ9XCJhdWRpdC1kYXRlLWVycm9yXCIgcm9sZT1cImFsZXJ0XCI+Q2hvb3NlIGFuIGVuZCBkYXRlIG9uIG9yIGFmdGVyIHRoZSBzdGFydCBkYXRlLjwvcD59XHJcbiAgICA8cCBjbGFzc05hbWU9XCJhdWRpdC1zY29wZVwiPkZpbHRlcnMgYW5kIHBhZ2luYXRpb24gYXBwbHkgdG8gdGhlIGZ1bGwgcGVybWl0dGVkIGF1ZGl0IGhpc3RvcnkuIFRpbWVzIHVzZSB5b3VyIGxvY2FsIHRpbWV6b25lLjwvcD5cclxuICAgIHtsb2FkaW5nID8gPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1lbXB0eVwiIHJvbGU9XCJzdGF0dXNcIj5Mb2FkaW5nIGF1ZGl0IGhpc3RvcnnigKY8L2Rpdj4gOiBlcnJvciA/IDxkaXYgY2xhc3NOYW1lPVwiYXVkaXQtZW1wdHlcIiByb2xlPVwiYWxlcnRcIj48c3Ryb25nPkF1ZGl0IGxvZ3MgY291bGQgbm90IGJlIGxvYWRlZDwvc3Ryb25nPjxwPntlcnJvcn08L3A+PGJ1dHRvbiBjbGFzc05hbWU9XCJhZG1pbi1zZWNvbmRhcnlcIiBvbkNsaWNrPXtyZWZyZXNofT5UcnkgYWdhaW48L2J1dHRvbj48L2Rpdj4gOiA8PlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImF1ZGl0LXRhYmxlLXdyYXBcIiByb2xlPVwicmVnaW9uXCIgYXJpYS1sYWJlbD1cIkF1ZGl0IGV2ZW50c1wiIHRhYkluZGV4PXswfT5cclxuICAgICAgICA8dGFibGUgY2xhc3NOYW1lPVwiYXVkaXQtdGFibGVcIj5cclxuICAgICAgICAgIDxjYXB0aW9uIGNsYXNzTmFtZT1cImF1ZGl0LXJlc3VsdHNcIiBhcmlhLWxpdmU9XCJwb2xpdGVcIj57ZmlsdGVyZWQubGVuZ3RoID8gYFNob3dpbmcgJHtvZmZzZXQgKyAxfeKAkyR7TWF0aC5taW4ob2Zmc2V0ICsgcGFnZVNpemUsIHRvdGFsKX0gb2YgJHt0b3RhbH0gbWF0Y2hpbmcgZXZlbnRzYCA6IFwiTm8gbWF0Y2hpbmcgZXZlbnRzXCJ9PC9jYXB0aW9uPlxyXG4gICAgICAgICAgPHRoZWFkPjx0cj48dGggc2NvcGU9XCJjb2xcIj5FdmVudCAvIHJlY29yZDwvdGg+PHRoIHNjb3BlPVwiY29sXCI+UGVyZm9ybWVkIGJ5PC90aD48dGggc2NvcGU9XCJjb2xcIj5EYXRlIGFuZCB0aW1lPC90aD48dGggc2NvcGU9XCJjb2xcIj5TdGF0dXMgY2hhbmdlPC90aD48dGggc2NvcGU9XCJjb2xcIj5EZXRhaWxzPC90aD48L3RyPjwvdGhlYWQ+XHJcbiAgICAgICAgICA8dGJvZHk+e3Zpc2libGUubWFwKChsb2cpID0+IDx0ciBrZXk9e2xvZy5ldmVudEtleX0+XHJcbiAgICAgICAgICAgIDx0ZD48c3Ryb25nPntmb3JtYXRBdWRpdExhYmVsKGxvZy5hY3Rpb24pfTwvc3Ryb25nPjxzbWFsbD57Zm9ybWF0QXVkaXRMYWJlbChsb2cuZW50aXR5KX08L3NtYWxsPjwvdGQ+XHJcbiAgICAgICAgICAgIDx0ZD48c3Ryb25nPntsb2cuYWN0b3IgfHwgXCJVbmtub3duXCJ9PC9zdHJvbmc+PHNtYWxsPntmb3JtYXRBdWRpdExhYmVsKGxvZy5yb2xlIHx8IFwiUm9sZSB1bmF2YWlsYWJsZVwiKX08L3NtYWxsPjwvdGQ+XHJcbiAgICAgICAgICAgIDx0ZD48dGltZSBkYXRlVGltZT17bG9nLnRpbWVzdGFtcCB8fCB1bmRlZmluZWR9Pntmb3JtYXRBdWRpdFRpbWUobG9nLnRpbWVzdGFtcCl9PC90aW1lPjwvdGQ+XHJcbiAgICAgICAgICAgIDx0ZD48c3BhbiBjbGFzc05hbWU9XCJhdWRpdC1zdGF0dXNcIiBkYXRhLXRvbmU9e2F1ZGl0U3RhdHVzVG9uZShsb2cuc3RhdHVzQ2hhbmdlKX0+e2xvZy5zdGF0dXNDaGFuZ2UgJiYgbG9nLnN0YXR1c0NoYW5nZSAhPT0gXCJOL0FcIiA/IGZvcm1hdEF1ZGl0TGFiZWwobG9nLnN0YXR1c0NoYW5nZSkgOiBcIlJlY29yZGVkXCJ9PC9zcGFuPjwvdGQ+XHJcbiAgICAgICAgICAgIDx0ZD48YnV0dG9uIGNsYXNzTmFtZT1cInJvdy1hY3Rpb25cIiBhcmlhLWxhYmVsPXtgVmlldyAke2Zvcm1hdEF1ZGl0TGFiZWwobG9nLmFjdGlvbil9IGJ5ICR7bG9nLmFjdG9yIHx8IFwiVW5rbm93blwifSBhdCAke2Zvcm1hdEF1ZGl0VGltZShsb2cudGltZXN0YW1wKX1gfSBvbkNsaWNrPXsoKSA9PiBzZXRTZWxlY3RlZChsb2cpfT5WaWV3IGRldGFpbHM8L2J1dHRvbj48L3RkPlxyXG4gICAgICAgICAgPC90cj4pfTwvdGJvZHk+XHJcbiAgICAgICAgPC90YWJsZT5cclxuICAgICAgPC9kaXY+XHJcbiAgICAgIHshdmlzaWJsZS5sZW5ndGggJiYgPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1lbXB0eVwiPjxzdHJvbmc+e2xvZ3MubGVuZ3RoID8gXCJObyBldmVudHMgbWF0Y2ggeW91ciBmaWx0ZXJzXCIgOiBcIk5vIGF1ZGl0IGV2ZW50cyB5ZXRcIn08L3N0cm9uZz48cD57bG9ncy5sZW5ndGggPyBcIlRyeSBhIGRpZmZlcmVudCBzZWFyY2ggb3IgZGF0ZSByYW5nZS5cIiA6IFwiUmVjb3JkZWQgc3lzdGVtIGNoYW5nZXMgd2lsbCBhcHBlYXIgaGVyZS5cIn08L3A+e2hhc0ZpbHRlcnMgJiYgPGJ1dHRvbiBjbGFzc05hbWU9XCJhZG1pbi1zZWNvbmRhcnlcIiBvbkNsaWNrPXtyZXNldEZpbHRlcnN9PkNsZWFyIGZpbHRlcnM8L2J1dHRvbj59PC9kaXY+fVxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImF1ZGl0LXBhZ2luYXRpb25cIj5cclxuICAgICAgICA8bGFiZWw+Um93cyBwZXIgcGFnZTxzZWxlY3QgdmFsdWU9e3BhZ2VTaXplfSBvbkNoYW5nZT17KGV2ZW50KSA9PiB7IHNldFBhZ2VTaXplKE51bWJlcihldmVudC50YXJnZXQudmFsdWUpKTsgc2V0UGFnZSgxKTsgfX0+e1sxMCwgMjUsIDUwXS5tYXAoKHNpemUpID0+IDxvcHRpb24ga2V5PXtzaXplfSB2YWx1ZT17c2l6ZX0+e3NpemV9PC9vcHRpb24+KX08L3NlbGVjdD48L2xhYmVsPlxyXG4gICAgICAgIDxuYXYgYXJpYS1sYWJlbD1cIkF1ZGl0IGxvZyBwYWdlc1wiPjxidXR0b24gY2xhc3NOYW1lPVwiYWRtaW4tc2Vjb25kYXJ5XCIgZGlzYWJsZWQ9e2N1cnJlbnRQYWdlID09PSAxfSBvbkNsaWNrPXsoKSA9PiBzZXRQYWdlKGN1cnJlbnRQYWdlIC0gMSl9PlByZXZpb3VzPC9idXR0b24+PHNwYW4+UGFnZSB7Y3VycmVudFBhZ2V9IG9mIHtwYWdlc308L3NwYW4+PGJ1dHRvbiBjbGFzc05hbWU9XCJhZG1pbi1zZWNvbmRhcnlcIiBkaXNhYmxlZD17Y3VycmVudFBhZ2UgPT09IHBhZ2VzfSBvbkNsaWNrPXsoKSA9PiBzZXRQYWdlKGN1cnJlbnRQYWdlICsgMSl9Pk5leHQ8L2J1dHRvbj48L25hdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8Lz59XHJcbiAgICA8ZGlhbG9nIHJlZj17ZGlhbG9nfSBjbGFzc05hbWU9XCJhdWRpdC1kaWFsb2dcIiBhcmlhLWxhYmVsbGVkYnk9XCJhdWRpdC1kZXRhaWwtdGl0bGVcIiBvbkNsb3NlPXsoKSA9PiBzZXRTZWxlY3RlZChudWxsKX0+XHJcbiAgICAgIHtzZWxlY3RlZCAmJiA8PjxkaXYgY2xhc3NOYW1lPVwiYXVkaXQtZGV0YWlsLWhlYWRpbmdcIj48ZGl2PjxzcGFuPkF1ZGl0IGV2ZW50IGRldGFpbHM8L3NwYW4+PGgyIGlkPVwiYXVkaXQtZGV0YWlsLXRpdGxlXCI+e2Zvcm1hdEF1ZGl0TGFiZWwoc2VsZWN0ZWQuYWN0aW9uKX08L2gyPjwvZGl2PjxidXR0b24gY2xhc3NOYW1lPVwiYWRtaW4tc2Vjb25kYXJ5XCIgYXV0b0ZvY3VzIG9uQ2xpY2s9eygpID0+IHNldFNlbGVjdGVkKG51bGwpfT5DbG9zZTwvYnV0dG9uPjwvZGl2PlxyXG4gICAgICAgIDxkbCBjbGFzc05hbWU9XCJhdWRpdC1kZXRhaWwtZ3JpZFwiPlxyXG4gICAgICAgICAgPGRpdj48ZHQ+UGVyZm9ybWVkIGJ5PC9kdD48ZGQ+e3NlbGVjdGVkLmFjdG9yIHx8IFwiVW5rbm93blwifTwvZGQ+PC9kaXY+XHJcbiAgICAgICAgICA8ZGl2PjxkdD5DYW1wdXM8L2R0PjxkZD57c2VsZWN0ZWQuY2FtcHVzIHx8IFwiTm90IHJlY29yZGVkIChsZWdhY3kgZXZlbnQpXCJ9PC9kZD48L2Rpdj48ZGl2PjxkdD5Sb2xlPC9kdD48ZGQ+e2Zvcm1hdEF1ZGl0TGFiZWwoc2VsZWN0ZWQucm9sZSB8fCBcIk5vdCBhdmFpbGFibGVcIil9PC9kZD48L2Rpdj5cclxuICAgICAgICAgIDxkaXY+PGR0PkRhdGUgYW5kIHRpbWU8L2R0PjxkZD57Zm9ybWF0QXVkaXRUaW1lKHNlbGVjdGVkLnRpbWVzdGFtcCl9PC9kZD48L2Rpdj5cclxuICAgICAgICAgIDxkaXY+PGR0PlJlY29yZCB0eXBlPC9kdD48ZGQ+e2Zvcm1hdEF1ZGl0TGFiZWwoc2VsZWN0ZWQuZW50aXR5KX08L2RkPjwvZGl2PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1kZXRhaWwtd2lkZVwiPjxkdD5SZWNvcmQgSUQ8L2R0PjxkZD48Y29kZT57c2VsZWN0ZWQuZW50aXR5SWQgfHwgXCJOb3QgYXZhaWxhYmxlXCJ9PC9jb2RlPjwvZGQ+PC9kaXY+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImF1ZGl0LWRldGFpbC13aWRlXCI+PGR0PlN0YXR1cyBjaGFuZ2U8L2R0PjxkZD48c3BhbiBjbGFzc05hbWU9XCJhdWRpdC1zdGF0dXNcIiBkYXRhLXRvbmU9e2F1ZGl0U3RhdHVzVG9uZShzZWxlY3RlZC5zdGF0dXNDaGFuZ2UpfT57c2VsZWN0ZWQuc3RhdHVzQ2hhbmdlICYmIHNlbGVjdGVkLnN0YXR1c0NoYW5nZSAhPT0gXCJOL0FcIiA/IGZvcm1hdEF1ZGl0TGFiZWwoc2VsZWN0ZWQuc3RhdHVzQ2hhbmdlKSA6IFwiTm8gc3RhdHVzIGNoYW5nZSByZWNvcmRlZFwifTwvc3Bhbj48L2RkPjwvZGl2PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhdWRpdC1kZXRhaWwtd2lkZVwiPjxkdD5EZXRhaWxzPC9kdD48ZGQgY2xhc3NOYW1lPVwiYXVkaXQtZGV0YWlsLWRlc2NyaXB0aW9uXCI+e3NlbGVjdGVkLmRldGFpbHMgfHwgXCJObyBhZGRpdGlvbmFsIGRldGFpbHMgd2VyZSByZWNvcmRlZCBmb3IgdGhpcyBldmVudC5cIn08L2RkPjwvZGl2PlxyXG4gICAgICAgIDwvZGw+XHJcbiAgICAgIDwvPn1cclxuICAgIDwvZGlhbG9nPlxyXG4gIDwvc2VjdGlvbj47XHJcbn1cclxuIl19

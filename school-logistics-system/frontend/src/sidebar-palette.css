@@ -85,7 +85,7 @@
 }
 
 /* One footer layout across roles and themes, including short viewports. */
-.organized-workspace .app-sidebar .sidebar-footer {
+:is(.dashboard-shell, .admin-shell).organized-workspace .app-sidebar .sidebar-footer {
   flex: 0 0 auto;
   margin-top: auto;
   padding: 12px 14px max(14px, env(safe-area-inset-bottom));
@@ -176,7 +176,8 @@
 
 /* The sidebar stays dark in light mode, so its headings need their own ink.
    Scope beyond the page-wide h2 rule in light-theme.css. */
-.organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
+:is(.dashboard-shell, .admin-shell).organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
+  display: block;
   margin: 0 12px 8px;
   padding: 0;
   color: var(--nav-heading);
@@ -185,6 +186,8 @@
   letter-spacing: .08em;
   line-height: 1.5;
   text-transform: uppercase;
+  background: transparent;
+  overflow-wrap: anywhere;
 }
 
 .organized-workspace .app-sidebar .sidebar-nav > p {
@@ -195,28 +198,17 @@
 }
 
 .organized-workspace .app-sidebar .sidebar-nav > :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
   min-width: 0;
   margin-bottom: 0;
 }
 
 .organized-workspace .app-sidebar .sidebar-nav > :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) + :is(.admin-navigation-group, .student-navigation-group, .staff-navigation-group) {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--nav-divider);
-}
-
-/* Scope through navigation so page-specific styles cannot split the palette. */
-.organized-workspace .app-sidebar .sidebar-nav :is(.admin-navigation-label, .student-navigation-label, .staff-navigation-label) {
-  display: block;
-  margin: 0 0 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--nav-heading);
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
 }
 
 /* Keep each section and its links together when the mobile menu opens. */
