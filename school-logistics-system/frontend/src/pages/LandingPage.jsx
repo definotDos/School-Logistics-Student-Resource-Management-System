@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardIcon from '../components/DashboardIcon'
 import useMobileNavigation from '../hooks/useMobileNavigation'
+import '../landing-preview-motion.css'
 
 const THEME_KEY = 'srmsLandingTheme'
 
@@ -126,7 +127,27 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(readTheme)
   const [activeNav, setActiveNav] = useState('top')
+  const previewRef = useRef(null)
   const { navigationOpen, setNavigationOpen, navigationRef, toggleRef } = useMobileNavigation(760)
+
+  useEffect(() => {
+    const preview = previewRef.current
+    if (!preview || !('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        preview.classList.add('is-visible')
+        observer.disconnect()
+      }
+    }, { threshold: 0.2 })
+
+    preview.classList.add('preview-motion-ready')
+    observer.observe(preview)
+    return () => {
+      observer.disconnect()
+      preview.classList.remove('preview-motion-ready', 'is-visible')
+    }
+  }, [])
 
   useEffect(() => {
     sessionStorage.setItem(THEME_KEY, JSON.stringify(isDarkMode))
@@ -232,10 +253,15 @@ export function LandingPage() {
               Login
             </button>
           </div>
+          <ol className="landing-workflow" aria-label="Resource request process">
+            <li><span>01</span> Request</li>
+            <li><span>02</span> Track</li>
+            <li><span>03</span> Collect</li>
+          </ol>
         </div>
 
         <div className="hero-visual" aria-label="Dashboard preview">
-          <div className="dashboard-preview">
+          <div className="dashboard-preview" ref={previewRef}>
             <div className="preview-header">
               <span>Campus overview</span>
               <small className="preview-label">Sample dashboard</small>

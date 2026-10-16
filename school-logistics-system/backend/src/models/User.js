@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
 		name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
 		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @phinmaed.com email address." } },
 		emailVerified: { type: Boolean, default: false },
+		temporaryPasswordHash: { type: String, select: false },
 		activationPending: { type: Boolean, default: false },
 		sessionVersion: { type: Number, default: 0 },
         loginFactor: { type: new mongoose.Schema({

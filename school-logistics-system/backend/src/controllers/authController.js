@@ -137,8 +137,10 @@ async function resendVerificationCode(req, res) {
 		const verificationCode = createVerificationCode();
 		user.verificationCode = verificationCode;
 		user.verificationExpiresAt = verificationExpiry();
+		const temporaryPassword = user.activationPending ? crypto.randomBytes(18).toString("base64url") : undefined;
+		if (temporaryPassword) user.temporaryPasswordHash = hashResetCode(temporaryPassword);
 		await user.save();
-		await sendVerificationEmail(email, verificationCode, user.activationPending === true);
+		await sendVerificationEmail(email, verificationCode, user.activationPending === true, temporaryPassword);
 		return res.status(200).json({ message: "A new verification code was sent to your email." });
 	} catch (error) {
 		console.error("Resend verification error:", error);
@@ -182,14 +184,16 @@ async function resetPassword(req, res) {
 // Consume the code and set the initial password in the same atomic update.
 async function activateAccount(req, res) {
  try {
-  const { email, code, password, confirmPassword } = req.body || {};
+  const { email, code, password, confirmPassword, temporaryPassword } = req.body || {};
   if (!emailValid(email) || typeof code !== 'string' || !/^\d{6}$/.test(code.trim()) || !passwordValid(password) || password !== confirmPassword) {
    return res.status(400).json({ message: 'Enter your email, six-digit code, and matching passwords of at least 8 characters and at most 72 UTF-8 bytes.' });
   }
-  const user = await User.findOneAndUpdate({ email: email.trim().toLowerCase(), role: 'staff', activationPending: true, emailVerified: false,
+  if (typeof temporaryPassword !== 'string' || !/^[A-Za-z0-9_-]{24}$/.test(temporaryPassword)) return res.status(400).json({ message: 'Enter the temporary password from your latest activation email. If your email has no password, select Resend code.' });
+  if (password === temporaryPassword) return res.status(400).json({ message: 'Choose a new password different from your temporary password.' });
+  const user = await User.findOneAndUpdate({ temporaryPasswordHash: hashResetCode(temporaryPassword), email: email.trim().toLowerCase(), role: 'staff', activationPending: true, emailVerified: false,
    verificationCode: code.trim(), verificationExpiresAt: { $gt: new Date() } }, {
    $set: { password: await bcrypt.hash(password, 12), emailVerified: true, activationPending: false },
-   $unset: { verificationCode: 1, verificationExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1, loginLockedUntil: 1 },
+   $unset: { temporaryPasswordHash: 1, verificationCode: 1, verificationExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1, loginLockedUntil: 1 },
    $inc: { sessionVersion: 1 },
   }, { returnDocument: 'after' });
   if (!user) return res.status(400).json({ message: 'The activation code is invalid or expired, or this account is already activated. Request a new code or log in.' });

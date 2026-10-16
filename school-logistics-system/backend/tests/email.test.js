@@ -48,3 +48,15 @@ test('login email contains a five-minute code and rejects provider refusal', asy
   expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: 'student@phinmaed.com', text: expect.stringContaining('five minutes') }));
   await expect(sendLoginCode('student@phinmaed.com', '012345')).rejects.toThrow('Email was not accepted');
 });
+
+test('staff email separates OTP and temporary password with activation instructions', async () => {
+ const sendMail = jest.fn().mockResolvedValue({ accepted: ['staff@phinmaed.com'] });
+ require('nodemailer').createTransport.mockReturnValue({ sendMail });
+ await require('../src/config/email').sendVerificationEmail('staff@phinmaed.com', '123456', true, 'Abcdefghijklmnopqrstuv12');
+ const message = sendMail.mock.calls[0][0];
+ expect(message.text).toContain('Your OTP: 123456\nYour pass: Abcdefghijklmnopqrstuv12');
+ expect(message.html).toContain('Your OTP:');
+ expect(message.html).toContain('Your pass:');
+ expect(message.text).toContain('new password');
+ expect(message.text).toContain('15 minutes');
+});

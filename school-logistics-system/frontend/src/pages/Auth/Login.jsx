@@ -91,6 +91,7 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
   return (
     <div className="auth-form-wrap">
       <div className="auth-heading">
+        <span className="auth-eyebrow">Campus portal</span>
         <h2>Login</h2>
         <p>Welcome back. Please enter your details.</p>
       </div>

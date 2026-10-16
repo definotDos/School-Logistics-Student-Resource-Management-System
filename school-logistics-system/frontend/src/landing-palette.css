@@ -2,10 +2,14 @@
    Forest green = structure, gold = highlights, sage = supporting surfaces. */
 .landing-page.landing-palette {
   color-scheme: light;
-  --landing-bg: #f7f8f1;
-  --landing-surface: #ffffff;
-  --landing-soft: #edf2e8;
-  --landing-border: #cfdbca;
+  --landing-bg: #f0f6f2;
+  --landing-surface: #ffffffb8;
+  --landing-soft: #e8f2ecb3;
+  --landing-border: #41796029;
+  --landing-glow: #86cbb05c;
+  --landing-warm-glow: #edcf8740;
+  --landing-glass-edge: #ffffffd9;
+  --landing-header-bg: #f6fbf5e6;
   --landing-text: #183c2d;
   --landing-muted: #53695c;
   --landing-primary: #236244;
@@ -14,22 +18,30 @@
   --landing-accent: #856014;
   --landing-accent-soft: #f7edcf;
   --landing-action-soft: #e2eddf;
-  --landing-shadow: 0 12px 30px #173b2910;
+  --landing-shadow: 0 16px 40px #173b290d, inset 0 1px 0 var(--landing-glass-edge);
   --landing-gold: #e5bf69;
   --landing-gold-hover: #f0d18a;
   --landing-on-gold: #193b29;
   --landing-chart: #357b53;
   --landing-chart-top: #78a66a;
-  background: var(--landing-bg);
+  background:
+    radial-gradient(ellipse 75% 650px at 95% 8%, var(--landing-glow), transparent 75%),
+    radial-gradient(ellipse 65% 700px at 0% 35%, var(--landing-warm-glow), transparent 75%),
+    radial-gradient(ellipse 80% 900px at 95% 85%, var(--landing-glow), transparent 75%),
+    var(--landing-bg);
   color: var(--landing-text);
 }
 
 .landing-page.landing-palette.dark-mode {
   color-scheme: dark;
-  --landing-bg: #0b2119;
-  --landing-surface: #143629;
-  --landing-soft: #1c4232;
-  --landing-border: #3c604b;
+  --landing-bg: #081e19;
+  --landing-surface: #193d32ad;
+  --landing-soft: #09271db3;
+  --landing-border: #b1e4cb29;
+  --landing-glow: #318d6b47;
+  --landing-warm-glow: #ad914229;
+  --landing-glass-edge: #d5fbe326;
+  --landing-header-bg: #102e25e6;
   --landing-text: #f6f7ed;
   --landing-muted: #b8cbbb;
   --landing-primary: #edcc85;
@@ -38,14 +50,14 @@
   --landing-accent: #edcc85;
   --landing-accent-soft: #3b3823;
   --landing-action-soft: #284934;
-  --landing-shadow: 0 12px 30px #03130d33;
+  --landing-shadow: 0 16px 40px #020e092e, inset 0 1px 0 var(--landing-glass-edge);
   --landing-chart: #43835d;
   --landing-chart-top: #94be83;
 }
 
 /* Surfaces and readable text hierarchy. */
 .landing-page.landing-palette .landing-header {
-  border-bottom: 2px solid var(--landing-gold);
+  border: 1px solid var(--landing-border);
 }
 
 .landing-page.landing-palette .landing-brand-mark {
@@ -55,7 +67,7 @@
 }
 
 .landing-page.landing-palette .dashboard-preview {
-  border-top: 3px solid var(--landing-gold);
+  border: 1px solid var(--landing-border);
 }
 
 .landing-page.landing-palette .chart-bars span:nth-child(3n) {
@@ -68,9 +80,17 @@
 }
 
 .landing-page.landing-palette :is(.landing-header, .dashboard-preview, .benefit-card, .audience-card, .feature-tile, .contact-card) {
-  background: var(--landing-surface);
+  background: linear-gradient(135deg, var(--landing-glass-edge), transparent 48%), var(--landing-surface);
   border-color: var(--landing-border);
   box-shadow: var(--landing-shadow);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
+  backdrop-filter: blur(20px) saturate(125%);
+}
+
+.landing-page.landing-palette .landing-header {
+  background: var(--landing-header-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(140%);
 }
 
 .landing-page.landing-palette :is(h1, h2, h3, .brand-copy strong, .preview-header, .stat-card strong, .feature-tile, .contact-details) {
@@ -146,16 +166,20 @@
   color: var(--landing-accent);
 }
 
-/* Each phrase keeps its space while the letters stretch and settle. */
+/* Stagger the phrases into place without changing their layout or letter shapes. */
+.landing-page.landing-palette .hero-stretch-title {
+  display: grid;
+  gap: 0.08em;
+}
+
 .landing-page.landing-palette .hero-copy .hero-stretch-line {
   display: block;
   color: var(--landing-text);
-  transform-origin: left center;
-  animation: hero-text-stretch 3s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+  animation: hero-text-glide 5s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
 }
 
-.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(2) { animation-delay: 100ms; }
-.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(3) { animation-delay: 200ms; }
+.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(2) { animation-delay: 160ms; }
+.landing-page.landing-palette .hero-copy .hero-stretch-line:nth-child(3) { animation-delay: 320ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .landing-page.landing-palette .hero-copy .hero-stretch-line {
@@ -163,11 +187,19 @@
   }
 }
 
-@keyframes hero-text-stretch {
-  0%, 28%, 100% { transform: none; }
-  8% { transform: scale(0.94, 1.14); }
-  16% { transform: scale(1.015, 0.96); }
-  22% { transform: scale(0.995, 1.02); }
+@keyframes hero-text-glide {
+  0%, 100% {
+    opacity: 0;
+    transform: translate(-0.2em, 0.35em);
+  }
+  18%, 82% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  94% {
+    opacity: 0;
+    transform: translate(0, -0.15em);
+  }
 }
 
 .landing-page.landing-palette :is(.landing-badge, .benefit-icon, .feature-check, .contact-icon, .audience-avatar, .contact-avatar) {
@@ -238,6 +270,64 @@
   padding: 48px 0 64px;
 }
 
+.landing-page.landing-palette .landing-workflow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 22px 0 0;
+  margin: 28px 0 0;
+  border-top: 1px solid var(--landing-border);
+  list-style: none;
+  color: var(--landing-muted);
+  font-size: 0.78rem;
+}
+
+.landing-page.landing-palette .landing-workflow li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-page.landing-palette .landing-workflow span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--landing-border);
+  border-radius: 50%;
+  background: var(--landing-surface);
+  color: var(--landing-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.landing-page.landing-palette .dashboard-preview {
+  padding: 26px;
+  box-shadow: 0 28px 70px #031b1926, inset 0 1px 0 var(--landing-glass-edge);
+}
+
+.landing-page.landing-palette .preview-header {
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--landing-border);
+}
+
+.landing-page.landing-palette .stat-card {
+  box-shadow: inset 0 1px 0 var(--landing-glass-edge);
+}
+
+.landing-page.landing-palette .stat-card:nth-child(3) strong {
+  color: var(--landing-primary);
+}
+
+.landing-page.landing-palette .stat-card:nth-child(4) strong {
+  color: var(--landing-accent);
+}
+
+.landing-page.landing-palette .chart-card {
+  background: repeating-linear-gradient(to top, transparent 0 43px, var(--landing-border) 43px 44px), var(--landing-soft);
+}
+
 .landing-page.landing-palette .hero-copy h1 {
   font-size: clamp(2.5rem, 4.7vw, 4.5rem);
   line-height: 1.08;
@@ -302,6 +392,8 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+  padding-left: 12px;
+  border-left: 3px solid var(--landing-gold);
 }
 
 .landing-page.landing-palette .landing-section-heading h2 {
@@ -333,7 +425,7 @@
 
 .landing-page.landing-palette :is(.benefit-card, .audience-card, .contact-card) {
   padding: 26px;
-  border-radius: 18px;
+  border-radius: 22px;
   min-width: 0;
 }
 

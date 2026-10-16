@@ -3,13 +3,16 @@ export { policy };
 export const courses = Object.values(policy.programGroups).flat();
 export const levelsForProgram = program => policy.programLevels[Object.keys(policy.programGroups).find(group => policy.programGroups[group].includes(program))] || [];
 export const emailValid = value => typeof value === 'string' && value.trim().length <= 254 && value.trim().split('@')[0].length <= 64 && new RegExp(policy.emailPattern, 'i').test(value.trim());
-export function validateActivation({ email = '', code = '', password = '', confirmPassword = '' }, emailOnly = false) {
+export function validateActivation({ email = '', code = '', password = '', confirmPassword = '', temporaryPassword = '' }, emailOnly = false) {
  const errors = {};
  if (!email.trim()) errors.email = 'Enter your email address.';
  else if (!emailValid(email)) errors.email = 'Use a valid @phinmaed.com email address.';
  if (emailOnly) return errors;
  if (!code.trim()) errors.code = 'Enter the verification code from your email.';
  else if (!/^\d{6}$/.test(code.trim())) errors.code = 'Enter a 6-digit verification code.';
+ if (!temporaryPassword) errors.temporaryPassword = 'Enter the temporary password from your email.';
+ else if (!/^[A-Za-z0-9_-]{24}$/.test(temporaryPassword)) errors.temporaryPassword = 'Copy the temporary password from your latest email.';
+ if (password && password === temporaryPassword) errors.password = 'Choose a different password from your temporary password.';
  if (!password) errors.password = 'Create a password.';
  else if (password.length < 8) errors.password = 'Use at least 8 characters.';
  else if (new TextEncoder().encode(password).length > 72) errors.password = 'Password is too long. Use at most 72 UTF-8 bytes.';
@@ -21,6 +24,7 @@ export const idType = value => new RegExp(policy.studentIdPattern).test(String(v
 export function validateAccount(form, administrator = false) {
  const errors = {};
  if (typeof form.name !== 'string' || form.name.trim().length < 2 || form.name.trim().length > 100 || Array.from(form.name).some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)) errors.name = 'Enter a full name of 2 to 100 characters.';
+ if (typeof form.name === 'string' && /\p{N}/u.test(form.name)) errors.name = 'Full name must not contain numbers.';
  if (!emailValid(form.email)) errors.email = 'Use a valid @phinmaed.com email address.';
  if (!form.campus) errors.campus = 'Choose an active campus.';
  if (!(administrator && form.role === 'staff') && (!form.password || form.password.length < 8 || new TextEncoder().encode(form.password).length > 72)) errors.password = 'Password must contain at least 8 characters and at most 72 UTF-8 bytes.';

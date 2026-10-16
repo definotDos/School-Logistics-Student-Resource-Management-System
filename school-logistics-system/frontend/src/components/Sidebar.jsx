@@ -104,7 +104,7 @@ function Sidebar({ type = "student" }) {
   };
 
   return (
-    <aside ref={navigationRef} className={`app-sidebar ${type === "staff" ? "staff-sidebar" : ""} ${navigationOpen ? "navigation-open" : ""}`}>
+    <aside ref={navigationRef} className={`app-sidebar glass-navigation ${type === "staff" ? "staff-sidebar" : ""} ${navigationOpen ? "navigation-open" : ""}`}>
       <button ref={toggleRef} type="button" className="sidebar-mobile-toggle" aria-expanded={navigationOpen} aria-controls="workspace-navigation" onClick={() => setNavigationOpen((open) => !open)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{navigationOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}</svg><span>{navigationOpen ? "Close navigation" : "Navigation menu"}</span>
       </button>
@@ -123,8 +123,8 @@ function Sidebar({ type = "student" }) {
           Navigation menu
         </p>
 
-          {navigationGroups.map((group) => <div className={`${type}-navigation-group`} key={group.title}>
-          {group.title && <h2 className={`${type}-navigation-label`}>{group.title}</h2>}
+          {navigationGroups.map((group) => <div className={`navigation-group ${type}-navigation-group`} key={group.title}>
+          {group.title && <h2 className={`navigation-label ${type}-navigation-label`}>{group.title}</h2>}
           {group.items.map((link) => (
             <NavLink
               key={link.path}

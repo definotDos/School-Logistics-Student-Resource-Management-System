@@ -6,9 +6,8 @@ import { campuses as campusBranding } from "../data/campuses";
 import "./CampusPanel.css";
 import "./CreateUserForm.css";
 import { allocationAPI, distributionAPI, campusAPI, notificationAPI, reportsAPI, userAPI } from "../services/api";
-
 export function CreateUserForm({ onCreated }) {
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "staff", employeeId: "", campus: "" });
+  const [form, setForm] = useState({ name: "", email: "", role: "staff", employeeId: "", campus: "" });
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [notice, setNotice] = useState("");
@@ -20,7 +19,7 @@ export function CreateUserForm({ onCreated }) {
   const [campusAttempt, setCampusAttempt] = useState(0);
   const validate = values => {
     const errors = validateAccount(values, true);
-    if (!['staff', 'admin'].includes(values.role)) errors.role = 'Choose Staff or Administrator.';
+    if (values.role !== 'staff') errors.role = 'This form creates staff accounts only.';
     if (!campuses.some(c => c.name === values.campus)) errors.campus = 'Choose an active campus.';
     return errors;
   };
@@ -35,11 +34,16 @@ export function CreateUserForm({ onCreated }) {
     },
     onChange: event => {
       const value = name === 'employeeId' ? event.target.value.toUpperCase() : event.target.value;
-      const next = { ...form, [name]: value, ...(name === 'role' ? { password: '' } : {}) };
+      if (name === 'name' && /\p{N}/u.test(value)) {
+        setTouched(previous => ({ ...previous, name: true }));
+        setFieldErrors(previous => ({ ...previous, name: 'Full name must not contain numbers.' }));
+        return;
+      }
+      const next = { ...form, [name]: value };
       setForm(next);
       setError('');
       setNotice('');
-      setFieldErrors(previous => ({ ...previous, ...(touched[name] ? { [name]: validate(next)[name] } : {}), ...(name === 'role' ? { password: undefined } : {}) }));
+      setFieldErrors(previous => ({ ...previous, ...(touched[name] ? { [name]: validate(next)[name] } : {}) }));
     },
   });
   const fieldError = name => fieldErrors[name] && <small className="create-user-field-error" id={`create-user-${name}-error`}>{fieldErrors[name]}</small>;
@@ -65,31 +69,29 @@ export function CreateUserForm({ onCreated }) {
     }
     setBusy(true); setError(""); setNotice("");
     try {
-      const payload = { ...form, name: form.name.trim(), email: form.email.trim().toLowerCase(), employeeId: form.employeeId.trim().toUpperCase() };
-      if (payload.role === 'staff') delete payload.password;
+      const payload = { ...form, role: "staff", name: form.name.trim(), email: form.email.trim().toLowerCase(), employeeId: form.employeeId.trim().toUpperCase() };
       const result = await userAPI.create(payload); onCreated?.(result.user);
-      setNotice(form.role === "staff" ? "Staff account created. An activation code was emailed. Staff must choose Activate account on the login page to set their password." : "Account created. A verification code was emailed.");
+      setNotice("Staff account created. An OTP and a temporary password were emailed. Staff must choose Activate account on the login page to set a new password.");
       setFieldErrors({}); setTouched({});
-      setForm({ name: "", email: "", password: "", role: "staff", employeeId: "", campus: "" });
+      setForm({ name: "", email: "", role: "staff", employeeId: "", campus: "" });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   return <details className="create-user-card">
-    <summary><span>Add user</span><span className="create-user-summary-note">Create a staff or administrator account</span></summary>
+    <summary><span>Add user</span><span className="create-user-summary-note">Create a staff account</span></summary>
     <form className="create-user-form" onSubmit={submit} noValidate aria-busy={busy}>
       <div className="create-user-intro"><h3>New account</h3><p>Enter the user's details and assign their access. All fields are required.</p></div>
       <div className="create-user-sections">
         <fieldset disabled={busy}>
           <legend>Personal details</legend>
-          <label htmlFor="create-user-name">Full name<input {...fieldProps('name')} required autoComplete="name" maxLength={100} placeholder="Enter full name" value={form.name} /><small id="create-user-name-help">Enter 2 to 100 characters.</small>{fieldError('name')}</label>
+          <label htmlFor="create-user-name">Full name<input {...fieldProps('name')} required autoComplete="name" maxLength={100} placeholder="Enter full name" value={form.name} /><small id="create-user-name-help">Enter 2 to 100 characters. Numbers are not allowed.</small>{fieldError('name')}</label>
           <label htmlFor="create-user-email">Email address<input {...fieldProps('email')} required type="email" autoComplete="email" maxLength={254} placeholder="name@phinmaed.com" value={form.email} /><small id="create-user-email-help">Use the user's @phinmaed.com email address.</small>{fieldError('email')}</label>
           <label htmlFor="create-user-employeeId">Employee ID<input {...fieldProps('employeeId')} required autoCapitalize="characters" spellCheck={false} maxLength={13} placeholder="UP-25-12345-A" value={form.employeeId} /><small id="create-user-employeeId-help">Format: UP-25-12345-A (3 to 5 digits in the third group).</small>{fieldError('employeeId')}</label>
         </fieldset>
         <fieldset disabled={busy}>
           <legend>Account access</legend>
-          <label htmlFor="create-user-role">Role<select {...fieldProps('role')} required value={form.role}><option value="staff">Staff</option><option value="admin">Administrator</option></select><small id="create-user-role-help">{form.role === 'admin' ? 'Administrators can manage users and school operations.' : 'Staff receive access to their campus workspace.'}</small>{fieldError('role')}</label>
+          <label htmlFor="create-user-role">Role<input id="create-user-role" name="role" value="Staff" readOnly aria-describedby="create-user-role-help" /><small id="create-user-role-help">Staff receive access to their campus workspace.</small></label>
           <label htmlFor="create-user-campus">Campus<select {...fieldProps('campus')} disabled={campusLoading || !!campusError || !campuses.length} required value={form.campus}><option value="">{campusLoading ? "Loading campuses..." : "Choose campus"}</option>{campuses.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}</select><small id="create-user-campus-help">Assign the user's active campus.</small>{fieldError('campus')}</label>
-          {form.role === "admin" && <label htmlFor="create-user-password">Password<input {...fieldProps('password')} required type="password" autoComplete="new-password" minLength={8} placeholder="At least 8 characters" value={form.password} /><small id="create-user-password-help">Use at least 8 characters, up to 72 UTF-8 bytes.</small>{fieldError('password')}</label>}
-          <div className="create-user-guidance" role="note"><DashboardIcon name="notification" /><div><strong>{form.role === "staff" ? "Activation by email" : "Email verification required"}</strong><p>{form.role === "staff" ? "An activation code will be emailed. The user selects Activate account on the login page to set their password." : "A verification code will be emailed. The administrator must verify their email before their first login."}</p></div></div>
+          <div className="create-user-guidance" role="note"><DashboardIcon name="notification" /><div><strong>Activation by email</strong><p>An OTP and a temporary password will be emailed. Select Activate account on the login page, enter both, and choose a new password.</p></div></div>
         </fieldset>
       </div>
       {campusError && <div role="alert" className="create-user-message create-user-error"><strong>Unable to load campuses</strong><p>{campusError}</p><button type="button" className="admin-secondary" onClick={() => { setCampusError(""); setCampusLoading(true); setCampusAttempt(attempt => attempt + 1); }}>Retry</button></div>}

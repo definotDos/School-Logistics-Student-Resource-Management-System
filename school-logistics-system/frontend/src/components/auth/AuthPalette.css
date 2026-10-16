@@ -5,11 +5,11 @@
   --auth-deep: #081e18;
   --auth-accent: #edcc85;
   --auth-surface: #173d30;
-  --auth-input: #0d2a21;
-  --auth-border: #547c69;
+  --auth-input: #102f29;
+  --auth-border: #8dc6af52;
   --auth-error: #ffb4b4;
   --auth-success: #a1e4bd;
-  --auth-gradient: radial-gradient(ellipse at 15% 0%, #39846455, transparent 65%), linear-gradient(145deg, #1c5942, #10382c);
+  --auth-gradient: linear-gradient(145deg, #80ddb524, #123b3066);
   --auth-text: #f6f8f2;
   --auth-muted: #b9cec1;
   box-sizing: border-box;
@@ -20,7 +20,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: auto;
   overflow: visible;
-  background: radial-gradient(ellipse at 50% 0%, #234a3738, transparent 65%), #081e18;
+  background:
+    radial-gradient(ellipse at 8% 12%, #3da88166, transparent 48%),
+    radial-gradient(ellipse at 88% 22%, #4eafa348, transparent 42%),
+    radial-gradient(ellipse at 70% 95%, #c6a45b30, transparent 48%),
+    linear-gradient(135deg, #092b24, #091e1c 60%, #14372c);
   color: var(--auth-text);
 }
 
@@ -30,10 +34,12 @@
   height: auto;
   min-height: 0;
   padding: clamp(28px, 5vw, 76px);
-  border: 1px solid #6d9c744d;
+  border: 1px solid #bce9d238;
   border-radius: 28px;
   background: var(--auth-gradient);
-  box-shadow: none;
+  box-shadow: 0 24px 64px #03171230, inset 0 1px 0 #ffffff1c;
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  backdrop-filter: blur(24px) saturate(130%);
 }
 
 .auth-page:is(.is-login, .is-signup) .auth-intro::before {
@@ -59,9 +65,9 @@
   min-height: 0;
   padding: clamp(20px, 3vw, 48px);
   overflow: visible;
-  border: 1px solid #b9cdbe26;
+  border: 1px solid #b9cdbe20;
   border-radius: 28px;
-  background: radial-gradient(ellipse at 90% 90%, #74955c18, transparent 60%), #102c23;
+  background: linear-gradient(145deg, #c7f4e00a, #0c29251a);
 }
 .auth-page:is(.is-login, .is-signup) .auth-panel::before,
 .auth-page:is(.is-login, .is-signup) .auth-panel::after { display: none; }
@@ -72,10 +78,14 @@
   max-height: none;
   overflow: visible;
   padding: clamp(24px, 2.5vw, 36px);
-  border: 1px solid #63887366;
+  box-sizing: border-box;
+  border: 1px solid #c9f0dd40;
+  border-top-color: #e5fff26b;
   border-radius: 24px;
-  background: linear-gradient(145deg, #204b3a, var(--auth-surface));
-  box-shadow: 0 24px 60px #030f1938, inset 0 1px 0 #e2f4d90d;
+  background: linear-gradient(145deg, #bbefda21, #29574766);
+  box-shadow: 0 28px 70px #020e1845, inset 0 1px 0 #f1fff226;
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
   color: var(--auth-text);
 }
 .auth-page:is(.is-login, .is-signup) .auth-heading { margin-bottom: 24px; }
@@ -90,10 +100,12 @@
 .auth-page:is(.is-login, .is-signup) .verification-code-entry {
   min-height: 48px;
   border-color: var(--auth-border);
-  background-color: var(--auth-input);
+  background-color: #08251e99;
   color: var(--auth-text);
   border-radius: 12px;
   color-scheme: dark;
+  box-shadow: inset 0 2px 5px #031a1826;
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
 }
 .auth-page:is(.is-login, .is-signup) .compact-field input::placeholder { color: #a8c0b2; opacity: 1; }
 .auth-page:is(.is-login, .is-signup) .compact-field :is(input, select):focus,
@@ -152,6 +164,48 @@
 .auth-page:is(.is-login, .is-signup) .auth-panel-inner { scrollbar-color: #648d77 transparent; }
 .auth-page:is(.is-login, .is-signup) ::selection { background: #edcc85; color: #173a2a; }
 
+/* Keep the form hierarchy consistent across both account views. */
+.auth-page:is(.is-login, .is-signup) .auth-heading { text-align: left; }
+.auth-page:is(.is-login, .is-signup) .auth-heading h2 {
+  font-size: clamp(27px, 2.5vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -.8px;
+  text-align: left;
+}
+.auth-page:is(.is-login, .is-signup) .auth-heading p { text-align: left; line-height: 1.6; }
+.auth-page:is(.is-login, .is-signup) .auth-eyebrow {
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 6px 10px;
+  border: 1px solid #edcc8538;
+  border-radius: 8px;
+  background: #edcc850c;
+  color: #f0d69c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.auth-page.is-signup .signup-form .password-control input { padding-right: 50px; }
+.auth-page.is-signup .signup-form .terms {
+  padding: 14px;
+  border: 1px solid #cae8d91f;
+  border-radius: 12px;
+  background: #07251c26;
+  font-size: 12px;
+}
+.auth-page:is(.is-login, .is-signup) .auth-footer + .auth-footer {
+  border-top-color: #cae8d926;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .auth-page:is(.is-login, .is-signup) .auth-intro { background: #163f32; }
+  .auth-page:is(.is-login, .is-signup) .auth-panel-inner { background: #204738; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-page:is(.is-login, .is-signup) .compact-field :is(input, select) { transition: none; }
+}
+
 @media (max-width: 760px) {
   .auth-page:is(.is-login, .is-signup) {
     grid-template-columns: minmax(0, 1fr);
@@ -174,4 +228,50 @@
   }
   .auth-page:is(.is-login, .is-signup) .auth-panel-inner { padding: 24px 20px; }
   .auth-page:is(.is-login, .is-signup) .signup-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Use the available laptop height without nesting a scrolling form card. */
+@media (min-width: 761px) {
+  .auth-page:is(.is-login, .is-signup) {
+    min-height: 100dvh;
+    padding: 16px;
+    gap: 16px;
+    grid-template-rows: minmax(min-content, 1fr);
+  }
+  .auth-page:is(.is-login, .is-signup) .auth-panel {
+    padding: 16px;
+    align-items: center;
+  }
+  .auth-page:is(.is-login, .is-signup) .auth-panel-inner {
+    max-height: none;
+    overflow: visible;
+    padding: 22px 26px;
+  }
+  .auth-page:is(.is-login, .is-signup) .auth-heading { margin-bottom: 16px; }
+  .auth-page:is(.is-login, .is-signup) .auth-heading h2 { font-size: 28px; }
+  .auth-page:is(.is-login, .is-signup) .auth-heading p { margin-top: 6px; font-size: 12px; }
+  .auth-page:is(.is-login, .is-signup) .auth-eyebrow { margin-bottom: 10px; padding: 5px 9px; }
+  .auth-page:is(.is-login, .is-signup) .auth-form { gap: 12px; }
+  .auth-page:is(.is-login, .is-signup) .auth-form .auth-field { gap: 6px; }
+  .auth-page:is(.is-login, .is-signup) .compact-field :is(input, select),
+  .auth-page:is(.is-login, .is-signup) .auth-form .auth-submit {
+    height: 44px;
+    min-height: 44px;
+  }
+  .auth-page.is-signup .signup-form .terms { padding: 10px 12px; }
+  .auth-page:is(.is-login, .is-signup) .auth-footer { margin-top: 14px; line-height: 1.5; }
+  .auth-page:is(.is-login, .is-signup) .auth-footer + .auth-footer { padding-top: 12px; }
+}
+
+@media (min-width: 761px) and (max-height: 700px) {
+  .auth-page:is(.is-login, .is-signup) { padding: 12px; gap: 12px; }
+  .auth-page:is(.is-login, .is-signup) .auth-panel { padding: 10px 16px; }
+  .auth-page:is(.is-login, .is-signup) .auth-panel-inner { padding: 18px 22px; }
+  .auth-page:is(.is-login, .is-signup) .auth-form { gap: 10px; }
+  .auth-page:is(.is-login, .is-signup) .auth-heading { margin-bottom: 12px; }
+  .auth-page:is(.is-login, .is-signup) .auth-eyebrow { margin-bottom: 8px; }
+  .auth-page:is(.is-login, .is-signup) .auth-intro { padding: 28px; }
+  .auth-page:is(.is-login, .is-signup) .auth-intro .auth-system-heading { font-size: 36px; }
+  .auth-page:is(.is-login, .is-signup) .auth-system-heading > span + span { font-size: 22px; }
+  .auth-page:is(.is-login, .is-signup) .auth-welcome-action { margin-top: 22px; padding-top: 20px; }
 }

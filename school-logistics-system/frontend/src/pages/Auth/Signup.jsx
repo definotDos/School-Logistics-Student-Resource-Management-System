@@ -144,8 +144,9 @@ export function SignupPage({
   return (
     <div className="auth-form-wrap signup-form-wrap">
       <div className="auth-heading">
+        <span className="auth-eyebrow">Student registration</span>
         <h2>Create student account</h2>
-        <p>please sign up to access the resources</p>
+        <p>Join your campus community. Start with your details below.</p>
       </div>
       <form className="auth-form signup-form" onSubmit={submit} aria-busy={isSubmitting}>
         {error && <div className="signup-alert form-wide" role="alert"><span className="signup-alert-icon" aria-hidden="true">!</span><div><strong>Unable to create account</strong><p>{error}</p></div></div>}
@@ -156,7 +157,7 @@ export function SignupPage({
         </label>
         <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder="Student I'D" maxLength={17} inputMode="numeric" value={form[identityField]} onChange={update(identityField)} required aria-invalid={Boolean(validationErrors[identityField])} />
+          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder="Student ID" maxLength={17} inputMode="numeric" value={form[identityField]} onChange={update(identityField)} required aria-invalid={Boolean(validationErrors[identityField])} />
           {validationErrors[identityField] && <small className="field-error">{validationErrors[identityField]}</small>}
         </label>
         <label className="auth-field compact-field form-wide">

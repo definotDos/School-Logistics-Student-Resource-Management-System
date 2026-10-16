@@ -248,7 +248,7 @@ function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, a
     </div>
     {error && <p className="auth-error" role="alert">{error}</p>}
     <div className="users-table-wrap"><table className="users-table">
-      <caption className="users-results" aria-live="polite">Showing {filteredUsers.length} of {users.length} users ? Name A?Z</caption>
+      <caption className="users-results" aria-live="polite">Showing {filteredUsers.length} of {users.length} users &middot; Name A&ndash;Z</caption>
       <thead><tr><th scope="col">User</th><th scope="col">Student / Employee ID</th><th scope="col">Role</th><th scope="col">Campus</th><th scope="col">Status</th><th scope="col" className="users-actions-heading">Actions</th></tr></thead>
       <tbody>{filteredUsers.map(user => <tr key={user.databaseId}>
         <td><div className="users-identity"><span className="users-avatar" aria-hidden="true">{user.avatar ? <img src={user.avatar} alt="" /> : user.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase()}</span><div><strong>{user.name}</strong><small>{user.email}</small></div></div></td>

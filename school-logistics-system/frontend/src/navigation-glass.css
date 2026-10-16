@@ -1,0 +1,195 @@
+/* Shared glass surfaces for all dashboard roles. Opaque defaults support
+   browsers without backdrop-filter and reduced-transparency preferences. */
+.organized-workspace {
+  --header-glass: #f7f8ed;
+  --header-glass-border: #b9a35c55;
+  --sidebar-glass: #143e2c;
+}
+.organized-workspace.dark-mode {
+  --header-glass: #183a2b;
+  --header-glass-border: #d9bd6838;
+  --sidebar-glass: #102f22;
+}
+
+html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not(.dark-mode)) .glass-navigation {
+  border: 1px solid var(--header-glass-border);
+  box-shadow: inset 0 1px 0 #ffffff30, 0 8px 28px #102e3110;
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not(.dark-mode)) > .app-sidebar.glass-navigation {
+  background: radial-gradient(ellipse at 0 0, #d4b85f20, transparent 55%), var(--sidebar-glass);
+  border-width: 0 1px 0 0;
+  border-color: #dac16c38;
+  --nav-surface: #143e2c;
+  --nav-heading: #e1c675;
+  --nav-divider: #d9bd682b;
+  --nav-hover-bg: #d9bd6812;
+  --nav-hover-border: #d9bd6845;
+  --nav-selected-bg: #456139;
+  --nav-selected-hover-bg: #526f3e;
+  --nav-selected-border: #d9bd6880;
+  --nav-accent: #efd17b;
+  --nav-icon-bg: #d9bd680a;
+  --nav-icon-border: #d9bd6833;
+  --nav-icon-text: #d9ce9c;
+  --nav-selected-icon-bg: #d9bd6824;
+  --nav-selected-icon-text: #ffe499;
+  --footer-text: #edf2df;
+  --footer-muted: #b9cbb3;
+  --footer-surface: transparent;
+}
+html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not(.dark-mode)) .app-header.glass-navigation {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  margin: 16px 24px 0;
+  padding: 12px 20px;
+  border-radius: 18px;
+  background: var(--header-glass);
+  overflow: visible;
+}
+.organized-workspace .glass-navigation .header-search-wrap { display: none; }
+.organized-workspace .glass-navigation .header-context { flex: 1; min-width: 0; }
+.organized-workspace .glass-navigation .header-context > span { font-weight: 600; line-height: 1.5; }
+.organized-workspace .glass-navigation .header-actions { gap: 12px; }
+.organized-workspace .glass-navigation .header-theme-toggle { min-height: 40px; border-radius: 12px; }
+.organized-workspace .glass-navigation .header-profile { padding-left: 14px; border-left: 1px solid var(--header-glass-border); }
+
+.organized-workspace .app-sidebar.glass-navigation .sidebar-nav { padding: 16px 12px; }
+.organized-workspace .app-sidebar.glass-navigation .sidebar-nav > p { display: none; }
+.organized-workspace .app-sidebar.glass-navigation .navigation-group + .navigation-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #d2fff11c;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .navigation-label {
+  margin: 0 12px 8px;
+  color: var(--nav-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #e1eadb;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .sidebar-link:hover {
+  background: var(--nav-hover-bg);
+  border-color: var(--nav-hover-border);
+  color: #fff;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .sidebar-link.active {
+  background: linear-gradient(110deg, #e8cf7b19, #ffffff04), var(--nav-selected-bg);
+  border-color: var(--nav-selected-border);
+  color: #f1fff9;
+  box-shadow: inset 3px 0 var(--nav-accent), inset 0 1px 0 #ffffff18, 0 4px 12px #00000012;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .nav-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-footer { background: #091f172e; }
+
+/* Keep branding and account tools distinct from the scrollable menu. */
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-brand strong { color: #f1d68a; }
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .navigation-group {
+  gap: 4px;
+  align-content: start;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .navigation-group + .navigation-group {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-color: var(--nav-divider);
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .sidebar-link .sidebar-label {
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+}
+html .organized-workspace .app-sidebar.glass-navigation {
+  scrollbar-width: thin;
+  scrollbar-color: #bba25c66 transparent;
+}
+html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: #bba25c66 transparent;
+}
+html .organized-workspace .app-header.glass-navigation .header-context > span { color: #285036; }
+html .organized-workspace.dark-mode .app-header.glass-navigation .header-context > span { color: #f0d68e; }
+html .organized-workspace .app-header.glass-navigation .header-theme-toggle {
+  background: #d9bd6815;
+  border: 1px solid #b99b504d;
+  color: #38552d;
+}
+html .organized-workspace.dark-mode .app-header.glass-navigation .header-theme-toggle { color: #f0d68e; }
+html .organized-workspace .app-header.glass-navigation .header-theme-toggle:hover { background: #d9bd6830; }
+html .organized-workspace .app-header.glass-navigation .header-icon { color: #62763b; }
+html .organized-workspace.dark-mode .app-header.glass-navigation .header-icon { color: #e6cd82; }
+html .organized-workspace .glass-navigation :is(a, button, select):focus-visible { outline-color: #d7b653; }
+
+@media (min-width: 761px) {
+  html .organized-workspace:is(.admin-shell, .dashboard-shell) > .app-sidebar.glass-navigation {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+    align-self: flex-start;
+    overflow: hidden;
+  }
+  html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .organized-workspace { --header-glass: #f7f8eddb; --sidebar-glass: #143e2cf0; }
+  .organized-workspace.dark-mode { --header-glass: #183a2bd9; --sidebar-glass: #102f22f0; }
+}
+@media (max-width: 760px) {
+  html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not(.dark-mode)) .app-header.glass-navigation {
+    margin: 10px 12px 0;
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 14px;
+  }
+  .organized-workspace .glass-navigation .header-actions { gap: 8px; }
+  .organized-workspace .app-sidebar.glass-navigation.navigation-open .sidebar-nav {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 8px 0;
+  }
+  .organized-workspace .app-sidebar.glass-navigation .navigation-group + .navigation-group { margin-top: 12px; padding-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html .organized-workspace .app-sidebar.glass-navigation .sidebar-nav .sidebar-link { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .organized-workspace { --header-glass: #f7f8ed; --sidebar-glass: #143e2c; }
+  .organized-workspace.dark-mode { --header-glass: #183a2b; --sidebar-glass: #102f22; }
+  html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not(.dark-mode)) .glass-navigation {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

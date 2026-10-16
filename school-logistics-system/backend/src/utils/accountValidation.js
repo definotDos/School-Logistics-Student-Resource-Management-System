@@ -12,6 +12,7 @@ function profileFields(body, role, current = {}) {
   const result = {};
   if (body.name !== undefined) {
     if (typeof body.name !== 'string' || normalize(body.name).length < 2 || normalize(body.name).length > 100 || /[\x00-\x1f\x7f]/.test(body.name)) fail('Enter a full name of 2 to 100 characters.');
+    if (/\p{N}/u.test(body.name)) fail('Full name must not contain numbers.');
     result.name = normalize(body.name);
   }
   for (const [key, choices] of [['strand', courses], ['grade', policy.grades]]) {

@@ -5512,9 +5512,9 @@ main > header > div:first-child > b {
 @media (prefers-reduced-motion: reduce) { .request-status-chart * { animation: none !important; transition: none !important; } }
 @media (max-width: 560px) { .request-status-chart { padding: 18px 14px; border-radius: 16px; } .request-chart-heading { align-items: flex-start; gap: 12px; } .request-status-chart figcaption h3 { font-size: 18px; } .request-chart-total { min-width: 72px; padding: 10px; } .request-chart-total strong { font-size: 24px; } .request-chart-footer { flex-direction: column; } }
 /* Organized admin user directory */
-.admin-main > .users-organized { max-width: none; padding: 0; }
-.users-organized .users-heading { padding: 24px 24px 18px; }
-.users-heading h2 { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--ink); font-size: 20px; }
+.admin-main > .users-organized { max-width: none; margin-inline: auto; padding: 0; }
+.users-organized .users-heading { padding: 24px 24px 18px; text-align: center; }
+.users-heading h2 { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0; color: var(--ink); font-size: 20px; }
 .users-heading h2 span { padding: 4px 9px; border-radius: 8px; background: #edf3fa; color: #426384; font-size: 12px; }
 .users-heading p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
 .users-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 24px 20px; }

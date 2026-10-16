@@ -84,7 +84,7 @@ function Navbar({ isDarkMode = false, onToggleTheme }) {
   }, [showNotifications]);
 
   return (
-    <header className="app-header">
+    <header className="app-header glass-navigation">
       <div className="header-context"><div className="mobile-brand"><b>SL</b> SRMS</div><span>{workspaceLabel}</span></div>
       <div className="header-search-wrap"><label className="header-search"><span aria-hidden="true">⌕</span><input aria-label="Search resources and requests" placeholder="Search records…" value={query} onChange={e => setQuery(e.target.value)} /></label>
         {query.trim().length >= 2 && <div className="search-results" aria-live="polite">{searchError ? <p role="alert">{searchError}</p> : searching ? <p>Searching…</p> : results.length ? results.map(r => <Link key={`${r.type}-${r.id}`} to={r.url} onClick={() => setQuery("")}><strong>{r.type}: {r.title}</strong><small>{r.detail}</small></Link>) : <p>No matching records.</p>}</div>}

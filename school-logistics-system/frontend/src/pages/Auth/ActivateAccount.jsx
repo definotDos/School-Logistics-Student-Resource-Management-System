@@ -7,13 +7,14 @@ import { AuthLoadingButton } from '../../components/auth/AuthLoadingButton'
 export function ActivateAccount({ initialEmail, onClose, onActivated }) {
   const dialog = useRef(null)
   const [email, setEmail] = useState(initialEmail || '')
+  const [temporaryPassword, setTemporaryPassword] = useState('')
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [touched, setTouched] = useState({})
-  const values = { email, code, password, confirmPassword }
+  const values = { email, code, password, confirmPassword, temporaryPassword }
   const errors = validateActivation(values)
-  const setters = { email: setEmail, code: setCode, password: setPassword, confirmPassword: setConfirmPassword }
+  const setters = { temporaryPassword: setTemporaryPassword, email: setEmail, code: setCode, password: setPassword, confirmPassword: setConfirmPassword }
   const field = (name, label, props, hint) => {
     const error = touched[name] && errors[name]
     const id = `activation-${name}`
@@ -47,7 +48,7 @@ export function ActivateAccount({ initialEmail, onClose, onActivated }) {
   const perform = async resend => {
     if (busy || (resend && cooldown > 0)) return
     const validation = validateActivation(values, resend)
-    setTouched(previous => ({ ...previous, ...(resend ? { email: true } : { email: true, code: true, password: true, confirmPassword: true }) }))
+    setTouched(previous => ({ ...previous, ...(resend ? { email: true } : { email: true, code: true, temporaryPassword: true, password: true, confirmPassword: true }) }))
     setMessage('')
     if (Object.keys(validation).length) {
       dialog.current?.querySelector(`#activation-${Object.keys(validation)[0]}`)?.focus()
@@ -57,9 +58,9 @@ export function ActivateAccount({ initialEmail, onClose, onActivated }) {
     try {
       if (resend) {
         const result = await authAPI.resendVerificationCode(email.trim())
-        setMessage(result.message); setIsError(false); setCooldown(60); setCode(''); setTouched(previous => ({ ...previous, code: false }))
+        setMessage(result.message); setIsError(false); setCooldown(60); setCode(''); setTemporaryPassword(''); setTouched(previous => ({ ...previous, code: false, temporaryPassword: false }))
       } else {
-        await authAPI.activateAccount({ email: email.trim(), code: code.trim(), password, confirmPassword })
+        await authAPI.activateAccount({ email: email.trim(), code: code.trim(), password, confirmPassword, temporaryPassword })
         onActivated(email.trim())
       }
     } catch (error) { setMessage(error.message); setIsError(true) }
@@ -70,7 +71,7 @@ export function ActivateAccount({ initialEmail, onClose, onActivated }) {
     <header className="recovery-heading">
       <span className="recovery-eyebrow">STAFF ACCOUNT SETUP</span>
       <h3 id="activation-title">Activate account</h3>
-      <p id="activation-description">Enter the code sent when your administrator created your account, then choose your password. Codes expire in 15 minutes.</p>
+      <p id="activation-description">Enter the OTP and temporary password from your latest email, then choose a new password. Both expire in 15 minutes. If an older email has no temporary password, select Resend code.</p>
     </header>
     {message && <p className={`recovery-message ${isError ? 'is-error' : 'is-success'}`} role={isError ? 'alert' : 'status'}>{message}</p>}
     <form className="recovery-form activation-form" noValidate aria-busy={busy} onSubmit={event => { event.preventDefault(); perform(false) }}>
@@ -81,6 +82,7 @@ export function ActivateAccount({ initialEmail, onClose, onActivated }) {
       </fieldset>
       <fieldset disabled={busy}>
         <legend>2. Set your password</legend>
+        {field('temporaryPassword', 'Temporary password', { type: 'password', autoComplete: 'off', placeholder: 'Password from your email' })}
         {field('password', 'Create password', { type: 'password', autoComplete: 'new-password', placeholder: 'Create a password' }, 'Use at least 8 characters and at most 72 UTF-8 bytes.')}
         {field('confirmPassword', 'Confirm password', { type: 'password', autoComplete: 'new-password', placeholder: 'Re-enter your password' })}
       </fieldset>

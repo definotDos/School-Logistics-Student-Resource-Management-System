@@ -45,18 +45,17 @@ export function LegalDialog({ document, onClose }) {
   }, [])
 
   return createPortal(
-    <dialog ref={dialogRef} className="signup-legal-dialog" aria-labelledby="signup-legal-title" onCancel={event => { event.preventDefault(); onClose() }} onClick={event => { if (event.target === event.currentTarget) onClose() }}>
+    <dialog ref={dialogRef} className="signup-legal-dialog" aria-labelledby="signup-legal-title" aria-describedby="signup-legal-intro" onCancel={event => { event.preventDefault(); onClose() }} onClick={event => { if (event.target === event.currentTarget) onClose() }}>
       <div className="signup-legal-content">
         <header className="signup-legal-header">
           <div><p>School Logistics System <span className="signup-legal-badge">Account &amp; services</span></p><h2 id="signup-legal-title" tabIndex={-1} autoFocus>{content.title}</h2></div>
           <button type="button" className="signup-legal-close" onClick={onClose} aria-label={`Close ${content.title}`}>×</button>
         </header>
         <div className="signup-legal-body">
-          <div className="signup-legal-draft" role="note"><strong>Draft for school review</strong><p>Your school’s official policies should be provided before this notice is published.</p></div>
-          <p className="signup-legal-intro">{content.intro}</p>
+          <p id="signup-legal-intro" className="signup-legal-intro">{content.intro}</p>
           <nav className="signup-legal-nav" aria-label={`${content.title} sections`}>
-            <p>In this document</p>
-            <div>{content.sections.map(([heading], index) => <button type="button" key={heading} onClick={() => { const section = window.document.getElementById(`legal-section-${index}`); section?.scrollIntoView({ block: 'start', behavior: 'instant' }); section?.focus({ preventScroll: true }) }}>{heading}<span aria-hidden="true">↗</span></button>)}</div>
+            <p>In this document <span>{content.sections.length} sections</span></p>
+            <div>{content.sections.map(([heading], index) => <button type="button" key={heading} onClick={() => { const section = window.document.getElementById(`legal-section-${index}`); section?.scrollIntoView({ block: 'start', behavior: 'instant' }); section?.focus({ preventScroll: true }) }}><span className="signup-legal-nav-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><span>{heading}</span><span className="signup-legal-nav-arrow" aria-hidden="true">&darr;</span></button>)}</div>
           </nav>
           <div className="signup-legal-sections">{content.sections.map(([heading, text], index) => <section key={heading} id={`legal-section-${index}`} tabIndex={-1}><span className="signup-legal-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{heading}</h3><p>{text}</p></div></section>)}</div>
         </div>
