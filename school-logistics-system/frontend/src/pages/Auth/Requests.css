@@ -1,0 +1,98 @@
+/* Scoped to My Requests so shared resource cards retain their own palette. */
+.student-pages .requests-page {
+  --request-surface: #ffffff;
+  --request-inset: #f3f7ef;
+  --request-border: #d5dfcd;
+  --request-text: #183e2e;
+  --request-muted: #526756;
+  --request-gold: #e1c36e;
+  --request-gold-soft: #fff4ce;
+  --request-gold-text: #705312;
+  --request-green-soft: #e3f1e7;
+  --request-green-text: #235b3d;
+  color: var(--request-text);
+}
+.student-pages.dark-mode .requests-page {
+  --request-surface: #15382b;
+  --request-inset: #102b21;
+  --request-border: #375442;
+  --request-text: #f0f5e9;
+  --request-muted: #b7c9b8;
+  --request-gold-soft: #443b21;
+  --request-gold-text: #f2d786;
+  --request-green-soft: #244e38;
+  --request-green-text: #b6e7c3;
+}
+.student-pages .requests-page .request-card-toolbar {
+  padding: 16px 20px;
+  border: 1px solid var(--request-border);
+  border-radius: 14px;
+  background: var(--request-inset);
+  color: var(--request-text);
+}
+.requests-page .request-result-count { font-size: 14px; font-weight: 700; }
+.requests-page .request-card-footer p { line-height: 1.6; }
+.requests-page .request-card-toolbar select { max-width: 100%; cursor: pointer; }
+.student-pages.dark-mode .requests-page .request-card-toolbar select { color-scheme: dark; }
+.requests-page .request-card-toolbar label { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--request-muted); }
+.student-pages .requests-page .request-card-toolbar select {
+  min-height: 44px;
+  min-width: 170px;
+  background: var(--request-surface);
+  border-color: var(--request-border);
+  color: var(--request-text);
+  text-transform: capitalize;
+}
+.student-pages .requests-page .request-card-toolbar > a,
+.student-pages .requests-page .request-card-footer a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--request-gold);
+  border-radius: 9px;
+  background: var(--request-gold);
+  color: #24351f;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.student-pages .requests-page .student-request-card {
+  background: var(--request-surface);
+  color: var(--request-text);
+  border-color: var(--request-border);
+  border-left: 3px solid var(--request-gold);
+  box-shadow: 0 4px 16px #051b0f0d;
+}
+.requests-page .request-card-main { align-items: flex-start; padding: 24px; gap: 20px; }
+.requests-page .request-resource-image { width: 72px; height: 80px; flex-basis: 72px; background: #f5f4e8; color: #28583e; border-color: #d6d9bb; }
+.student-pages .requests-page .request-card-copy h2 { color: var(--request-text); font-size: 18px; line-height: 1.4; margin: 0 0 6px; }
+.requests-page .request-owner { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--request-muted); }
+.requests-page .request-owner span + span { padding-left: 12px; border-left: 1px solid var(--request-border); }
+.requests-page .request-details { display: flex; flex-wrap: wrap; gap: 16px 32px; margin: 18px 0 0; }
+.requests-page .request-details dt { margin-bottom: 4px; color: var(--request-muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.requests-page .request-details dd { margin: 0; color: var(--request-text); font-size: 13px; line-height: 1.5; }
+.student-pages .requests-page .request-card-main > [data-status] { flex-shrink: 0; padding: 6px 12px; background: var(--request-green-soft); color: var(--request-green-text); border: 1px solid var(--request-border); white-space: nowrap; }
+.student-pages .requests-page .request-card-main > :is([data-status="pending"], [data-status="ready_for_claim"]) { background: var(--request-gold-soft); color: var(--request-gold-text); border-color: #ad8d3f66; }
+.student-pages .requests-page .request-card-main > :is([data-status="rejected"], [data-status="cancelled"]) { background: var(--request-inset); color: var(--request-muted); }
+.student-pages .requests-page .request-card-footer { padding: 14px 24px; background: var(--request-inset); border-color: var(--request-border); color: var(--request-muted); }
+.student-pages .requests-page .request-card-footer button { min-height: 44px; color: var(--request-text); border-color: var(--request-border); cursor: pointer; }
+.requests-page :is(a, button, select):focus-visible { outline: 3px solid var(--request-gold); outline-offset: 3px; }
+.student-pages .requests-page :is(.request-card-toolbar, .request-card-footer) a:hover { background: #edd38d; }
+.requests-page .request-card-footer button:hover:not(:disabled) { background: var(--request-surface); }
+.requests-page .request-empty { padding: 32px 24px; border: 1px dashed var(--request-border); border-radius: 14px; background: var(--request-inset); color: var(--request-muted); text-align: center; }
+@media (max-width: 760px) {
+  .requests-page .request-card-main { flex-wrap: wrap; padding: 18px; gap: 16px; }
+  .requests-page .request-card-copy { flex-basis: calc(100% - 88px); }
+  .requests-page .request-card-main > [data-status] { margin-left: 88px; }
+  .requests-page .request-card-toolbar label { margin-left: 0; flex-wrap: wrap; }
+  .requests-page .request-result-count { flex-basis: 100%; }
+  .student-pages .requests-page .request-card-footer { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+@media (max-width: 420px) {
+  .requests-page .request-details { flex-direction: column; gap: 12px; }
+  .requests-page .request-owner span + span { border: 0; padding: 0; }
+  .requests-page .request-card-toolbar label, .requests-page .request-card-toolbar select,
+  .requests-page .request-card-toolbar > a, .requests-page .request-card-footer a { width: 100%; }
+}

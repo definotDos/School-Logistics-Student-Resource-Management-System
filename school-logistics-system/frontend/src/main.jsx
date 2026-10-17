@@ -18,6 +18,7 @@ import "./appearance.css";
 import "./components/auth/AuthPalette.css";
 import "./navigation-glass.css";
 import "./student-overview-glass.css";
+import "./student-overview-organized.css";
 import { initializeAppearance } from "./utils/appearance";
 
 initializeAppearance();

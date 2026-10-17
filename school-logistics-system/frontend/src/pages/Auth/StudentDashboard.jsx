@@ -147,12 +147,19 @@ function StudentDashboard() {
 
           {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
 
-          <div className="dashboard-stats">
+          <div className="overview-section-heading"><h2>Your request summary</h2><span>At a glance</span></div>
+          <div className="dashboard-stats" aria-label="Request summary">
             <StatCard label="Total Requests" value={counts.total} tone="navy" icon="requests" detail="All your resource requests" />
             <StatCard label="Pending Review" value={counts.pending} tone="gold" icon="history" detail="Awaiting staff review" />
             <StatCard label="Approved" value={counts.approved} tone="green" icon="resources" detail="Approved by your school" />
             <StatCard label="Released" value={counts.released} tone="blue" icon="school" detail="Released or completed" />
           </div>
+
+          <nav className="overview-shortcuts" aria-label="Student quick actions">
+            <Link to="/resources"><DashboardIcon name="resources" /><span><strong>Browse resources</strong><small>Find what you need for school</small></span><span aria-hidden="true">&rarr;</span></Link>
+            <Link to="/requests"><DashboardIcon name="requests" /><span><strong>Track requests</strong><small>Check your latest request status</small></span><span aria-hidden="true">&rarr;</span></Link>
+            <Link to="/claim-schedule"><DashboardIcon name="calendar" /><span><strong>Collection schedule</strong><small>Plan your next resource pickup</small></span><span aria-hidden="true">&rarr;</span></Link>
+          </nav>
 
           <div className="dashboard-grid">
             <section className="dashboard-panel requests-panel">

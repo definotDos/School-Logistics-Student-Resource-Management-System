@@ -1,0 +1,81 @@
+/* Overview-only layout and palette; other student pages retain their styles. */
+.dashboard-shell.student-shell.student-overview.organized-workspace {
+  --overview-base: #f4f5ec;
+  --overview-solid: #fffef9;
+  --overview-edge: #dce3d3;
+  --overview-text: #193e2c;
+  --overview-muted: #596b5c;
+  --overview-accent: #246543;
+  --overview-soft: #edf3e8;
+  --overview-gold: #987324;
+  --workspace-muted: var(--overview-muted);
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace.dark-mode {
+  --overview-base: #102219;
+  --overview-solid: #1a3225;
+  --overview-edge: #3d5742;
+  --overview-text: #f0f4e6;
+  --overview-muted: #bdcdb9;
+  --overview-accent: #a9d7af;
+  --overview-soft: #284332;
+  --overview-gold: #e4c772;
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace > .dashboard-content {
+  background: radial-gradient(ellipse at top right, #cfb46518, transparent 55%), var(--overview-base);
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .student-dashboard {
+  width: 100%;
+  max-width: 1480px;
+  margin-inline: auto;
+  color: var(--overview-text);
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome {
+  background: radial-gradient(ellipse at top right, #d9bd6830, transparent 65%), #174a33;
+  border: 1px solid #8f9e5966;
+  border-left: 4px solid #d9bd68;
+  box-shadow: 0 10px 28px #123c2510;
+  align-items: center;
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome h1 { color: #fffef2; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome p { color: #d3e2cb; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome .dashboard-kicker { color: #ecd28b; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome-actions { display: grid; gap: 12px; min-width: 0; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-profile-trigger { width: 100%; background: #ffffff0c; border-color: #dbe6c83d; color: #fffef2; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-profile-trigger strong { color: #fffef2; overflow-wrap: anywhere; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-profile-trigger small { color: #d3e2cb; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-primary-action { width: 100%; justify-content: center; background: #e2c46e; color: #203d27; border: 1px solid #e2c46e; min-height: 44px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-primary-action:hover { background: #f0d58c; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 28px 0 14px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-section-heading h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--overview-text); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-section-heading > span { font-size: 12px; color: var(--overview-muted); }
+.dashboard-shell.student-shell.student-overview.organized-workspace :is(.dashboard-stat, .dashboard-panel) { background: var(--overview-solid); border-color: var(--overview-edge); box-shadow: 0 4px 16px #163d2306; border-radius: 16px; backdrop-filter: none; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat { color: var(--overview-accent); border-top: 3px solid var(--overview-accent); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat:is(.gold, .blue) { color: var(--overview-gold); border-top-color: var(--overview-gold); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat strong { display: block; margin-block: 10px 4px; color: var(--overview-text); font-size: 34px; line-height: 1.2; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat :is(small, .student-stat-heading > span) { color: var(--overview-muted); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .student-stat-heading .dashboard-icon { color: inherit; background: var(--overview-soft); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 28px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a { display: flex; align-items: center; gap: 12px; padding: 18px; border: 1px solid var(--overview-edge); border-radius: 12px; background: var(--overview-solid); color: var(--overview-accent); text-decoration: none; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a:hover { background: var(--overview-soft); border-color: var(--overview-gold); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts .dashboard-icon { width: 24px; height: 24px; flex-shrink: 0; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a > span:first-of-type { flex: 1; min-width: 0; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts strong { display: block; font-size: 13px; color: var(--overview-text); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--overview-muted); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .panel-heading h2 { color: var(--overview-text); font-size: 18px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace :is(.panel-heading a, .panel-action, .student-empty-state a) { color: var(--overview-accent); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .student-empty-state > .dashboard-icon { color: var(--overview-gold); background: var(--overview-soft); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .claim-panel { display: flex; flex-direction: column; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .claim-panel .panel-action { margin-top: auto; border-color: var(--overview-edge); }
+.dashboard-shell.student-shell.student-overview.organized-workspace :is(a, button):focus-visible { outline: 3px solid var(--overview-gold); outline-offset: 4px; }
+@media (max-width: 1100px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts { grid-template-columns: 1fr; gap: 10px; }
+  .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-welcome-actions { flex-basis: 100%; }
+  .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stats { grid-template-columns: 1fr; }
+}
