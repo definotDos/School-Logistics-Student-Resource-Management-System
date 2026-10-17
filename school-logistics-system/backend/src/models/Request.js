@@ -7,6 +7,7 @@ const requestSchema = new mongoose.Schema(
 		student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 		resourceRef: { type: mongoose.Schema.Types.ObjectId, ref: "Resource" },
 		resource: { type: String, required: true, trim: true },
+		resourceImage: { type: String, default: "" },
 		quantity: { type: Number, min: 1, default: 1 },
 		uniformStyle: { type: String, enum: ["", "Trojan T-shirt", "CITE Polo"], default: "" },
 		uniformSize: { type: String, enum: ["", "XS", "S", "M", "L", "XL", "2XL", "3XL"], default: "" },
@@ -49,5 +50,7 @@ const requestSchema = new mongoose.Schema(
 	},
 	{ timestamps: true, optimisticConcurrency: true }
 );
+
+requestSchema.index({ student: 1, resourceRef: 1, uniformStyle: 1 }, require("../utils/requestIndexes").activeRequestIndex);
 
 module.exports = mongoose.model("Request", requestSchema);

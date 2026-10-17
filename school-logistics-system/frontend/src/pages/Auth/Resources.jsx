@@ -1,5 +1,6 @@
 import { useTabState } from "../../hooks/useTabState";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import useStudentTheme from "../../hooks/useStudentTheme";
@@ -10,7 +11,7 @@ import DashboardIcon from "../../components/DashboardIcon";
 import ResourceCard from "../../components/ResourceCard";
 import ResourceCarousel from "../../components/ResourceCarousel";
 import { getResourceImage } from "../../utils/resourceImages";
-import { isSchoolUniform } from "../../utils/uniforms";
+import { getUniformStyleImage, isSchoolUniform } from "../../utils/uniforms";
 import { requestAPI, resourceAPI } from "../../services/api";
 
 function Resources() {
@@ -23,6 +24,7 @@ function Resources() {
   const [uniformStyle, setUniformStyle] = useState("Trojan T-shirt");
   const [uniformSize, setUniformSize] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submissionWarning, setSubmissionWarning] = useState("");
   const [requestError, setRequestError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resources, setResources] = useState([]);
@@ -30,6 +32,7 @@ function Resources() {
   const [loading, setLoading] = useState(true);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sort, setSort] = useState("default");
+  const quantityLimit = selectedResource ? Math.min(Number(selectedResource.quantity) || 0, Number(selectedResource.maxQuantityPerStudent) || 5) : 0;
   const categories = [...new Set(resources.map(resource => resource.category))].sort();
   const availableCount = resources.filter(resource => resource.quantity > 0 && resource.status !== "Discontinued").length;
   const hasFilters = Boolean(query || category !== "All Categories" || availableOnly);
@@ -58,7 +61,7 @@ function Resources() {
   }, []);
 
   const confirmRequest = async () => {
-    if (!selectedResource) return;
+    if (!selectedResource || submitting) return;
     const quantity = Number(requestQuantity);
     if (isSchoolUniform(selectedResource) && !uniformSize) {
       setRequestError("Choose your preferred uniform size.");
@@ -68,19 +71,20 @@ function Resources() {
       setRequestError("Quantity must be a positive whole number.");
       return;
     }
-    if (quantity > Number(selectedResource.quantity || 0)) {
-      setRequestError("The requested quantity exceeds the available stock.");
+    if (quantity > quantityLimit) {
+      setRequestError(`You can request up to ${quantityLimit} units of this item.`);
       return;
     }
     setSubmitting(true);
     setRequestError("");
     try {
-      await requestAPI.create({
+      const result = await requestAPI.create({
         resource: selectedResource._id,
         category: selectedResource.category,
         quantity,
         ...(isSchoolUniform(selectedResource) ? { uniformStyle, uniformSize } : {}),
       });
+      setSubmissionWarning(result.warning || "");
       setSubmitted(true);
     } catch (error) {
       setRequestError(error.message);
@@ -95,6 +99,7 @@ function Resources() {
     setUniformStyle("Trojan T-shirt");
     setUniformSize("");
     setSubmitted(false);
+    setSubmissionWarning("");
     setRequestError("");
   };
 
@@ -161,18 +166,19 @@ function Resources() {
         <button type="button" className="modal-close" onClick={() => setSelectedResource(null)} disabled={submitting} aria-label="Close request dialog">×</button>
         {!submitted ? <>
           <span className="request-dialog-kicker">RESOURCE REQUEST</span>
-          <h2 id="resource-request-title">Request a resource</h2>
+          <h2 id="resource-request-title">{isSchoolUniform(selectedResource) ? "Request a uniform" : "Request a resource"}</h2>
           <p>Choose your quantity and submit it for review.</p>
           <div className="request-dialog-summary"><span className="modal-icon" aria-hidden="true">{selectedResource.icon}</span><div><strong>{selectedResource.name}</strong><small>{selectedResource.category}</small></div><span className="request-dialog-stock">{selectedResource.quantity} in stock</span></div>
           <form onSubmit={(event) => { event.preventDefault(); confirmRequest(); }}>
           {isSchoolUniform(selectedResource) && <fieldset className="uniform-request-options" disabled={submitting}>
             <legend>Uniform preferences</legend>
-            <img className="uniform-request-preview" src={uniformStyle === "CITE Polo" ? "/cite-transparent.png" : "/trojan-transparent.png"} alt={`${uniformStyle}, front and back`} />
+            <img className="uniform-request-preview" src={getUniformStyleImage(uniformStyle)} alt={`${uniformStyle}, front and back`} />
             <label htmlFor="uniform-style">Style</label>
-            <select id="uniform-style" value={uniformStyle} onChange={(event) => setUniformStyle(event.target.value)}>
+            <select id="uniform-style" value={uniformStyle} onChange={(event) => { setUniformStyle(event.target.value); setRequestError(""); }}>
               <option>Trojan T-shirt</option>
               <option>CITE Polo</option>
             </select>
+            <p>You can submit one active request per uniform style. Submit a separate request if you need both styles.</p>
             <span id="uniform-size-label">Preferred size <span aria-hidden="true">*</span></span>
             <div className="uniform-size-options" role="group" aria-labelledby="uniform-size-label" aria-describedby="uniform-size-help">
               {["XS", "S", "M", "L", "XL", "2XL", "3XL"].map((size) => <label key={size}>
@@ -188,7 +194,7 @@ function Resources() {
               id="request-quantity"
               type="number"
               min="1"
-              max={selectedResource.quantity || 1}
+              max={quantityLimit}
               step="1"
               required
               disabled={submitting}
@@ -197,14 +203,17 @@ function Resources() {
               onChange={(event) => setRequestQuantity(event.target.value)}
             />
           </div>
-          <p id="request-quantity-help" className="request-quantity-help">Enter 1 to {selectedResource.quantity} units.</p>
+          <p id="request-quantity-help" className="request-quantity-help">{quantityLimit > 0 ? `Request 1–${quantityLimit} units. Limit: ${selectedResource.maxQuantityPerStudent || 5} per student${isSchoolUniform(selectedResource) ? " per style" : ""}.` : "This item is currently out of stock."}</p>
+          {isSchoolUniform(selectedResource) && <p className="request-selection-summary" aria-live="polite"><strong>{uniformStyle}</strong><span>Size: {uniformSize || "Choose a size"} · Quantity: {requestQuantity || "—"}</span></p>}
           <p className="request-dialog-note">Student Affairs will review your request. Follow its status in My Requests.</p>
           {requestError && <p className="auth-error" role="alert">{requestError}</p>}
-          <div className="modal-actions"><button type="button" className="modal-secondary" onClick={() => setSelectedResource(null)} disabled={submitting}>Cancel</button><button type="submit" className="modal-primary" disabled={submitting}>{submitting ? "Submitting..." : "Submit request"}</button></div>
+          <div className="modal-actions"><button type="button" className="modal-secondary" onClick={() => setSelectedResource(null)} disabled={submitting}>Cancel</button><button type="submit" className="modal-primary" disabled={submitting || quantityLimit < 1}>{submitting ? "Submitting..." : "Submit request"}</button></div>
           </form>
         </> : <>
           <div className="success-icon">✓</div><h2 id="resource-request-title">Request submitted</h2><p>Your request for {selectedResource.name} is now pending review.</p>
-          <button className="modal-primary full" onClick={() => setSelectedResource(null)}>Done</button>
+          {isSchoolUniform(selectedResource) && <p className="request-selection-summary"><strong>{uniformStyle}</strong><span>Size {uniformSize} · Quantity {requestQuantity}</span></p>}
+          {submissionWarning && <p role="status">{submissionWarning}</p>}
+          <div className="modal-actions"><button className="modal-secondary" onClick={() => setSelectedResource(null)}>Done</button><Link className="modal-primary" to="/requests">View my requests</Link></div>
         </>}
       </dialog>}
     </div>

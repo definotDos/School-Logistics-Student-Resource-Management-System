@@ -2,6 +2,7 @@ school-logistics-system/backend/.browser-verification/
 school-logistics-system/backend/scripts/browser-verification.png
 node_modules/
 .mfa-test-db/
+.uniform-test-db/
 dist/
 .env
 .env.*

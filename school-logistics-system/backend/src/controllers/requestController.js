@@ -40,6 +40,7 @@ const formatRequest = (request) => ({
 	resourceId: getRequestResourceId(request),
 	resource: request.resourceRef?.name || request.resource || "Resource",
 	resourceName: request.resourceRef?.name || request.resource || "Resource",
+	resourceImage: request.resourceImage || request.resourceRef?.image || "",
 	quantity: request.quantity,
 	category: request.category,
 	date: request.createdAt,
@@ -127,15 +128,16 @@ async function createRequest(req, res) {
 			return res.status(400).json({ message: "Uniform preferences only apply to school uniforms." });
 		}
 
-		// Check for duplicate active requests
+		// Each uniform style has its own active request; size changes do not bypass duplicates.
 		const duplicate = await Request.findOne({
 			student: req.user._id,
+			...(isUniform ? { uniformStyle } : {}),
 			$or: [{ resourceRef: resourceExists._id }, { resource: resourceExists.name }],
 			status: { $in: ["pending", "approved", "ready_for_claim", "claimed", "released"] }
 		});
 
 		if (duplicate) {
-			return res.status(400).json({ message: "You already have an active request for this resource." });
+			return res.status(400).json({ message: isUniform ? `You already have an active request for ${uniformStyle}.` : "You already have an active request for this resource." });
 		}
 
 		// Create request with initial status
@@ -143,6 +145,7 @@ async function createRequest(req, res) {
 			student: req.user._id,
 			resource: resourceExists.name,
 			resourceRef: resourceExists._id,
+			resourceImage: resourceExists.image || "",
 			quantity: Number(quantity),
 			uniformStyle: isUniform ? uniformStyle : "",
 			uniformSize: isUniform ? uniformSize : "",
@@ -154,7 +157,9 @@ async function createRequest(req, res) {
 			priority: "medium"
 		});
 
-		// Audit log
+		const warnings = [];
+		// A saved request must not be reported as a failed submission.
+		try {
 		await createAuditLog(
 			req.user,
 			"request_created",
@@ -164,9 +169,12 @@ async function createRequest(req, res) {
 			"pending",
 			`Student ${req.user.name} submitted request for ${resource}`
 		);
+		} catch (error) {
+			console.error("Unable to audit saved request:", error.message);
+			warnings.push("Your request was saved, but its activity log could not be recorded.");
+		}
 
 		// Each reviewer gets a separate notification and independent read state.
-		let notificationWarning;
 		try {
 			const reviewers = await User.find({
 				role: { $in: ["staff", "admin"] },
@@ -189,16 +197,20 @@ async function createRequest(req, res) {
 		} catch (error) {
 			// The request is already saved: do not invite a duplicate submission.
 			console.error("Unable to notify request reviewers:", error.message);
-			notificationWarning = "Your request was saved, but reviewer notifications could not be delivered.";
+			warnings.push("Your request was saved, but reviewer notifications could not be delivered.");
 		}
 
-		await request.populate("student", "name email campus grade studentId avatar");
+		const responseRequest = { ...(request.toObject ? request.toObject() : request), student: req.user };
 		res.status(201).json({ 
 			message: "Request submitted successfully", 
-			...(notificationWarning ? { warning: notificationWarning } : {}),
-			request: formatRequest(request) 
+			...(warnings.length ? { warning: warnings.join(" ") } : {}),
+			request: formatRequest(responseRequest)
 		});
 	} catch (error) {
+		if (error.code === 11000) {
+			return res.status(409).json({ message: "An active request already exists for this item and style. Check My Requests before submitting again." });
+		}
+		console.error("Unable to submit request:", error.message);
 		res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to submit request.", error: error.message });
 	}
 }
@@ -503,7 +515,7 @@ async function getMyRequests(req, res) {
 		}
 
 		const requests = await Request.find({ student: req.user._id })
-			.populate("resourceRef", "name category")
+			.populate("resourceRef", "name category image")
 			.populate("student", "name email campus grade studentId avatar")
 			.sort({ createdAt: -1 });
 
@@ -519,6 +531,7 @@ async function getMyRequests(req, res) {
 					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
+					resourceImage: request.resourceImage || resource?.image || "",
 				};
 			})
 		});
@@ -540,7 +553,7 @@ async function getAllRequests(req, res) {
 		if (priority) filter.priority = priority;
 
 		const requests = await Request.find(filter)
-			.populate("resourceRef", "name category")
+			.populate("resourceRef", "name category image")
 			.populate("student", "name email campus grade studentId avatar")
 			.sort({ priority: -1, createdAt: -1 });
 
@@ -556,6 +569,7 @@ async function getAllRequests(req, res) {
 					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
+					resourceImage: request.resourceImage || resource?.image || "",
 				};
 			})
 		});
@@ -567,7 +581,7 @@ async function getAllRequests(req, res) {
 async function getRequestById(req, res) {
 	try {
 		const request = await Request.findById(req.params.id)
-			.populate("resourceRef", "name category")
+			.populate("resourceRef", "name category image")
 			.populate("student", "name email campus grade studentId avatar")
 			.populate("checkedBy", "name")
 			.populate("approvedBy", "name")
@@ -590,6 +604,7 @@ async function getRequestById(req, res) {
 				resourceId: getRequestResourceId(request),
 				resource: resource?.name || request.resource || "Resource",
 				resourceName: resource?.name || request.resource || "Resource",
+					resourceImage: request.resourceImage || resource?.image || "",
 			}
 		});
 	} catch (error) {
@@ -607,7 +622,7 @@ async function getRequestsByStatus(req, res) {
 		}
 
 		const requests = await Request.find({ ...campusFilter(req), status })
-			.populate("resourceRef", "name category")
+			.populate("resourceRef", "name category image")
 			.populate("student", "name email campus studentId avatar")
 			.sort({ createdAt: -1 });
 
@@ -625,6 +640,7 @@ async function getRequestsByStatus(req, res) {
 					resourceId: getRequestResourceId(request),
 					resource: resource?.name || request.resource || "Resource",
 					resourceName: resource?.name || request.resource || "Resource",
+					resourceImage: request.resourceImage || resource?.image || "",
 				};
 			})
 		});

@@ -5,34 +5,39 @@ import useStudentTheme from "../../hooks/useStudentTheme";
 import "./StudentDashboard.css";
 import "./StudentPages.css";
 import StatusBadge from "../../components/StatusBadge";
-import { requestAPI, resourceAPI } from "../../services/api";
+import { requestAPI } from "../../services/api";
+import { Link } from "react-router-dom";
+import RequestResourceImage from "../../components/RequestResourceImage";
+import "../../components/RequestCards.css";
 
 function Requests() {
   const [isDarkMode, setIsDarkMode] = useStudentTheme();
   const [requests, setRequests] = useState([]);
-  const [resourceNames, setResourceNames] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
+  const [filter, setFilter] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
   const cancelRequest = async (requestId) => {
+    if (busyId) return;
+    setBusyId(requestId); setError(""); setNotice("");
     try {
       const result = await requestAPI.cancel(requestId);
-      setRequests((current) => current.map((request) => request.databaseId === requestId ? result.request : request));
+      setRequests((current) => current.map((request) => request.databaseId === requestId ? { ...request, ...result.request } : request));
       setNotice("Request cancelled and saved to the database.");
     } catch (requestError) {
       setError(requestError.message);
-    }
+    } finally { setBusyId(null); }
   };
 
   useEffect(() => {
-    requestAPI.getMyRequests().then((result) => setRequests(result.requests || [])).catch((requestError) => setError(requestError.message));
-    resourceAPI.getAll().then((result) => {
-      const map = {};
-      result.resources.forEach((resource) => {
-        map[resource._id] = resource.name;
-      });
-      setResourceNames(map);
-    }).catch(() => setResourceNames({}));
+    let active = true;
+    requestAPI.getMyRequests()
+      .then((result) => { if (active) setRequests(result.requests || []); })
+      .catch((error) => { if (active) setError(error.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   return (
@@ -56,48 +61,35 @@ function Requests() {
           </header>
           {notice && <p className="mt-4 text-green-700" role="status">{notice}</p>}
 
-          <div className="student-request-table mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <div className="overflow-x-auto">
-                {error && <p className="p-6 text-red-600" role="alert">{error}</p>}
-                {!error && !requests.length && <p className="p-6 text-slate-500">No requests yet. Browse resources to submit one.</p>}
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-slate-500">
-                  <tr>
-                    <th className="px-6 py-4 font-medium">Request ID</th>
-                    <th className="px-6 py-4 font-medium">Resource</th>
-                    <th className="px-6 py-4 font-medium">Date</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium">Action</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100">
-                  {requests.map((request) => (
-                    <tr key={request.id}>
-                      <td className="px-6 py-4 font-medium text-slate-800">
-                        {request.id}
-                      </td>
-
-                      <td className="px-6 py-4 text-slate-600">
-                        {resourceNames[request.resourceId] || request.resourceName || request.resource || "Resource"}
-                        {request.uniformStyle && <small className="block mt-1">{request.uniformStyle} · Size {request.uniformSize}</small>}
-                      </td>
-
-                      <td className="px-6 py-4 text-slate-500">
-                        {new Date(request.date).toLocaleDateString()}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <StatusBadge status={request.status} />
-                      </td>
-                      <td className="px-6 py-4">
-                        {request.status === "pending" && <button className="text-red-600 hover:underline" type="button" onClick={() => cancelRequest(request.databaseId)}>Cancel</button>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="request-card-toolbar">
+            <span>{requests.length} request{requests.length === 1 ? "" : "s"}</span>
+            <label>Filter status <select value={filter} onChange={event => setFilter(event.target.value)}>
+              <option value="">All statuses</option>
+              {[...new Set(requests.map(request => request.status))].map(status => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+            </select></label>
+            <Link to="/resources">Browse resources</Link>
+          </div>
+          {error && <p role="alert" className="auth-error">{error}</p>}
+          <div className="student-request-cards" aria-busy={loading}>
+            {loading ? <p role="status">Loading your requests?</p> : !requests.length ? <p>No requests yet. Browse resources to submit one.</p> : requests.filter(request => !filter || request.status === filter).map(request => (
+              <article className="student-request-card" key={request.databaseId}>
+                <div className="request-card-main">
+                  <RequestResourceImage request={request} />
+                  <div className="request-card-copy">
+                    <h2>{request.resourceName || request.resource || "Resource"}</h2>
+                    <p>{request.student?.name || "Your request"} ? {request.campus || request.student?.campus || "Campus not recorded"}</p>
+                    <p>{request.quantity} unit{request.quantity === 1 ? "" : "s"} requested{request.uniformStyle && ` ? ${request.uniformStyle} ? Size ${request.uniformSize}`}</p>
+                    <small>{request.id} ? {request.date ? new Date(request.date).toLocaleDateString() : "Date not recorded"}</small>
+                  </div>
+                  <StatusBadge status={request.status} />
+                </div>
+                <div className="request-card-footer">
+                  <p>{request.status === "pending" ? "Awaiting eligibility review and approval." : request.status === "approved" ? "Approved. Staff will arrange your pickup schedule." : request.status === "ready_for_claim" ? "Your resource is ready. Check your pickup schedule." : request.status === "rejected" ? request.rejectionReason || "This request was not approved." : request.status === "cancelled" ? "This request has been cancelled." : "Your collection has been recorded."}</p>
+                  {request.status === "pending" && <button type="button" disabled={!!busyId} onClick={() => cancelRequest(request.databaseId)}>{busyId === request.databaseId ? "Cancelling?" : "Cancel request"}</button>}
+                  {["approved", "ready_for_claim"].includes(request.status) && <Link to="/claim-schedule">View pickup schedule</Link>}
+                </div>
+              </article>
+            ))}
           </div>
 
         </main>

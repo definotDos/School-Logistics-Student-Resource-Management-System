@@ -1362,7 +1362,10 @@
 @media (max-width:600px) { .staff-services .staff-records .record-toolbar { padding:18px; gap:10px; } .staff-panel-icon { display:none; } .staff-services .staff-records h2 { font-size:18px; } .staff-record-filters { padding:16px; flex-wrap:wrap; } .staff-record-filters .staff-search { flex-basis:100%; } .staff-services .staff-records .record-list { padding:14px; } .staff-record-footer { flex-direction:column; padding:16px; } .staff-row-actions { width:100%; margin:0; } .staff-row-actions > * { flex:1; } .staff-inline-form { padding:16px; } }
 
 /* Resource artwork and student identity share a consistent visual hierarchy. */
-.staff-services .staff-records .staff-media-row { align-items: center; }
+.staff-services .staff-records .staff-media-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 18px; padding: 20px; }
+.staff-services .staff-records .staff-media-row > .staff-record-image--resource { width: 96px; height: 112px; }
+.staff-services .staff-records .staff-media-row .record-copy small { white-space: normal; line-height: 1.6; }
+.staff-services .staff-records .staff-media-row .staff-row-actions:empty { display: none; }
 .staff-record-image { display: grid; place-items: center; overflow: hidden; flex: 0 0 72px; width: 72px; height: 82px; border: 1px solid var(--sf-border); border-radius: 12px; background: var(--sf-soft); color: var(--sf-blue); }
 .staff-record-image img { display: block; width: 100%; height: 100%; }
 .staff-record-image--resource { background: #f7f9fc; }
@@ -1377,3 +1380,13 @@
 .staff-record-person .dashboard-icon { width: 17px; height: 17px; }
 @media (max-width: 1000px) { .staff-services .staff-records .staff-media-row .record-copy { flex-basis: calc(100% - 100px) !important; } }
 @media (max-width: 600px) { .staff-record-image { width: 58px; height: 70px; flex-basis: 58px; } .staff-record-image--profile { height: 58px; } .staff-services .staff-records .staff-media-row .record-copy { flex-basis: calc(100% - 80px) !important; } }
+@media (max-width: 1000px) {
+  .staff-services .staff-records .staff-media-row { grid-template-columns: 96px minmax(0, 1fr); }
+  .staff-services .staff-records .staff-media-row > .status-pill { grid-column: 2; justify-self: start; }
+  .staff-services .staff-records .staff-media-row > .staff-row-actions { grid-column: 2; margin: 0; }
+}
+@media (max-width: 600px) {
+  .staff-services .staff-records .staff-media-row { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 16px; }
+  .staff-services .staff-records .staff-media-row > .staff-record-image--resource { width: 72px; height: 88px; }
+  .staff-services .staff-records .staff-media-row > .staff-row-actions { grid-column: 1 / -1; }
+}

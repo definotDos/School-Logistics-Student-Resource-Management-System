@@ -9,6 +9,7 @@ import Navbar from "../../components/Navbar";
 import { allocationAPI, distributionAPI, notificationAPI, reportsAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
 import { getResourceImage } from "../../utils/resourceImages";
+import { getUniformStyleImage } from "../../utils/uniforms";
 import { useAuth } from "../../context/useAuth";
 import { campuses } from "../../data/campuses";
 import "./StaffServicesDashboard.css";
@@ -98,7 +99,7 @@ function StaffServicesDashboard() {
           studentId: req.studentId || req.student?.studentId || req.student?.id || "N/A",
           avatar: req.avatar || req.student?.avatar || "",
           studentName: req.student?.name || "Student",
-          resourceImage: getResourceImage({ name: req.resourceName || req.resource }),
+          resourceImage: getResourceImage({ name: req.resourceName || req.resource, image: req.resourceImage }),
           resource: req.resourceName || req.resource,
           uniformStyle: req.uniformStyle,
           uniformSize: req.uniformSize,
@@ -136,7 +137,7 @@ function StaffServicesDashboard() {
           resource: request.resourceName || request.resource || "Resource",
           uniformStyle: request.uniformStyle,
           uniformSize: request.uniformSize,
-          resourceImage: getResourceImage({ name: request.resourceName || request.resource }),
+          resourceImage: getResourceImage({ name: request.resourceName || request.resource, image: request.resourceImage }),
           action: "View History",
           claimed: ["claimed", "released", "completed"].includes(request.status) ? `${request.quantity || 1} resource(s)` : "Not claimed",
         })),
@@ -181,7 +182,9 @@ function StaffServicesDashboard() {
           avatar: allocation.student?.avatar || "",
           studentName: allocation.student?.name || "Student",
           resource: allocation.resource?.name || "Resource",
-          resourceImage: getResourceImage(allocation.resource),
+          resourceImage: getResourceImage({ ...allocation.resource, image: allocation.resourceImage || allocation.resource?.image }),
+          uniformStyle: allocation.uniformStyle,
+          uniformSize: allocation.uniformSize,
             name: allocation.resource?.name || "Resource claim",
             detail: `${allocation.student?.name || "Student"} · ${allocation.quantity} unit(s) · ${allocation.campus || "Campus not set"}`,
             status: allocation.status,
@@ -650,14 +653,18 @@ function RecordRow({ row, icon = "requests", children, extra }) {
   const status = row.eligibility || row.current_status || row.status;
   const studentFirst = icon === "profile" || icon === "graduate";
   const resourceName = row.resource || row.name;
+  const resourceImage = getUniformStyleImage(row.uniformStyle) || row.resourceImage;
+  const resourceImageLabel = [resourceName, row.uniformStyle].filter(Boolean).join(": ");
   const studentName = row.studentName || row.student?.name || "Student";
-  const detail = row.detail?.startsWith(`${studentName} ? `) ? row.detail.slice(studentName.length + 3) : row.detail;
+  const detail = row.detail?.startsWith(`${studentName} `)
+    ? row.detail.slice(studentName.length).replace(/^\s*[·?]\s*/, "")
+    : row.detail;
   return <div className="record-row staff-media-row">
-    <RecordImage src={studentFirst ? row.avatar : row.resourceImage} name={studentFirst ? studentName : resourceName} kind={studentFirst ? "profile" : "resource"} icon={icon} />
+    <RecordImage src={studentFirst ? row.avatar : resourceImage} name={studentFirst ? studentName : resourceImageLabel} kind={studentFirst ? "profile" : "resource"} icon={icon} />
     <div className="record-copy">
       <strong>{row.name}</strong>
       <div className="staff-record-person">
-        <RecordImage src={studentFirst ? row.resourceImage : row.avatar} name={studentFirst ? resourceName : studentName} kind={studentFirst ? "resource" : "profile"} />
+        <RecordImage src={studentFirst ? resourceImage : row.avatar} name={studentFirst ? resourceImageLabel : studentName} kind={studentFirst ? "resource" : "profile"} />
         <span>{studentFirst ? resourceName : studentName}</span>
       </div>
       <small>{detail}</small>
@@ -703,9 +710,9 @@ function ScheduleForm({ row, onSchedule, onCancel }) {
     if (schedule.endTime <= schedule.startTime) { setError("End time must be after start time."); return; }
     if (!schedule.location.trim()) { setError("Enter a pickup location."); return; }
     setError(""); setBusy(true);
-    try { if (await onSchedule(row.databaseId, { ...schedule, location: schedule.location.trim() })) onCancel(); } finally { setBusy(false); }
+    try { if (await onSchedule(row.databaseId, { ...schedule, location: schedule.location.trim() })) onCancel(); } catch (error) { setError(error.message || "Unable to save schedule. Please try again."); } finally { setBusy(false); }
   }}>
-    {[["pickupDate", "Pickup date", "date"], ["startTime", "Start time", "time"], ["endTime", "End time", "time"], ["location", "Pickup location", "text"]].map(([key, label, type]) => <label key={key}>{label}<input type={type} min={type === "date" ? today : undefined} required value={schedule[key]} onChange={(event) => setSchedule({ ...schedule, [key]: event.target.value })} /></label>)}
+    {[["pickupDate", "Pickup date", "date"], ["startTime", "Start time", "time"], ["endTime", "End time", "time"], ["location", "Pickup location", "text"]].map(([key, label, type]) => <label key={key}>{label}<input disabled={busy} type={type} min={type === "date" ? today : undefined} required value={schedule[key]} onChange={(event) => setSchedule({ ...schedule, [key]: event.target.value })} /></label>)}
     {error && <p role="alert">{error}</p>}<button className="row-action staff-primary" disabled={busy}>{busy ? "Saving…" : "Save schedule"}</button><button type="button" className="row-action" disabled={busy} onClick={onCancel}>Cancel</button>
   </form>;
 }

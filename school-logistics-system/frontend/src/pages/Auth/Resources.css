@@ -607,3 +607,15 @@ body:has(.resource-browser-shell)::-webkit-scrollbar,
     transform: none;
   }
 }
+.student-pages .resource-request-dialog { width: min(600px, calc(100vw - 32px)); box-sizing: border-box; overflow-y: auto; }
+.student-pages .resource-request-dialog .uniform-request-options { margin: 16px 0; gap: 12px; }
+.student-pages .resource-request-dialog .uniform-request-preview { height: 120px; }
+.student-pages .resource-request-dialog .uniform-size-options { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.student-pages .resource-request-dialog .request-selection-summary { display: grid; gap: 4px; margin: 16px 0; padding: 12px 14px; border: 1px solid var(--workspace-border); border-radius: 10px; font-size: 13px; }
+.student-pages .resource-request-dialog .request-selection-summary span { color: var(--workspace-muted); }
+.student-pages .resource-request-dialog .auth-error { padding: 12px 14px; border: 1px solid #c96262; border-radius: 10px; line-height: 1.5; text-align: left; }
+.student-pages .resource-request-dialog .modal-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.student-pages .resource-request-dialog .modal-actions a { display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; text-decoration: none; font-size: 13px; }
+@media (max-width: 380px) {
+  .student-pages .resource-request-dialog .uniform-size-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

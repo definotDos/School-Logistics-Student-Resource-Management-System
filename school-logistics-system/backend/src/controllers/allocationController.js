@@ -17,6 +17,9 @@ const formatAllocation = (allocation) => ({
 	request: allocation.request ? allocation.request._id : null,
 	student: allocation.student,
 	resource: allocation.resource,
+	resourceImage: allocation.request?.resourceImage || allocation.resource?.image || "",
+	uniformStyle: allocation.request?.uniformStyle || "",
+	uniformSize: allocation.request?.uniformSize || "",
 	assignedStaff: allocation.assignedStaff,
 	quantity: allocation.quantity,
 	status: allocation.status,
@@ -64,13 +67,13 @@ async function processAllocation(req, res) {
 		let allocation = await Allocation.findOne({ request: requestId })
 			.populate("request")
 			.populate("student", "name email studentId avatar")
-			.populate("resource", "name category");
+			.populate("resource", "name category image");
 
 		if (!allocation && requestId) {
 			allocation = await Allocation.findById(requestId)
 				.populate("request")
 				.populate("student", "name email studentId avatar")
-				.populate("resource", "name category");
+				.populate("resource", "name category image");
 		}
 
 		if (!allocation) {
@@ -240,7 +243,7 @@ async function assignStaff(req, res) {
 
 		const allocation = await Allocation.findById(req.params.id)
 			.populate("student", "name email studentId avatar")
-			.populate("resource", "name category");
+			.populate("resource", "name category image");
 		if (!allocation) return res.status(404).json({ message: "Allocation not found." });
 		if (!canAccessCampus(req, allocation)) return res.status(403).json({ message: "Record belongs to another campus." });
 		if (!["Reserved", "Scheduled"].includes(allocation.status)) return res.status(409).json({ message: "Only reserved or scheduled allocations can be assigned." });
@@ -276,9 +279,9 @@ async function listAllocations(req, res) {
 
 		const allocations = await Allocation.find(filter)
 			.populate("student", "name email campus grade studentId avatar")
-			.populate("resource", "name category")
+			.populate("resource", "name category image")
 			.populate("assignedStaff", "name email")
-			.populate("request", "status resource quantity")
+			.populate("request", "status resource quantity uniformStyle uniformSize resourceImage")
 			.sort({ createdAt: -1 });
 
 		res.json({ 
@@ -294,8 +297,8 @@ async function getAllocationById(req, res) {
 	try {
 		const allocation = await Allocation.findById(req.params.id)
 			.populate("student", "name email campus grade studentId avatar")
-			.populate("resource", "name category")
-			.populate("request", "status resource quantity")
+			.populate("resource", "name category image")
+			.populate("request", "status resource quantity uniformStyle uniformSize resourceImage")
 			.populate("allocatedBy", "name");
 
 		if (!allocation) {
@@ -320,8 +323,8 @@ async function getAllocationById(req, res) {
 async function getStudentAllocations(req, res) {
 	try {
 		const allocations = await Allocation.find({ student: req.user._id })
-			.populate("resource", "name category")
-			.populate("request", "status resource quantity")
+			.populate("resource", "name category image")
+			.populate("request", "status resource quantity uniformStyle uniformSize resourceImage")
 			.sort({ createdAt: -1 });
 
 		// Get claim schedules for each allocation
@@ -363,8 +366,9 @@ async function getAllocationsByStatus(req, res) {
 		}
 		const allocations = await Allocation.find(filter)
 			.populate("student", "name email campus studentId avatar")
-			.populate("resource", "name category")
+			.populate("resource", "name category image")
 			.populate("assignedStaff", "name email")
+			.populate("request", "uniformStyle uniformSize resourceImage")
 			.sort({ createdAt: -1 });
 
 		res.json({ 

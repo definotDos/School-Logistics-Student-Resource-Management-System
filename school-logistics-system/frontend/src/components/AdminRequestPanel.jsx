@@ -1,6 +1,8 @@
 import { useTabState } from "../hooks/useTabState";
 import { useRef, useState } from "react";
 import "./AdminRequestPanel.css";
+import RequestResourceImage from "./RequestResourceImage";
+import "./RequestCards.css";
 
 const statuses = ["pending", "approved", "rejected", "cancelled", "ready_for_claim", "claimed", "released", "completed"];
 const label = (value = "") => value.replaceAll("_", " ");
@@ -45,7 +47,7 @@ export default function AdminRequestPanel({ requests, loading, requestError, app
     {requestError && <p className="auth-error" role="alert">{requestError}</p>}
     {loading ? <p className="request-empty" role="status">Loading student requests…</p> : <>
       <div className="request-table-wrap"><table className="request-table"><caption>Showing {filtered.length} of {requests.length} requests</caption><thead><tr><th scope="col">Resource / request</th><th scope="col">Student</th><th scope="col">Quantity</th><th scope="col">Submitted</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead><tbody>
-        {filtered.map(row => <tr key={row.databaseId}><td><strong>{resourceName(row)}</strong><small>{row.id}</small></td><td><strong>{row.student?.name || "Student"}</strong><small>ID: {studentId(row)}</small><small>{row.campus || row.student?.campus || "Campus not provided"}</small></td><td>{row.quantity ?? "—"}</td><td>{dateLabel(row.date || row.createdAt)}</td><td><span className={`status-pill ${row.status}`}>{label(row.status)}</span></td><td><button type="button" className="row-action" aria-label={`View ${row.id}, ${resourceName(row)} for ${row.student?.name || "student"}`} onClick={() => open(row)}>View details</button></td></tr>)}
+        {filtered.map(row => <tr key={row.databaseId}><td><div className="request-resource-cell"><RequestResourceImage request={row} /><div><strong>{resourceName(row)}</strong><small>{row.id}</small>{row.uniformStyle && <small>{row.uniformStyle} ? Size {row.uniformSize}</small>}</div></div></td><td><strong>{row.student?.name || "Student"}</strong><small>ID: {studentId(row)}</small><small>{row.campus || row.student?.campus || "Campus not provided"}</small></td><td>{row.quantity ?? "—"}</td><td>{dateLabel(row.date || row.createdAt)}</td><td><span className={`status-pill ${row.status}`}>{label(row.status)}</span></td><td><button type="button" className="row-action" aria-label={`View ${row.id}, ${resourceName(row)} for ${row.student?.name || "student"}`} onClick={() => open(row)}>View details</button></td></tr>)}
       </tbody></table></div>
       {!filtered.length && <div className="request-empty"><strong>{requests.length ? status === "pending" && !search ? "You're all caught up" : "No matching requests" : "No student requests yet"}</strong><p>{requests.length ? "Choose another status or search to view more requests." : "New student requests will appear here for review."}</p>{requests.length > 0 && <button className="row-action" onClick={() => { setSearch(""); setStatus(""); }}>View all requests</button>}</div>}
     </>}

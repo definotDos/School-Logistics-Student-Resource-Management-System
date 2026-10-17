@@ -1,0 +1,26 @@
+.request-resource-image { display: grid; place-items: center; flex: 0 0 64px; width: 64px; height: 72px; padding: 7px; box-sizing: border-box; border-radius: 12px; background: #edf4fa; color: #315b80; border: 1px solid #cbd9e7; }
+.request-resource-image img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
+.request-resource-image svg { width: 28px; height: 28px; }
+.request-resource-cell { display: flex; align-items: center; gap: 12px; }
+.request-card-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 24px 0 16px; }
+.request-card-toolbar label { margin-left: auto; }
+.request-card-toolbar select, .request-card-footer button, .request-card-footer a { border: 1px solid var(--workspace-border, #cbd5e1); border-radius: 8px; padding: 8px 12px; background: transparent; color: inherit; }
+.student-request-cards { display: grid; gap: 16px; }
+.student-request-card { border: 1px solid var(--workspace-border, #dce4ed); border-radius: 16px; overflow: hidden; background: #fff; color: #26374d; }
+.request-card-main { display: flex; align-items: center; gap: 16px; padding: 20px; }
+.request-card-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.request-card-copy h2 { margin: 0 0 6px; font-size: 16px; font-weight: 700; color: inherit; }
+.request-card-copy p, .request-card-footer p { margin: 4px 0; font-size: 13px; }
+.request-card-copy small { opacity: .75; }
+.request-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; background: #f5f8fc; border-top: 1px solid var(--workspace-border, #dce4ed); }
+.request-card-footer a, .request-card-footer button { flex-shrink: 0; font-size: 13px; }
+.request-card-footer button:disabled { opacity: .5; cursor: wait; }
+.dark-mode .student-request-card { background: #172639; color: #e1ebf6; }
+.dark-mode .request-card-footer { background: #122033; }
+.dark-mode .request-card-toolbar select { background: #172639; color: #e1ebf6; }
+@media (max-width: 600px) {
+  .request-card-main { flex-wrap: wrap; padding: 16px; gap: 12px; }
+  .request-card-main > .status-pill { margin-left: 76px; }
+  .request-card-footer { align-items: flex-start; flex-direction: column; padding: 16px; }
+  .request-card-toolbar label { margin-left: 0; }
+}

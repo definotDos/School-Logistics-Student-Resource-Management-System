@@ -43,6 +43,23 @@ test("duplicate submissions never notify reviewers", async () => {
   expect(insert).not.toHaveBeenCalled();
 });
 
+test.each(["Trojan T-shirt", "CITE Polo"])("scopes uniform duplicates to %s", async uniformStyle => {
+  Resource.findById.mockResolvedValue({ _id: req.body.resource, name: "School Uniform", campus: "Main", maxQuantityPerStudent: 5 });
+  Object.assign(req.body, { uniformStyle, uniformSize: "M" });
+  await createRequest(req, res);
+  expect(Request.findOne).toHaveBeenCalledWith(expect.objectContaining({ student: req.user._id, uniformStyle }));
+  expect(Request.findOne.mock.calls[0][0]).not.toHaveProperty("uniformSize");
+  expect(res.status).toHaveBeenCalledWith(201);
+  expect(Request.create).toHaveBeenCalledWith(expect.objectContaining({ uniformStyle, uniformSize: "M" }));
+
+  Request.findOne.mockResolvedValue(saved);
+  req.body.uniformSize = "L";
+  await createRequest(req, res);
+  expect(res.status).toHaveBeenLastCalledWith(400);
+  expect(res.json).toHaveBeenLastCalledWith({ message: `You already have an active request for ${uniformStyle}.` });
+  expect(Request.create).toHaveBeenCalledTimes(1);
+});
+
 test("resources from another campus never create requests or notifications", async () => {
   Resource.findById.mockResolvedValue({ campus: "Other", maxQuantityPerStudent: 5 });
   await createRequest(req, res);
@@ -64,4 +81,25 @@ test("notification failure preserves submission success and reports a delivery w
   await createRequest(req, res);
   expect(res.status).toHaveBeenCalledWith(201);
   expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ warning: expect.stringContaining("request was saved") }));
+});
+
+test("audit failure preserves a saved request and does not invite resubmission", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  AuditLog.create.mockRejectedValue(new Error("Audit unavailable"));
+  await createRequest(req, res);
+  expect(res.status).toHaveBeenCalledWith(201);
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ warning: expect.stringContaining("request was saved") }));
+  expect(insert).toHaveBeenCalledTimes(1);
+});
+
+
+test.each(["Learning Modules", "School Uniform"])("saves the catalog image for %s rather than a client-supplied image", async name => {
+  Resource.findById.mockResolvedValue({ _id: req.body.resource, name, image: "/catalog-resource.png", campus: "Main", maxQuantityPerStudent: 5 });
+  req.body.resourceImage = "/untrusted-replacement.png";
+  if (name === "School Uniform") Object.assign(req.body, { uniformStyle: "CITE Polo", uniformSize: "M" });
+  Request.create.mockImplementation(async values => ({ ...saved, ...values }));
+  await createRequest(req, res);
+  expect(res.status).toHaveBeenCalledWith(201);
+  expect(Request.create).toHaveBeenCalledWith(expect.objectContaining({ resourceImage: "/catalog-resource.png", resource: name }));
+  expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ request: expect.objectContaining({ resourceImage: "/catalog-resource.png" }) }));
 });

@@ -15,6 +15,7 @@ async function startServer() {
   require('./services/loginFactor').secret();
   if (!process.env.AUTH_AUDIT_SECRET || Buffer.byteLength(process.env.AUTH_AUDIT_SECRET) < 32) throw new Error('AUTH_AUDIT_SECRET must contain at least 32 bytes');
   await connectDB();
+  await require('./utils/requestIndexes').prepareRequestIndexes(require('./models/Request'));
   await require('./utils/removeLegacyAuthenticator')(require('./models/User'));
   // Existing users must still be able to sign in and correct legacy ID conflicts.
   app.locals.accountCreationReady = false;
