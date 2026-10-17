@@ -2,6 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+// Load configuration before importing routes and their services.
+dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
+
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const requestRoutes = require("./routes/requestRoutes");
@@ -11,9 +14,6 @@ const distributionRoutes = require("./routes/distributionRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
 const reportsRoutes = require("./routes/reportsRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-
-// Load environment variables
-dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
 
 const app = express();
 
@@ -53,6 +53,10 @@ app.get("/", (req, res) => {
     success: true,
     message: "School Logistics API is running",
   });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'API endpoint not found. Check the request URL and /api prefix.' });
 });
 
 app.use((error, req, res, next) => {

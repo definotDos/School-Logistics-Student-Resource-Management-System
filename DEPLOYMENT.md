@@ -2,6 +2,28 @@
 
 ## Current diagnosis
 
+### October 17 routing investigation
+
+The live Vercel asset `index-CkPSBjOG.js` contains the backend origin
+`https://school-logistics-student-resource.onrender.com` as its API base, without
+`/api`. It appends `/auth/login`, producing the confirmed Render 404. Local
+frontend `.env` already has `/api`; changing that file alone cannot change the
+environment baked into a deployed Vite bundle.
+
+Set **Vercel > existing project > Settings > Environment Variables >
+VITE_API_URL = /api** for Production, then rebuild/redeploy. Apply it separately
+to any Preview environment you intend to test. Use the existing rewrite and
+project-root configuration below. The new `apiConfig.js` also normalizes a bare
+backend origin to `/api` and rejects invalid bases. Same-origin `/api` remains
+preferred because trusted-device cookies use `SameSite=Strict`.
+
+No duplicate `/auth` router is needed. Registration is `/api/auth/signup`.
+Resume verification uses the existing signup verification screen and
+`/api/auth/resend-verification-code`; it is not a separate endpoint.
+
+The October 7 email diagnosis below is historical, not evidence of the current
+Render email settings. Hosted settings and logs still need authenticated access.
+
 Public endpoints to check after deployment:
 - https://school-logistics-student-resource.onrender.com/
 - https://school-logistics-student-resource-m-beta.vercel.app/api/campuses/public
@@ -141,6 +163,34 @@ A successful real application email flow is required before deployment is comple
 | `Account creation paused: Invalid employee ID` | Correct the identified staff/admin account using its real employee ID, then restart Render. Existing-user login remains available; do not invent an ID or delete the account. |
 
 Share only log event names, codes, and statuses, never environment secrets or OTPs.
+
+## Authentication release acceptance
+
+Run `npm --prefix school-logistics-system/backend run auth:routes:check` from
+the repository root to run local route and credentialed CORS tests. It does not
+contact the deployed hosts, send mail, or create users. Passing these tests
+proves local route/input handling only, never successful deployed authentication.
+
+Using designated real test accounts and their inboxes, record these checks after
+the new frontend build and Render revision are live:
+
+| Feature | Required evidence |
+| --- | --- |
+| Student signup | Real active campus and valid unused student ID; 201; verification email arrives; password stored as bcrypt hash, never plaintext |
+| Email verification/resume | Refresh/signup screen restores pending email; resend delivers a replacement; correct code returns 200; old/expired code rejected |
+| Login/MFA | Correct password returns challenge without session token; emailed code returns session token; `/api/users/me` returns 200; replay/wrong code rejected |
+| Role redirects | Student, staff, admin reach `/student`, `/staff`, `/admin` respectively; student cannot access staff/admin APIs |
+| Forgot/reset password | Delivered reset code succeeds once; old password and old sessions rejected; new password requires MFA |
+| Trusted device/logout | Same-origin secure HttpOnly cookie persists when requested; logout invalidates session; protected API then returns 401 |
+| Resend | Provider dashboard shows accepted/delivered message and recipient inbox actually receives it; configuration-only checks are insufficient |
+
+Inspect Render logs at the corresponding times: deployment revision,
+`emailTransport: resend_https`, successful database startup, and authentication
+statuses. Inspect Resend delivery logs privately. Do not put passwords, tokens,
+codes, email contents, or connection strings in verification reports.
+
+The fixes are not fully verified until this acceptance table passes in the
+deployed application.
 
 References: [Render Free restrictions](https://render.com/docs/free),
 [Resend domain setup](https://resend.com/docs/dashboard/domains/introduction).

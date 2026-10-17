@@ -89,7 +89,7 @@ export const authAPI = {
     }),
 
   /**
-   * Logout (client-side only, clears token)
+   * Revoke server sessions and device trust before clearing local state.
    */
   logout: () => apiRequest('/auth/logout', { method: 'POST', body: '{}' }),
 };
