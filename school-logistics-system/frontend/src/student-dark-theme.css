@@ -1,0 +1,68 @@
+/* Shared student dark palette across the overview and student records. */
+.dashboard-shell.student-shell.organized-workspace.dark-mode {
+  --student-bg: #101e17;
+  --student-surface: #192e22;
+  --student-raised: #243d2e;
+  --student-border: #415844;
+  --student-text: #f2f4e8;
+  --student-muted: #bdcbb8;
+  --student-accent: #ead08a;
+  --workspace-surface: var(--student-surface);
+  --workspace-border: var(--student-border);
+  --workspace-muted: var(--student-muted);
+  --ink: var(--student-text);
+  --muted: var(--student-muted);
+  --border: var(--student-border);
+  background: var(--student-bg);
+  color: var(--student-text);
+}
+.student-shell.organized-workspace.dark-mode .dashboard-welcome,
+.student-shell.organized-workspace.dark-mode :is(.claim-schedule-page, .distribution-history-page) > div:first-child {
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid #576044;
+  border-radius: 18px;
+  background: linear-gradient(115deg, #192e22, #253e2b 75%, #3a3e24);
+}
+.student-shell.organized-workspace.dark-mode :is(.dashboard-panel, .dashboard-stat) { background: var(--student-surface); }
+.student-shell.organized-workspace.dark-mode :is(.panel-heading, .profile-modal-actions, .requests-page thead) { background: #1d3325; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-primary-action, .profile-save) { background: var(--student-accent); color: #26311c; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-primary-action:hover, .profile-save:hover) { background: #f6dfa7; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger, .header-profile, .header-theme-toggle, .header-icon, .profile-photo-section, .student-stat-heading .dashboard-icon) { background: var(--student-raised); }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger > span:first-child, .header-profile > b, .profile-photo-picker > span:first-child, .claim-day) { background: #3c3b24; color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-profile-trigger:hover, .header-profile:hover, .profile-cancel:hover, .profile-photo-picker:hover b, .header-theme-toggle:hover, .header-icon:hover, .search-results a:hover) { background: #304b36; border-color: #819368; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-stat.navy, .dashboard-stat.green) { color: #a5d4a1; border-top-color: #83ab82; }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-stat.gold, .dashboard-stat.blue) { color: var(--student-accent); border-top-color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode :is(.dashboard-stat.gold, .dashboard-stat.blue) .dashboard-icon { background: #3c3b24; }
+.student-shell.organized-workspace.dark-mode :is(.request-row:hover, .requests-page tbody > tr:hover) { background: var(--student-raised); }
+.student-shell.organized-workspace.dark-mode .requests-page table { color: var(--student-text); }
+.student-shell.organized-workspace.dark-mode .requests-page thead th { color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .requests-page > div { border-color: var(--student-border); border-radius: 16px; }
+.student-shell.organized-workspace.dark-mode .claim-schedule-page {
+  --claim-text: var(--student-text);
+  --claim-muted: var(--student-muted);
+  --claim-soft: var(--student-raised);
+  --claim-accent: var(--student-accent);
+}
+.student-shell.organized-workspace.dark-mode .claim-date-tile { background: #3c3b24; border-color: #74673b; }
+.student-shell.organized-workspace.dark-mode :is(.claim-campus .claim-campus-logo, .history-resource-image) { background: var(--student-raised); border-color: var(--student-border); color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .distribution-history-page article:hover { border-color: #a49155; }
+.student-shell.organized-workspace.dark-mode .history-stats > div { background: var(--student-surface); border-top-color: #83ab82; }
+.student-shell.organized-workspace.dark-mode .history-stats > div:nth-child(2) { border-top-color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .history-stats > div > p { color: var(--student-muted); }
+.student-shell.organized-workspace.dark-mode .distribution-history-page :is(.text-violet-600, .text-violet-700) { color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .distribution-history-page .bg-violet-50 { background: #3c3b24; border-color: #74673b; }
+/* Keep semantic status badges; use one consistent selected filter treatment. */
+.student-shell.organized-workspace.dark-mode :is(.history-filter-bar, .claim-filter-bar) button[data-status] { background: var(--student-raised); color: var(--student-muted); }
+.student-shell.organized-workspace.dark-mode :is(.history-filter-bar, .claim-filter-bar) button[data-status]:hover { border-color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode :is(.history-filter-bar, .claim-filter-bar) button[aria-pressed="true"] { background: var(--student-accent); color: #26311c; border-color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .claim-filter-bar button span { background: #101e1726; color: inherit; }
+.student-shell.organized-workspace.dark-mode :is(a, button, input, select):focus-visible { outline-color: var(--student-accent); }
+.student-shell.organized-workspace.dark-mode .notification-menu.student-notifications {
+  --notice-surface: var(--student-surface);
+  --notice-soft: var(--student-raised);
+  --notice-border: var(--student-border);
+  --notice-text: var(--student-text);
+  --notice-muted: var(--student-muted);
+  --notice-accent: var(--student-accent);
+}
+.student-shell.organized-workspace.dark-mode .notification-wrap .header-icon i { background: var(--student-accent); color: #26311c; border-color: var(--student-surface); }

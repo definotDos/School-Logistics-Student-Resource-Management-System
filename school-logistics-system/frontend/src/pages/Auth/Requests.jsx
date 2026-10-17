@@ -44,6 +44,8 @@ function Requests() {
 
         <main className="student-animated-page requests-page p-6 lg:p-8">
 
+          <header className="student-page-heading">
+          <span className="dashboard-kicker">Student portal / Requests</span>
           <h1 className="text-2xl font-bold text-slate-900">
             My Requests
           </h1>
@@ -51,9 +53,10 @@ function Requests() {
           <p className="mt-1 text-slate-500">
             Track the status of your resource requests.
           </p>
+          </header>
           {notice && <p className="mt-4 text-green-700" role="status">{notice}</p>}
 
-          <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="student-request-table mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
               <div className="overflow-x-auto">
                 {error && <p className="p-6 text-red-600" role="alert">{error}</p>}
                 {!error && !requests.length && <p className="p-6 text-slate-500">No requests yet. Browse resources to submit one.</p>}
@@ -77,6 +80,7 @@ function Requests() {
 
                       <td className="px-6 py-4 text-slate-600">
                         {resourceNames[request.resourceId] || request.resourceName || request.resource || "Resource"}
+                        {request.uniformStyle && <small className="block mt-1">{request.uniformStyle} · Size {request.uniformSize}</small>}
                       </td>
 
                       <td className="px-6 py-4 text-slate-500">

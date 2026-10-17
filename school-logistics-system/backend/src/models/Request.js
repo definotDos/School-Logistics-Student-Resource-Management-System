@@ -8,6 +8,8 @@ const requestSchema = new mongoose.Schema(
 		resourceRef: { type: mongoose.Schema.Types.ObjectId, ref: "Resource" },
 		resource: { type: String, required: true, trim: true },
 		quantity: { type: Number, min: 1, default: 1 },
+		uniformStyle: { type: String, enum: ["", "Trojan T-shirt", "CITE Polo"], default: "" },
+		uniformSize: { type: String, enum: ["", "XS", "S", "M", "L", "XL", "2XL", "3XL"], default: "" },
 		category: { type: String, trim: true, default: "Other" },
 		campus: { type: String, trim: true, default: "" },
 		

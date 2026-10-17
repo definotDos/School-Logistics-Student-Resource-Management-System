@@ -1,0 +1,73 @@
+/* Green-and-gold resource browsing; scoped to the student's dark theme. */
+.student-shell.resource-browser-shell.organized-workspace.dark-mode {
+  --student-bg: #101e17;
+  --student-surface: #192e22;
+  --student-raised: #243d2e;
+  --student-border: #415844;
+  --student-text: #f2f4e8;
+  --student-muted: #bdcbb8;
+  --student-accent: #ead08a;
+  --workspace-surface: var(--student-surface);
+  --workspace-border: var(--student-border);
+  --workspace-muted: var(--student-muted);
+  --ink: var(--student-text);
+  --muted: var(--student-muted);
+  --border: var(--student-border);
+  background: var(--student-bg);
+}
+.resource-browser-shell.organized-workspace.dark-mode .resource-browser-page {
+  --browse-accent: #ead08a;
+  --browse-accent-strong: #f6dfa7;
+  --browse-soft: var(--student-raised);
+  background: transparent;
+}
+.resource-browser-shell.organized-workspace.dark-mode .browse-heading {
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid #576044;
+  border-radius: 18px;
+  background: linear-gradient(115deg, #192e22, #253e2b 75%, #3a3e24);
+}
+.resource-browser-shell.organized-workspace.dark-mode .browse-heading-icon { background: #3c3b24; border-color: #74673b; color: var(--student-accent); box-shadow: none; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-summary > div { border-top: 3px solid #83ab82; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-summary > div:nth-child(2) { border-top-color: var(--student-accent); }
+.resource-browser-shell.organized-workspace.dark-mode .browse-summary > div:nth-child(2) .dashboard-icon { background: #3c3b24; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-category-list { padding-top: 14px; border-top: 1px solid var(--student-border); }
+.resource-browser-shell.organized-workspace.dark-mode .browse-category-list button span { background: var(--student-raised); color: var(--student-muted); }
+.resource-browser-shell.organized-workspace.dark-mode .browse-category-list button[aria-pressed="true"] { color: #26311c; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-category-list button[aria-pressed="true"] span { background: #26311c1a; color: #26311c; }
+.resource-browser-shell.organized-workspace.dark-mode :is(.browse-category-list button:hover, .browse-reset:hover, .resource-card:hover) { border-color: #a49155; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-search:focus-within { border-color: var(--student-accent); box-shadow: 0 0 0 3px #ead08a24; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-search input { background: transparent; }
+.resource-browser-shell.organized-workspace.dark-mode .resource-carousel {
+  --carousel-text: var(--student-text);
+  --carousel-muted: var(--student-muted);
+  --carousel-soft: var(--student-raised);
+  --carousel-accent: var(--student-accent);
+}
+.resource-browser-shell.organized-workspace.dark-mode :is(.resource-carousel-heading, .resource-carousel-controls) { background: #1d3325; }
+.resource-browser-shell.organized-workspace.dark-mode :is(.resource-carousel-request, .resource-card .resource-card-request, .resource-request-dialog .modal-primary) { background: var(--student-accent); color: #26311c; }
+.resource-browser-shell.organized-workspace.dark-mode :is(.resource-carousel-request, .resource-card .resource-card-request, .resource-request-dialog .modal-primary):hover:not(:disabled) { background: #f6dfa7; }
+.resource-browser-shell.organized-workspace.dark-mode .resource-card .resource-card-request:disabled { background: #304235; color: #bdcbb8; }
+.resource-browser-shell.organized-workspace.dark-mode .resource-card-gallery-controls > button { background: var(--student-raised); color: var(--student-accent); }
+.resource-browser-shell.organized-workspace.dark-mode .resource-card-gallery-dots [aria-current] i { background: var(--student-accent); }
+.resource-browser-shell.organized-workspace.dark-mode .uniform-gallery {
+  --uniform-surface: var(--student-raised);
+  --uniform-text: var(--student-text);
+  --uniform-border: var(--student-border);
+  --uniform-accent: var(--student-accent);
+  --uniform-selected-text: #26311c;
+}
+.resource-browser-shell.organized-workspace.dark-mode .resource-request-dialog :is(.request-dialog-summary, .request-dialog-note) { background: var(--student-raised); }
+.resource-browser-shell.organized-workspace.dark-mode :is(.uniform-request-options, .uniform-request-options select, .uniform-size-options span) { border-color: var(--student-border); }
+.resource-browser-shell.organized-workspace.dark-mode .uniform-size-options input:checked + span { background: var(--student-accent); border-color: var(--student-accent); color: #26311c; }
+.resource-browser-shell.organized-workspace.dark-mode .browse-skeleton > :is(div, span) { background: linear-gradient(100deg, #243d2e 20%, #344e39 40%, #243d2e 60%); background-size: 220% 100%; }
+.resource-browser-shell.organized-workspace.dark-mode :is(button, input, select):focus-visible,
+.resource-browser-shell.organized-workspace.dark-mode .uniform-size-options input:focus-visible + span { outline-color: var(--student-accent); }
+.resource-browser-shell.organized-workspace.dark-mode .notification-menu.student-notifications {
+  --notice-surface: var(--student-surface);
+  --notice-soft: var(--student-raised);
+  --notice-border: var(--student-border);
+  --notice-text: var(--student-text);
+  --notice-muted: var(--student-muted);
+  --notice-accent: var(--student-accent);
+}

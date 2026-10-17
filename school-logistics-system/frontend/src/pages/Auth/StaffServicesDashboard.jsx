@@ -100,6 +100,8 @@ function StaffServicesDashboard() {
           studentName: req.student?.name || "Student",
           resourceImage: getResourceImage({ name: req.resourceName || req.resource }),
           resource: req.resourceName || req.resource,
+          uniformStyle: req.uniformStyle,
+          uniformSize: req.uniformSize,
         }));
         setRequests(staffRequests);
         setRows((current) => ({
@@ -132,6 +134,8 @@ function StaffServicesDashboard() {
           avatar: request.avatar || request.student?.avatar || "",
           studentName: request.student?.name || "Student",
           resource: request.resourceName || request.resource || "Resource",
+          uniformStyle: request.uniformStyle,
+          uniformSize: request.uniformSize,
           resourceImage: getResourceImage({ name: request.resourceName || request.resource }),
           action: "View History",
           claimed: ["claimed", "released", "completed"].includes(request.status) ? `${request.quantity || 1} resource(s)` : "Not claimed",
@@ -656,7 +660,9 @@ function RecordRow({ row, icon = "requests", children, extra }) {
         <RecordImage src={studentFirst ? row.resourceImage : row.avatar} name={studentFirst ? resourceName : studentName} kind={studentFirst ? "resource" : "profile"} />
         <span>{studentFirst ? resourceName : studentName}</span>
       </div>
-      <small>{detail}</small>{extra}
+      <small>{detail}</small>
+      {row.uniformStyle && <small>{row.uniformStyle} · Size {row.uniformSize}</small>}
+      {extra}
     </div>
     {status && <span className={`status-pill ${status.toLowerCase().replaceAll(" ", "-")}`}>{formatStatus(status)}</span>}
     <div className="staff-row-actions">{children}</div>

@@ -9,12 +9,15 @@ import "./index.css";
 import "./App.css";
 import "./dashboard-layout.css";
 import "./light-theme.css";
+import "./student-resources-dark.css";
+import "./student-dark-theme.css";
 import "./sidebar-palette.css";
 import "./landing-palette.css";
 import "./responsive.css";
 import "./appearance.css";
 import "./components/auth/AuthPalette.css";
 import "./navigation-glass.css";
+import "./student-overview-glass.css";
 import { initializeAppearance } from "./utils/appearance";
 
 initializeAppearance();

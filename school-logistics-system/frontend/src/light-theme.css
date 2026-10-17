@@ -71,6 +71,92 @@
 }
 .student-shell.organized-workspace:not(.dark-mode) .notification-wrap .header-icon i { background: #205f89; color: #fff; border-color: #fff; }
 
+/* Student overview: green actions, gold highlights, and warm light surfaces. */
+:is(.student-overview, .resource-browser-shell).organized-workspace:not(.dark-mode) {
+  --light-ink: #203e2d;
+  --light-muted: #586b5b;
+  --light-accent: #256343;
+  --light-soft: #edf4e9;
+  --light-border: #d9dfc9;
+  --student-gold: #b28a2e;
+  --student-gold-soft: #fbf3dc;
+  background: #f5f6ee;
+}
+.student-overview.organized-workspace:not(.dark-mode) .student-dashboard { background: transparent; color: var(--light-ink); }
+.student-overview.organized-workspace:not(.dark-mode) .dashboard-welcome {
+  background: linear-gradient(115deg, #fffef9 35%, #eef4e5 75%, #faf0d3);
+  border-color: #ddd8b9;
+  box-shadow: 0 4px 18px #29422e08;
+}
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-kicker, .dashboard-welcome p, .dashboard-stat span, .panel-heading p, .claim-resource small, .claim-details, .claim-details b, .profile-modal-copy, .profile-form-grid label, .profile-photo-copy small) { color: var(--light-muted); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.panel-heading, .profile-photo-section) { background: #f7f8ef; border-color: var(--light-border); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.panel-heading a, .panel-action, .student-empty-state a, .profile-modal-close) { color: var(--light-accent); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.student-empty-state strong, .claim-resource strong, .profile-section-title, .profile-photo-copy strong) { color: var(--light-ink); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-primary-action, .profile-save) { background: #256343; color: #fff; box-shadow: 0 4px 12px #25634318; }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-primary-action:hover, .profile-save:enabled:hover) { background: #194c31; }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-profile-trigger, .profile-cancel, .profile-form-grid input, .profile-form-grid select) { border-color: var(--light-border); color: var(--light-ink); background-color: #fffef9; }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-profile-trigger:hover, .profile-cancel:hover, .request-row:hover, .search-results a:hover) { background: var(--light-soft); border-color: #a9bc97; }
+.student-overview.organized-workspace:not(.dark-mode) :is(.request-symbol, .student-stat-heading .dashboard-icon, .student-empty-state > .dashboard-icon, .claim-resource > span, .profile-account-chip, .profile-photo-picker b) { background: var(--light-soft); color: var(--light-accent); border-color: var(--light-border); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-profile-trigger > span:first-child, .profile-photo-picker > span:first-child, .claim-day) { background: var(--student-gold-soft); color: #765719; }
+.student-overview.organized-workspace:not(.dark-mode) .dashboard-stat { border-top: 3px solid #4c7952; }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-stat.gold, .dashboard-stat.blue) { border-top-color: var(--student-gold); }
+.student-overview.organized-workspace:not(.dark-mode) :is(.dashboard-stat.gold, .dashboard-stat.blue) .dashboard-icon { background: var(--student-gold-soft); color: #765719; }
+.student-overview.organized-workspace:not(.dark-mode) .notification-menu.student-notifications {
+  --notice-surface: #fffef9;
+  --notice-soft: var(--light-soft);
+  --notice-border: var(--light-border);
+  --notice-text: var(--light-ink);
+  --notice-muted: var(--light-muted);
+  --notice-accent: var(--light-accent);
+}
+.student-overview.organized-workspace:not(.dark-mode) .notification-wrap .header-icon i { background: #256343; }
+.student-overview.organized-workspace:not(.dark-mode) :is(a, button, input, select):focus-visible { outline-color: #8c6b20; }
+.student-overview.organized-workspace:not(.dark-mode) input::placeholder { color: var(--light-muted); }
+
+/* Resource browsing uses the same palette through filters, cards, and requests. */
+.resource-browser-shell.organized-workspace:not(.dark-mode) {
+  --student-text: var(--light-ink);
+  --ink: var(--light-ink);
+}
+.resource-browser-shell.organized-workspace:not(.dark-mode) .resource-browser-page {
+  --browse-accent: var(--light-accent);
+  --browse-accent-strong: #194c31;
+  --browse-soft: var(--light-soft);
+  background: transparent;
+}
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-heading {
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid #ddd8b9;
+  border-radius: 18px;
+  background: linear-gradient(115deg, #fffef9 35%, #eef4e5 75%, #faf0d3);
+}
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-heading-icon { background: var(--student-gold-soft); border-color: #e3d4a7; color: #765719; box-shadow: none; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-summary > div { border-top: 3px solid #4c7952; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-summary > div:nth-child(2) { border-top-color: var(--student-gold); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-summary > div:nth-child(2) .dashboard-icon { background: var(--student-gold-soft); color: #765719; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-category-list { padding-top: 14px; border-top: 1px solid var(--light-border); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-category-list button span { background: var(--student-gold-soft); color: #765719; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-category-list button[aria-pressed="true"] span { background: #ffffff2b; color: #fff; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.browse-category-list button:hover, .browse-reset:hover, .resource-card:hover) { border-color: #a9bc97; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .browse-search:focus-within { border-color: #8c6b20; box-shadow: 0 0 0 3px #b28a2e26; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .resource-carousel {
+  --carousel-text: var(--light-ink);
+  --carousel-muted: var(--light-muted);
+  --carousel-soft: var(--light-soft);
+  --carousel-accent: var(--light-accent);
+}
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-carousel-heading, .resource-carousel-controls) { background: #f7f8ef; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-card, .resource-request-dialog) { background: #fff; color: var(--light-ink); border-color: var(--light-border); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-card-image, .request-dialog-summary, .resource-request-dialog .request-dialog-note) { background: var(--light-soft); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-card h3, .resource-card-stock > span:last-child, .request-dialog-summary strong) { color: var(--light-ink); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-card-body p, .resource-results-count, .resource-request-dialog > p) { color: var(--light-muted); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-carousel-request, .resource-card .resource-card-request, .resource-request-dialog .modal-primary) { background: var(--light-accent); color: #fff; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-carousel-request, .resource-card .resource-card-request, .resource-request-dialog .modal-primary):hover:not(:disabled) { background: #194c31; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .resource-card .resource-card-request:disabled { background: #e6e9df; color: #586b5b; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) .resource-card-gallery-controls > button { background: var(--light-soft); color: var(--light-accent); }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(.resource-card-gallery-dots [aria-current] i, .resource-carousel-dots button[aria-current] span) { background: #8c6b20; }
+.resource-browser-shell.organized-workspace:not(.dark-mode) :is(button, input, select):focus-visible { outline-color: #8c6b20; }
+
 /* Landing page: carry the same light palette into the preview and content. */
 .landing-page:not(.dark-mode) { background: linear-gradient(180deg, #edf5fc, #f8fafc 650px); }
 .landing-page:not(.dark-mode) .landing-header { background: #fffffffa; border-color: var(--light-border); box-shadow: 0 6px 24px #19324d0d; }

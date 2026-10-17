@@ -44,6 +44,12 @@ html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not
   z-index: 40;
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  min-width: 0;
   gap: 16px;
   min-height: 72px;
   margin: 16px 24px 0;
@@ -58,6 +64,47 @@ html .organized-workspace:is(.admin-shell, .dashboard-shell):is(.dark-mode, :not
 .organized-workspace .glass-navigation .header-actions { gap: 12px; }
 .organized-workspace .glass-navigation .header-theme-toggle { min-height: 40px; border-radius: 12px; }
 .organized-workspace .glass-navigation .header-profile { padding-left: 14px; border-left: 1px solid var(--header-glass-border); }
+
+/* Size the account tools independently of legacy full-width header rules. */
+html .organized-workspace .app-header.glass-navigation .header-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  gap: 10px;
+  margin-left: auto;
+}
+html .organized-workspace .app-header.glass-navigation .header-context {
+  flex: 1 1 160px;
+}
+html .organized-workspace .app-header.glass-navigation :is(.header-theme-toggle, .header-icon, .header-profile) {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 10px;
+}
+html .organized-workspace .app-header.glass-navigation .header-theme-toggle {
+  padding: 0 14px;
+  white-space: nowrap;
+}
+html .organized-workspace .app-header.glass-navigation .header-icon {
+  width: 44px;
+  padding: 0;
+}
+html .organized-workspace .app-header.glass-navigation .header-profile {
+  min-width: 0;
+  max-width: 220px;
+  gap: 10px;
+  padding: 5px 12px;
+}
+html .organized-workspace .app-header.glass-navigation .header-profile > :is(img, b) {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+}
 
 .organized-workspace .app-sidebar.glass-navigation .sidebar-nav { padding: 16px 12px; }
 .organized-workspace .app-sidebar.glass-navigation .sidebar-nav > p { display: none; }

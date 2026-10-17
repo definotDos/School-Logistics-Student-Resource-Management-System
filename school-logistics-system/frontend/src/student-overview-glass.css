@@ -1,0 +1,244 @@
+/* Shared student glass treatment, layered after the shared theme palettes. */
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace {
+  --overview-base: #edf2e7;
+  --overview-glow-green: #8ebd9990;
+  --overview-glow-gold: #efd182a0;
+  --overview-solid: #f9fbf4;
+  --overview-glass: #ffffffa8;
+  --overview-edge: #ffffffcc;
+  --overview-shadow: #29482e12;
+  --overview-highlight: #ffffffb3;
+  --overview-grid: #42634708;
+  --overview-sheen: #ffffff70;
+  background:
+    radial-gradient(ellipse at 12% 8%, var(--overview-glow-green), transparent 52%),
+    radial-gradient(ellipse at 92% 30%, var(--overview-glow-gold), transparent 48%),
+    radial-gradient(ellipse at 45% 100%, var(--overview-glow-green), transparent 55%),
+    var(--overview-base);
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.dark-mode {
+  --overview-base: #0b1913;
+  --overview-glow-green: #439a7170;
+  --overview-glow-gold: #c6a44f45;
+  --overview-solid: #1c3023;
+  --overview-glass: #183127a8;
+  --overview-edge: #c2dec330;
+  --overview-shadow: #020b0640;
+  --overview-highlight: #ffffff12;
+  --overview-grid: #d7ebc906;
+  --overview-sheen: #d9f4d910;
+}
+
+/* Keep the lighting centered on the workspace, independent of sidebar width. */
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace > .dashboard-content {
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 0%, var(--overview-glow-green), transparent 80%),
+    radial-gradient(ellipse 55% 50% at 100% 35%, var(--overview-glow-gold), transparent 80%),
+    radial-gradient(ellipse 65% 40% at 30% 100%, var(--overview-glow-green), transparent 85%),
+    linear-gradient(var(--overview-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--overview-grid) 1px, transparent 1px),
+    var(--overview-base);
+  background-size: auto, auto, auto, 64px 64px, 64px 64px, auto;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .student-dashboard {
+  background: transparent;
+  padding: clamp(16px, 2.5vw, 32px);
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace :is(.dashboard-welcome, .dashboard-stat, .dashboard-panel) {
+  background: var(--overview-solid);
+  border: 1px solid var(--overview-edge);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 var(--overview-highlight), 0 16px 40px var(--overview-shadow);
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-welcome {
+  padding: clamp(20px, 2.5vw, 32px);
+  margin-bottom: 24px;
+  gap: 24px;
+  border-radius: 24px;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-welcome-actions {
+  flex: 0 1 292px;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-primary-action {
+  box-shadow: 0 6px 18px var(--overview-shadow);
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-kicker {
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  line-height: 1.6;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-stats {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-stat {
+  padding: 20px;
+  min-width: 0;
+  border-top: 2px solid currentColor;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-grid {
+  gap: 24px;
+  align-items: stretch;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .panel-heading {
+  padding: 22px 24px;
+  background: transparent;
+  border-bottom: 1px solid var(--overview-edge);
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-panel {
+  padding: 0;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .request-row {
+  padding: 18px 24px;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .claim-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .claim-panel .panel-action {
+  margin-top: auto;
+}
+
+@supports ((backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px))) {
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace :is(.dashboard-welcome, .dashboard-stat, .dashboard-panel) {
+    background: linear-gradient(135deg, var(--overview-sheen), transparent 65%), var(--overview-glass);
+    -webkit-backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: blur(20px) saturate(125%);
+  }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-welcome {
+    background:
+      radial-gradient(ellipse at 100% 0%, var(--overview-glow-gold), transparent 65%),
+      linear-gradient(120deg, var(--overview-sheen), transparent 65%),
+      var(--overview-glass);
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace :is(.dashboard-welcome, .dashboard-stats) { margin-bottom: 16px; }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace :is(.dashboard-stats, .dashboard-grid) { gap: 12px; }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-stat { padding: 16px; }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .panel-heading { padding: 18px; }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-welcome-actions { flex: 1 1 100%; }
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .request-row { padding: 16px 18px; }
+}
+
+@media (max-width: 380px) {
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace .dashboard-stats { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace :is(.dashboard-welcome, .dashboard-stat, .dashboard-panel) {
+    background: var(--overview-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Resource and record pages share the overview's surfaces and spacing. */
+.dashboard-shell.student-shell.student-pages.organized-workspace .dashboard-content > main {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: clamp(16px, 2.5vw, 32px);
+  background: transparent;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(
+  .student-page-heading, .browse-heading, .browse-summary > div,
+  .browse-filter-panel, .resource-card, .browse-empty,
+  .student-request-table, .claim-filter-bar, .claim-schedule-card, .claim-state,
+  .history-stats > div, .history-filter-bar, .distribution-history-page article
+) {
+  background: var(--overview-solid);
+  border: 1px solid var(--overview-edge);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 var(--overview-highlight), 0 16px 40px var(--overview-shadow);
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(.student-page-heading, .browse-heading) {
+  padding: clamp(20px, 2.5vw, 32px);
+  border-radius: 24px;
+  gap: 20px;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(.student-page-heading, .browse-heading) h1 {
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -.7px;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace .student-page-heading button {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(.history-stats, .browse-summary) {
+  gap: 16px;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(.history-stats > div, .browse-summary > div) {
+  padding: 20px;
+  min-width: 0;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace :is(.claim-filter-bar, .history-filter-bar) {
+  padding: 12px;
+  margin-block: 24px;
+}
+
+.dashboard-shell.student-shell.student-pages.organized-workspace .student-request-table { margin-top: 24px; }
+.dashboard-shell.student-shell.student-pages.organized-workspace .student-request-table thead { background: var(--overview-sheen); }
+.dashboard-shell.student-shell.student-pages.organized-workspace .student-request-table :is(th, td) { padding: 18px 24px; }
+.dashboard-shell.student-shell.student-pages.organized-workspace .claim-schedule-list { gap: 20px; }
+.dashboard-shell.student-shell.student-pages.organized-workspace .resource-browser-page { gap: 24px; }
+
+@supports ((backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px))) {
+  .dashboard-shell.student-shell.student-pages.organized-workspace :is(
+    .student-page-heading, .browse-heading, .browse-summary > div,
+    .browse-filter-panel, .resource-card, .browse-empty,
+    .student-request-table, .claim-filter-bar, .claim-schedule-card, .claim-state,
+    .history-stats > div, .history-filter-bar, .distribution-history-page article
+  ) {
+    background: linear-gradient(135deg, var(--overview-sheen), transparent 65%), var(--overview-glass);
+    -webkit-backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: blur(20px) saturate(125%);
+  }
+  .dashboard-shell.student-shell.student-pages.organized-workspace :is(.student-page-heading, .browse-heading) {
+    background: radial-gradient(ellipse at 100% 0%, var(--overview-glow-gold), transparent 65%), var(--overview-glass);
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-shell.student-shell.student-pages.organized-workspace :is(.history-stats, .browse-summary, .resource-browser-page, .claim-schedule-list) { gap: 16px; }
+  .dashboard-shell.student-shell.student-pages.organized-workspace .student-request-table :is(th, td) { padding: 16px; }
+  .dashboard-shell.student-shell.student-pages.organized-workspace .student-page-heading > div { min-width: 0; flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .dashboard-shell.student-shell.student-pages.organized-workspace :is(
+    .student-page-heading, .browse-heading, .browse-summary > div,
+    .browse-filter-panel, .resource-card, .browse-empty,
+    .student-request-table, .claim-filter-bar, .claim-schedule-card, .claim-state,
+    .history-stats > div, .history-filter-bar, .distribution-history-page article
+  ) {
+    background: var(--overview-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

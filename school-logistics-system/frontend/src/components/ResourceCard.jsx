@@ -14,7 +14,7 @@ function ResourceCard({ resource, onRequest }) {
   return (
     <div className="resource-card overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-      {isSchoolUniform(resource) ? <UniformGallery /> : <div className="resource-card-gallery" role="group" aria-roledescription="carousel" aria-label={`${resource.name} images`}>
+      {isSchoolUniform(resource) ? <UniformGallery compact /> : <div className="resource-card-gallery" role="group" aria-roledescription="carousel" aria-label={`${resource.name} images`}>
         <div className={`resource-card-image flex h-32 items-center justify-center bg-slate-100 text-5xl ${slide?.detail ? "is-detail" : ""}`}>
           {slide ? <img className="h-full w-full object-cover" src={slide.src} alt={`${resource.name} — ${slide.label}`} loading="lazy" onError={() => setFailedImages((current) => [...current, slide.src])} /> : <span aria-hidden="true">{resource.icon}</span>}
         </div>

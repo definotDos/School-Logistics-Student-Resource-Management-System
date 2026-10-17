@@ -33,29 +33,47 @@ const guides = {
 
 function HelpPanel({ user }) {
   const [query, setQuery] = useState("");
-  const topics = [...(guides[user.role] || guides.student),
-    { title: "Update my name or email", path: "/settings", answer: "Open Settings to save your display name or change your email. Email changes require a verification code sent to the new inbox." },
-    { title: "Resolve an account or campus issue", answer: "For an incorrect campus, access issue, or a request that needs clarification, contact your campus resource office or system administrator. Include the affected resource or request reference and what happened. Never share your password or verification code." },
+  const groups = [
+    { title: "Resources and requests", icon: "resources", topics: guides[user.role] || guides.student },
+    { title: "Account and access", icon: "profile", topics: [
+      { title: "Update my name or email", path: "/settings", answer: "Open Settings to save your display name or change your email. Email changes require a verification code sent to the new inbox." },
+      { title: "Resolve an account or campus issue", answer: "For an incorrect campus, access issue, or a request that needs clarification, contact your campus resource office or system administrator. Include the affected resource or request reference and what happened. Never share your password or verification code." },
+    ] },
   ];
-  const matches = topics.filter(topic => `${topic.title} ${topic.answer}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const search = query.trim().toLowerCase();
+  const matches = groups.map(group => ({
+    ...group,
+    topics: group.topics.filter(topic => `${topic.title} ${topic.answer}`.toLowerCase().includes(search)),
+  }));
+  const matchCount = matches.reduce((count, group) => count + group.topics.length, 0);
+
   return <>
-    <section className="utility-card">
-      <h2>How can we help?</h2>
+    <section className="utility-card help-guides" aria-label="Help guides">
+      <SectionHeading icon="help" title="How can we help?" description="Search for an answer or browse the guides below." />
       <label htmlFor="help-search">Search guides</label>
-      <input id="help-search" type="search" placeholder="Try requests, email, or claims" value={query} onChange={event => setQuery(event.target.value)} />
-      <p className="utility-muted" role="status">{matches.length} {matches.length === 1 ? "guide" : "guides"} found</p>
+      <input id="help-search" type="search" placeholder="Try requests, email, or claims" value={query} onChange={event => setQuery(event.target.value)} aria-describedby="help-result-count" />
+      <p id="help-result-count" className="utility-muted help-result-count" role="status">{matchCount} {matchCount === 1 ? "guide" : "guides"} found</p>
       <div className="utility-faq" key={query}>
-        {matches.map(topic => <details key={topic.title} open={query.trim() ? true : undefined}><summary>{topic.title}</summary><p>{topic.answer}</p>{topic.path && <Link to={topic.path}>Open {topic.title.toLowerCase()} <span aria-hidden="true">→</span></Link>}</details>)}
-        {!matches.length && <p>No matching guides. Try another keyword or contact your campus office below.</p>}
+        {matches.filter(group => group.topics.length > 0).map(group => <section className="help-topic-group" key={group.title}>
+          <h3><DashboardIcon name={group.icon} />{group.title}</h3>
+          {group.topics.map(topic => <details key={topic.title} open={search ? true : undefined}>
+            <summary>{topic.title}<span className="help-chevron" aria-hidden="true" /></summary>
+            <div className="help-answer"><p>{topic.answer}</p>{topic.path && <Link to={topic.path}>Open {topic.title.toLowerCase()} <span aria-hidden="true">&rarr;</span></Link>}</div>
+          </details>)}
+        </section>)}
+        {!matchCount && <div className="help-empty"><h3>No matching guides</h3><p className="utility-muted">Try a different keyword, or contact your campus resource office for help.</p><button type="button" className="utility-action" onClick={() => setQuery("")}>Show all guides</button></div>}
       </div>
     </section>
-    <aside className="utility-card">
-      <h2>Campus support</h2>
-      <p>Contact your campus resource office or system administrator for help with your account or resource requests.</p>
+    <aside className="utility-card help-support" aria-label="Campus support">
+      <SectionHeading icon="school" title="Campus support" description="Need a hand with something else?" />
+      <p className="help-support-intro">Contact your campus resource office or system administrator for help with your account or resource requests.</p>
       <dl className="utility-details"><div><dt>Campus</dt><dd>{user.activeCampus || user.campus || "All campuses"}</dd></div><div><dt>Account</dt><dd>{user.email}</dd></div></dl>
-      <h3>Before you contact support</h3>
-      <ul><li>Note the resource name and request reference, if available.</li><li>Describe what you tried and any error shown.</li><li>Keep your password and verification codes private.</li></ul>
-      <Link className="utility-action" to={user.role === "admin" ? "/admin" : user.role === "staff" ? "/staff" : "/student"}>Back to dashboard</Link>
+      <div className="help-checklist">
+        <h3>Before you contact support</h3>
+        <ol><li>Have your resource name and request reference ready.</li><li>Describe what you tried and any error shown.</li></ol>
+        <p className="help-privacy"><DashboardIcon name="audit" /><span>Keep your password and verification codes private.</span></p>
+      </div>
+      <Link className="utility-action" to={user.role === "admin" ? "/admin" : user.role === "staff" ? "/staff" : "/student"}>Back to dashboard <span aria-hidden="true">&rarr;</span></Link>
     </aside>
   </>;
 }
@@ -109,7 +127,7 @@ export default function AccountUtilities({ page }) {
     <Sidebar type={user.role} />
     <div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(current => !current)} />
       <main className="utility-main"><header className="utility-heading"><span>YOUR WORKSPACE</span><h1>{isHelp ? "Help and Support" : "Settings"}</h1><p>{isHelp ? "Find answers and get back to your school resources." : "Manage your account details and workspace preferences."}</p></header>
-        <div className="utility-grid">{isHelp ? <HelpPanel user={user} /> : <SettingsPanel user={user} />}</div>
+        <div className={`utility-grid ${isHelp ? "help-grid" : ""}`}>{isHelp ? <HelpPanel user={user} /> : <SettingsPanel user={user} />}</div>
       </main>
     </div>
   </div>;

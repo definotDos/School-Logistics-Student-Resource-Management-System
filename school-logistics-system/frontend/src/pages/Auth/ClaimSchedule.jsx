@@ -58,7 +58,7 @@ function ClaimSchedule() {
 
         <main className="student-animated-page claim-schedule-page p-6 lg:p-8">
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="student-page-heading flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="claim-page-kicker">STUDENT PORTAL / COLLECTIONS</span>
               <h1 className="text-2xl font-bold text-slate-900">Claim Schedule</h1>

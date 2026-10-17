@@ -134,3 +134,47 @@
 .utility-shell .utility-faq details { border-color: var(--utility-border); }
 @media (max-width: 1000px) { .utility-shell .utility-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .utility-shell .utility-main { padding: 24px 14px; } .utility-shell .utility-card { padding: 20px; } .utility-shell .utility-heading { margin-bottom: 20px; } }
+
+/* Keep the support card in the content grid, independent of global aside styles. */
+.utility-shell .help-grid { grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); }
+.utility-shell .help-support {
+  position: static;
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+.utility-shell .help-grid .utility-section-heading { margin-bottom: 20px; }
+.utility-shell .help-result-count { margin: 10px 0 24px; font-size: 12px; }
+.utility-shell .help-topic-group + .help-topic-group { margin-top: 28px; }
+.utility-shell .help-topic-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  color: var(--utility-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.help-grid .dashboard-icon { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.utility-shell .help-topic-group details { padding: 0; border: 1px solid var(--utility-border); border-radius: 10px; overflow: hidden; }
+.utility-shell .help-topic-group details + details { margin-top: 8px; }
+.utility-shell .help-topic-group summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; list-style: none; font-size: 14px; }
+.help-topic-group summary::-webkit-details-marker { display: none; }
+.utility-shell .help-topic-group summary:hover, .utility-shell .help-topic-group details[open] summary { background: var(--utility-soft); }
+.utility-shell .help-topic-group summary:focus-visible { outline-offset: -3px; }
+.help-chevron { width: 7px; height: 7px; flex: 0 0 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin: -4px 4px 0; }
+.help-topic-group details[open] .help-chevron { transform: rotate(225deg); margin-top: 4px; }
+.utility-shell .help-answer { padding: 0 16px 18px; font-size: 14px; }
+.utility-shell .help-answer p { color: var(--utility-muted); }
+.utility-shell .help-support-intro { margin: 0 0 12px; color: var(--utility-muted); font-size: 14px; }
+.utility-shell .help-checklist { padding: 18px; background: var(--utility-soft); border-radius: 12px; }
+.utility-shell .help-checklist h3 { margin: 0 0 12px; font-size: 14px; }
+.utility-shell .help-checklist ol { margin: 0; padding-left: 18px; font-size: 13px; color: var(--utility-muted); }
+.utility-shell .help-privacy { display: flex; align-items: flex-start; gap: 9px; margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--utility-border); font-size: 12px; color: var(--utility-muted); }
+.utility-shell .help-support > .utility-action { display: flex; gap: 12px; }
+.utility-shell .help-empty { padding: 20px; text-align: center; border: 1px dashed var(--utility-border); border-radius: 12px; }
+.utility-shell .help-empty h3 { margin-top: 0; }
+@media (max-width: 1100px) { .utility-shell .help-grid { grid-template-columns: minmax(0, 1fr); } }

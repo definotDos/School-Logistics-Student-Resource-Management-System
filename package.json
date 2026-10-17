@@ -8,6 +8,6 @@
     "install:all": "npm install --prefix school-logistics-system"
   },
   "dependencies": {
-    "resend": "^6.32.1"
+    "resend": "^6.34.1"
   }
 }

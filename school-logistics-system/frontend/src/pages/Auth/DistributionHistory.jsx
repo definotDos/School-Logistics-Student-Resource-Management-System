@@ -73,7 +73,7 @@ function DistributionHistory() {
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
 
         <main className="student-animated-page distribution-history-page p-6 lg:p-8">
-          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div className="student-page-heading flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.12em] text-violet-600">Student Portal</p>
               <h1 className="mt-1 text-3xl font-bold text-slate-900">Distribution History</h1>

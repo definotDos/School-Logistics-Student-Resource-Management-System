@@ -28,17 +28,35 @@
 .uniform-gallery .uniform-gallery-item img {
   display: block;
   width: 100%;
-  height: clamp(220px, 32vw, 300px);
-  padding: 0;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  max-height: 380px;
+  padding: 8px;
   box-sizing: border-box;
   object-fit: contain;
   background: transparent;
 }
 .uniform-gallery-item figcaption { padding: 14px 8px 4px; color: var(--uniform-text); font-size: 14px; font-weight: 600; line-height: 1.5; text-align: center; }
-.uniform-gallery-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; border: 1px solid var(--uniform-border); border-radius: 12px; }
+.uniform-gallery-item figcaption small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; opacity: .75; }
+.uniform-gallery-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px; border: 1px solid var(--uniform-border); border-radius: 12px; }
 .student-pages .uniform-gallery button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--uniform-text); font-size: 12px; font-weight: 600; cursor: pointer; }
 .student-pages .uniform-gallery-navigation button { width: 36px; min-height: 36px; flex-shrink: 0; border-color: var(--uniform-border); font-size: 18px; }
 .student-pages .uniform-gallery-options button[aria-pressed="true"] { background: var(--uniform-accent); color: var(--uniform-selected-text); }
 .student-pages .uniform-gallery button:focus-visible { outline: 3px solid var(--uniform-accent); outline-offset: 2px; }
 .student-pages .uniform-gallery button:hover { border-color: var(--uniform-accent); }
 @media (max-width: 400px) { .uniform-gallery { padding: 12px; } }
+
+.uniform-request-options { display: grid; gap: 10px; min-width: 0; margin: 20px 0; padding: 16px; border: 1px solid #c4d4e4; border-radius: 12px; text-align: left; }
+.uniform-request-options legend { padding: 0 6px; font-weight: 700; font-size: 14px; }
+.uniform-request-preview { display: block; width: 100%; height: 160px; object-fit: contain; background: transparent; }
+.uniform-request-options > label, .uniform-request-options > span { font-size: 13px; font-weight: 600; }
+.uniform-request-options select { width: 100%; min-height: 44px; padding: 10px; border: 1px solid #c4d4e4; border-radius: 8px; background: #fff; color: #173452; }
+.uniform-size-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 8px; }
+.uniform-size-options label { position: relative; cursor: pointer; }
+.uniform-size-options input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.uniform-size-options span { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #c4d4e4; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.uniform-size-options input:checked + span { background: #245b85; border-color: #245b85; color: #fff; }
+.uniform-size-options input:focus-visible + span { outline: 3px solid #398bd0; outline-offset: 2px; }
+.uniform-request-options:disabled { opacity: .65; }
+.student-pages .uniform-request-options p { margin: 0; font-size: 12px; line-height: 1.6; }
+.dark-mode .uniform-request-options select { background: #20334b; color: #f1f5fb; }

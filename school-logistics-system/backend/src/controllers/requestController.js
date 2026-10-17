@@ -96,7 +96,7 @@ const sendNotification = async (userId, type, title, message, relatedEntityId = 
 
 async function createRequest(req, res) {
 	try {
-		const { resource, quantity = 1, notes = "", reason = "" } = req.body;
+		const { resource, quantity = 1, notes = "", reason = "", uniformStyle = "", uniformSize = "" } = req.body;
 		const resourceId = resource && (typeof resource === "string" ? resource.trim() : String(resource));
 		
 		// Validation
@@ -119,6 +119,14 @@ async function createRequest(req, res) {
 
 		if (!canAccessCampus(req, resourceExists) || resourceExists.status === "Discontinued") return res.status(403).json({ message: "Resource is not available for your campus." });
 
+		const isUniform = resourceExists.name?.trim().toLowerCase() === "school uniform";
+		if (isUniform && (!["Trojan T-shirt", "CITE Polo"].includes(uniformStyle) || !["XS", "S", "M", "L", "XL", "2XL", "3XL"].includes(uniformSize))) {
+			return res.status(400).json({ message: "Choose a valid uniform style and size." });
+		}
+		if (!isUniform && (uniformStyle || uniformSize)) {
+			return res.status(400).json({ message: "Uniform preferences only apply to school uniforms." });
+		}
+
 		// Check for duplicate active requests
 		const duplicate = await Request.findOne({
 			student: req.user._id,
@@ -136,6 +144,8 @@ async function createRequest(req, res) {
 			resource: resourceExists.name,
 			resourceRef: resourceExists._id,
 			quantity: Number(quantity),
+			uniformStyle: isUniform ? uniformStyle : "",
+			uniformSize: isUniform ? uniformSize : "",
 			category: resourceExists.category,
 			campus: req.user.campus,
 			status: "pending",
