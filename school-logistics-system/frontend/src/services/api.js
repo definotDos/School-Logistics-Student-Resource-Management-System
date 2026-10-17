@@ -1,7 +1,8 @@
 import { emailValid, policy, courses } from "../utils/accountValidation";
 import { getToken } from "./session";
+import { resolveApiBase, readApiResponse } from "./apiConfig.js";
 
-const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+const API_URL = resolveApiBase(import.meta.env.VITE_API_URL);
 
 /**
  * Generic API request wrapper with authentication
@@ -34,19 +35,7 @@ export async function apiRequest(endpoint, options = {}) {
     throw new Error("We could not reach the server. Please try again in a moment.");
   }
 
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const error = new Error(data.message || (response.status >= 500 ? "The service is temporarily unavailable. Please try again shortly." : `Request failed with status ${response.status}.`));
-    error.status = response.status;
-    error.requiresVerification = data.requiresVerification;
-    error.email = data.email;
-    error.retryAfterSeconds = data.retryAfterSeconds;
-    error.lockedUntil = data.lockedUntil;
-    throw error;
-  }
-
-  return data;
+  return readApiResponse(response);
 }
 
 // ============================================
