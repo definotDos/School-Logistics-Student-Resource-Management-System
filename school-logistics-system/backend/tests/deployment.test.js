@@ -21,6 +21,35 @@ test('plain HTTP is still rejected in production', async () => {
   expect((await request(app).get('/')).status).toBe(400);
 });
 
+test('login has exactly the /api prefix and missing routes return JSON', async () => {
+  const valid = await request(app).post('/api/auth/login').set('X-Forwarded-Proto', 'https').send({});
+  expect(valid.status).toBe(401);
+  expect(valid.body.message).toBe('Invalid email or password.');
+  for (const path of ['/auth/login', '/api/api/auth/login']) {
+    const missing = await request(app).post(path).set('X-Forwarded-Proto', 'https').send({});
+    expect(missing.status).toBe(404);
+    expect(missing.type).toBe('application/json');
+    expect(missing.body.message).toContain('/api');
+  }
+});
+
+test.each(['signup', 'verify-email', 'resend-verification-code', 'forgot-password', 'reset-password', 'activate-account', 'mfa/verify', 'mfa/resend'])('auth endpoint %s reaches input validation without a database or email', async path => {
+  const response = await request(app).post(`/api/auth/${path}`).set('X-Forwarded-Proto', 'https').send({});
+  expect(response.status).toBe(400);
+  expect(response.type).toBe('application/json');
+  expect(response.body.message).toEqual(expect.any(String));
+});
+
+test('CORS preflight permits the deployed origin and authorization header', async () => {
+  const response = await request(app).options('/api/auth/login')
+    .set('Origin', 'https://school.example.com').set('Access-Control-Request-Method', 'POST')
+    .set('Access-Control-Request-Headers', 'content-type,authorization');
+  expect(response.status).toBe(204);
+  expect(response.headers['access-control-allow-origin']).toBe('https://school.example.com');
+  expect(response.headers['access-control-allow-credentials']).toBe('true');
+  expect(response.headers['access-control-allow-headers']).toContain('authorization');
+});
+
 test('explicitly allowed cross-site frontend passes the origin guard', async () => {
   const response = await request(app).post('/api/nonexistent')
     .set('X-Forwarded-Proto', 'https').set('Origin', 'https://school.example.com')

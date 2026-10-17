@@ -1,13 +1,14 @@
 import { emailValid, policy, courses } from "../utils/accountValidation";
 import { getToken } from "./session";
+import { resolveApiBase, readApiResponse } from "./apiConfig";
 
-const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 
 /**
  * Generic API request wrapper with authentication
  * Handles token management and error responses
  */
 export async function apiRequest(endpoint, options = {}) {
+  const API_URL = resolveApiBase(import.meta.env.VITE_API_URL);
   if (options.body && typeof options.body === "string") {
     const body = JSON.parse(options.body);
     if (body.email !== undefined && !emailValid(body.email)) throw new Error("Use a valid @phinmaed.com email address.");
@@ -34,7 +35,7 @@ export async function apiRequest(endpoint, options = {}) {
     throw new Error("We could not reach the server. Please try again in a moment.");
   }
 
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiResponse(response);
 
   if (!response.ok) {
     const error = new Error(data.message || (response.status >= 500 ? "The service is temporarily unavailable. Please try again shortly." : `Request failed with status ${response.status}.`));
@@ -100,7 +101,7 @@ export const authAPI = {
     }),
 
   /**
-   * Logout (client-side only, clears token)
+   * Revoke server sessions and device trust before clearing local state.
    */
   logout: () => apiRequest('/auth/logout', { method: 'POST', body: '{}' }),
 };

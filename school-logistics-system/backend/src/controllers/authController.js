@@ -63,7 +63,7 @@ async function signup(req, res) {
 	} catch (error) {
 		if ([400, 403].includes(error.status) || error.name === "ValidationError") return res.status(error.status || 400).json({ message: error.message });
 		if (error.code === 11000) return res.status(409).json({ message: "An account with this email or ID already exists." });
-		console.error("Signup error:", error);
+		console.error(JSON.stringify({ event: 'signup_error', name: error.name, code: error.code }));
 		res.status(500).json({ message: "Unable to create account." });
 	}
 }
@@ -143,7 +143,7 @@ async function resendVerificationCode(req, res) {
 		await sendVerificationEmail(email, verificationCode, user.activationPending === true, temporaryPassword);
 		return res.status(200).json({ message: "A new verification code was sent to your email." });
 	} catch (error) {
-		console.error("Resend verification error:", error);
+		console.error(JSON.stringify({ event: 'verification_delivery_failed', name: error.name, code: error.code, responseCode: error.responseCode }));
 		return res.status(500).json({ message: "Unable to resend verification code." });
 	}
 }
