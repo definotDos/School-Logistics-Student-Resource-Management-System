@@ -1,0 +1,36 @@
+{
+  "title": "Appendix B - Dataset",
+  "database": "school_logistics",
+  "snapshotStartedUTC": "2026-10-19T09:49:36.673Z",
+  "snapshotCompletedUTC": "2026-10-19T09:49:37.239Z",
+  "snapshotStartedAsiaSingapore": "Monday, 19 October 2026 at 17:49:36 GMT+8",
+  "snapshotCompletedAsiaSingapore": "Monday, 19 October 2026 at 17:49:37 GMT+8",
+  "timezone": "Asia/Singapore (UTC+08:00)",
+  "consistency": "Read-only MongoDB snapshot transaction across all nine selected collections.",
+  "campusScope": [
+    "PHINMA University of Pangasinan"
+  ],
+  "scope": "All records in the nine requested collections; no date or campus filter. Inventory scope is inherited through resource references; audit scope is inferred through related records where available.",
+  "collectionCounts": {
+    "users": 13,
+    "campus": 1,
+    "resources": 5,
+    "inventories": 7,
+    "requests": 28,
+    "allocations": 26,
+    "claimschedules": 9,
+    "distributions": 7,
+    "auditlogs": 163
+  },
+  "totalRecords": 259,
+  "dataOrigin": "synthetic",
+  "originEvidence": "User explicitly confirmed all records are test/demo records (synthetic). Every exported record includes dataOrigin=synthetic.",
+  "omittedCollections": [
+    "notifications",
+    "trusteddevices"
+  ],
+  "exportPurpose": "Anonymized research appendix extract; not a complete database backup or restorable application dataset.",
+  "anonymization": "Strict field allowlists; credentials, tokens, personal names, contact information, IDs, avatars, free-text notes, reasons, metadata, locations and verification text excluded. All ObjectIds replaced by consistent aliases. Resource names/categories aliased. Timestamps reduced to UTC dates. No reverse mapping saved.",
+  "missingReferenceCount": 93,
+  "unexpectedSensitiveStringsRedacted": 0
+}

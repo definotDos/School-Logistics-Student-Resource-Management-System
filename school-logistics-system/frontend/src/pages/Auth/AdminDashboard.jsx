@@ -12,7 +12,12 @@ import { useAuth } from "../../context/useAuth";
 import { allocationAPI, distributionAPI, inventoryAPI, reportsAPI, requestAPI, resourceAPI, userAPI } from "../../services/api";
 import { CampusPanel, NotificationsPanel, ReportsPanel, DistributionPanel, CreateUserForm } from "../../components/ManagementPanels";
 import DashboardIcon from "../../components/DashboardIcon";
+import AllocationIdentity from "../../components/AllocationIdentity";
+import AllocationResource from "../../components/AllocationResource";
+import AllocationDistributor from "../../components/AllocationDistributor";
+import { assignedStaffId, needsDistributor } from "../../utils/allocations";
 import { getResourceImage } from "../../utils/resourceImages";
+import { getUniformStyleImage, isSchoolUniform } from "../../utils/uniforms";
 import { campuses } from "../../data/campuses";
 import "./AdminDashboard.css";
 
@@ -94,7 +99,12 @@ function AdminDashboard() {
         setWorkflowRows((current) => ({ ...current, allocation: (allocationResult.allocations || []).map((allocation) => ({
           databaseId: allocation._id,
           studentName: allocation.student?.name || "Student",
+          studentAvatar: allocation.student?.avatar || "",
+          campus: allocation.campus || allocation.student?.campus || "",
           resourceName: allocation.resource?.name || "Resource",
+          resourceImage: allocation.resourceImage || allocation.resource?.image || "",
+          uniformStyle: allocation.uniformStyle || "",
+          uniformSize: allocation.uniformSize || "",
           quantity: allocation.quantity,
           name: allocation.student?.studentId || allocation.student?.id || `Student ${String(allocation._id).slice(-6)}`,
           detail: `${allocation.student?.name || "Student"} · ${allocation.resource?.name || "Resource"} · ${allocation.quantity} unit(s)`,
@@ -174,12 +184,13 @@ function AdminDashboard() {
     if (!staffId) return;
     try {
       const result = await allocationAPI.assignStaff(allocation.databaseId, staffId);
-      setWorkflowRows((current) => ({ ...current, allocation: current.allocation.map((item) => item.databaseId === allocation.databaseId ? { ...item, assignedStaff: result.allocation.assignedStaff } : item) }));
+      const selectedStaff = staffMembers.find(staff => (staff.id || staff._id) === staffId);
+      setWorkflowRows((current) => ({ ...current, allocation: current.allocation.map((item) => item.databaseId === allocation.databaseId ? { ...item, assignedStaff: { _id: assignedStaffId(result.allocation) || staffId, name: selectedStaff?.name || "Staff member" } } : item) }));
       setNotice(`${staffMembers.find((staff) => staff.id === staffId)?.name || "Staff member"} was assigned to distribute this request.`);
-    } catch (error) { setNotice(error.message); }
+    } catch (error) { setNotice(error.message); throw error; }
   };
 
-  return <div className={`admin-shell organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
+  return <div className={`admin-shell organized-workspace management-theme ${isDarkMode ? 'dark-mode' : ''}`}><Sidebar type="admin" /><div className="admin-content"><Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} /><main className={`admin-main ${activeSection === "reports" ? "reports-main" : ""} ${activeSection === "profile" ? "profile-main" : ""}`}>
     <div className="admin-topline"><div className="admin-title-copy"><span className="dashboard-kicker">Administration / {sections[activeSection].label}</span><h1>{sections[activeSection].title}</h1><p>{sections[activeSection].description}</p></div><div className="admin-campus-context"><span className="admin-context-icon">{activeCampus?.logo ? <img className="admin-context-logo" src={activeCampus.logo} alt={`${activeCampus.shortName} logo`} /> : <DashboardIcon name="school" />}</span><div><small>Campus workspace</small><strong>{user?.activeCampus || "All campuses"}</strong></div></div></div>
     {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notification">×</button></div>}
     {activeSection === "dashboard" ? <Overview overview={overviewData} /> : activeSection === "audit" ? <AuditLogPanel /> : activeSection === "profile" ? <ProfilePanel setNotice={setNotice} /> : activeSection === "inventory" ? <InventoryPanel setNotice={setNotice} /> : activeSection === "requests" ? <RequestPanel loading={requestsLoading} requests={requests} requestError={requestError} approveRequest={approveRequest} /> : activeSection === "users" ? <UserPanel accountCreationReady={accountCreationReady} onIdUpdated={result => { setAccountCreationReady(result.accountCreationReady); setRows(current => ({ ...current, users: current.users.map(item => item.databaseId === result.user.id ? { ...item, studentId: result.user.studentId } : item) })); }} onCreated={user => setRows(current => ({ ...current, users: [...current.users, { databaseId: user.id, name: user.name, email: user.email, studentId: user.studentId, employeeId: user.employeeId, avatar: user.avatar || "", role: user.role, campus: user.campus, detail: `${user.email} ? ${user.role} ? ${user.campus}`, status: user.status, action: "Suspend" }] }))} users={rows.users} error={userError} onStatus={updateManagedUser} onDelete={deleteManagedUser} /> : activeSection === "allocation" ? <AllocationPanel rows={workflowRows.allocation} staffMembers={staffMembers} onAssign={assignAllocation} /> : activeSection === "distribution" ? <DistributionPanel /> : activeSection === "campuses" ? <CampusPanel /> : activeSection === "notifications" ? <NotificationsPanel /> : activeSection === "reports" ? <ReportsPanel /> : <RecordPanel section={activeSection} rows={workflowRows[activeSection] || rows[activeSection] || []} onAdd={activeSection === "catalog" ? addResource : null} onAction={(index, action) => completeAction(activeSection, index, action)} />}
@@ -215,6 +226,14 @@ function Attention({ icon, title, detail, action, href }) { return <div classNam
 function ResourceThumbnail({ resource }) {
   const [failedImage, setFailedImage] = useState("");
   const image = getResourceImage(resource);
+  if (isSchoolUniform(resource)) {
+    return <div className="catalog-uniform-preview" aria-label="School uniform styles">
+      {["Trojan T-shirt", "CITE Polo"].map((style) => <figure key={style}>
+        <img src={getUniformStyleImage(style)} alt={`${style}, front and back views`} loading="lazy" />
+        <figcaption>{style}</figcaption>
+      </figure>)}
+    </div>;
+  }
   return <div className="record-icon resource-thumbnail">
     {image && image !== failedImage
       ? <img src={image} alt={resource.name} loading="lazy" onError={() => setFailedImage(image)} />
@@ -288,35 +307,42 @@ function InventoryPanel({ setNotice }) {
 function AllocationPanel({ rows, staffMembers, onAssign }) {
   const [search, setSearch] = useTabState("AllocationPanel.search", "");
   const [status, setStatus] = useTabState("AllocationPanel.status", "All statuses");
+  const [assignment, setAssignment] = useTabState("AllocationPanel.assignment", "all");
+  const [sort, setSort] = useTabState("AllocationPanel.sort", "recent");
+  const clearFilters = () => { setSearch(""); setStatus("All statuses"); setAssignment("all"); };
+  const hasFilters = search || status !== "All statuses" || assignment !== "all";
   const filteredRows = rows.filter((row) => {
-    const matchesSearch = `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = `${row.name} ${row.detail}`.toLowerCase().includes(search.trim().toLowerCase());
     const matchesStatus = status === "All statuses" || row.status === status;
-    return matchesSearch && matchesStatus;
-  });
-  const assignedCount = rows.filter((row) => row.assignedStaff).length;
+    const matchesAssignment = assignment === "all" || (assignment === "assigned" ? Boolean(assignedStaffId(row)) : needsDistributor(row));
+    return matchesSearch && matchesStatus && matchesAssignment;
+  }).sort((a, b) => sort === "student" ? a.studentName.localeCompare(b.studentName) : sort === "resource" ? a.resourceName.localeCompare(b.resourceName) : sort === "attention" ? Number(needsDistributor(b)) - Number(needsDistributor(a)) : 0);
+  const assignedCount = rows.filter((row) => assignedStaffId(row)).length;
 
   return <section className="admin-panel allocation-panel">
     <div className="allocation-heading"><div><h2>Resource allocations</h2><p>Review approved resources and assign a distributor.</p></div><span className="allocation-total">{rows.length} total</span></div>
     <div className="allocation-summary">
       <div data-tone="assigned"><span>Assigned</span><strong>{assignedCount}</strong><small>Distributor selected</small></div>
-      <div data-tone="pending"><span>Awaiting assignment</span><strong>{rows.length - assignedCount}</strong><small>Needs a distributor</small></div>
+      <div data-tone="pending"><span>Awaiting assignment</span><strong>{rows.filter(needsDistributor).length}</strong><small>Reserved or scheduled without a distributor</small></div>
       <div data-tone="released"><span>Released</span><strong>{rows.filter((row) => row.status.toLowerCase() === "released").length}</strong><small>Resources handed over</small></div>
     </div>
     <div className="allocation-filters">
-      <label className="allocation-search"><span>Search allocations</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search student, ID, or resource…" /></label>
+      <label className="allocation-search"><span>Search allocations</span><div className="allocation-search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4.5 4.5" /></svg><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search student, ID, or resource…" /></div></label>
       <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option>All statuses</option>{[...new Set(rows.map((row) => row.status))].map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label><span>Assignment</span><select value={assignment} onChange={(event) => setAssignment(event.target.value)}><option value="all">All assignments</option><option value="unassigned">Needs a distributor</option><option value="assigned">Assigned</option></select></label>
     </div>
+    <div className="allocation-results"><span role="status"><strong>{filteredRows.length}</strong> {filteredRows.length === 1 ? "allocation" : "allocations"}{hasFilters ? ` matching your filters · ${rows.length} total` : " in this workspace"}</span><label className="allocation-sort">Sort by<select value={sort} onChange={event => setSort(event.target.value)}><option value="recent">Newest first</option><option value="attention">Needs assignment first</option><option value="student">Student A–Z</option><option value="resource">Resource A–Z</option></select></label>{hasFilters && <button type="button" className="row-action" onClick={clearFilters}>Clear filters</button>}</div>
     <div className="allocation-table-wrap"><table className="allocation-table">
       <thead><tr><th scope="col">Resource</th><th scope="col">Student</th><th scope="col">Quantity</th><th scope="col">Status</th><th scope="col">Distributor</th></tr></thead>
       <tbody>{filteredRows.map((row) => <tr key={row.databaseId}>
-        <td data-label="Resource"><strong>{row.resourceName}</strong></td>
-        <td data-label="Student"><div className="allocation-student"><strong>{row.studentName}</strong><small>Student ID: {row.name}</small></div></td>
+        <td data-label="Resource"><AllocationResource row={row} /></td>
+        <td data-label="Student"><AllocationIdentity name={row.studentName} avatar={row.studentAvatar} studentId={row.name} /></td>
         <td data-label="Quantity"><span className="allocation-quantity">{row.quantity} <small>{Number(row.quantity) === 1 ? "unit" : "units"}</small></span></td>
         <td data-label="Status"><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status.replaceAll("_", " ")}</span></td>
-        <td data-label="Distributor"><select className="allocation-distributor" aria-label={`Distributor for ${row.studentName}, ${row.resourceName}`} value={row.assignedStaff?._id || row.assignedStaff || ""} onChange={(event) => onAssign(row, event.target.value)}><option value="">Unassigned</option>{staffMembers.map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></td>
+        <td data-label="Distributor"><AllocationDistributor row={row} staffMembers={staffMembers} onAssign={onAssign} /></td>
       </tr>)}</tbody>
     </table></div>
-    {!filteredRows.length && <div className="allocation-empty"><strong>{rows.length ? "No matching allocations" : "No allocations yet"}</strong><p>{rows.length ? "Try another search or status filter." : "Approved resource requests will appear here."}</p>{rows.length > 0 && <button type="button" className="admin-secondary" onClick={() => { setSearch(""); setStatus("All statuses"); }}>Clear filters</button>}</div>}
+    {!filteredRows.length && <div className="allocation-empty"><DashboardIcon name="allocation" /><strong>{rows.length ? "No matching allocations" : "No allocations yet"}</strong><p>{rows.length ? "Try another search or adjust your filters." : "Approved resource requests will appear here."}</p>{hasFilters && <button type="button" className="admin-secondary" onClick={clearFilters}>Clear filters</button>}</div>}
     <div className="allocation-footer" aria-live="polite">Showing {filteredRows.length} of {rows.length} allocations</div>
   </section>;
 }

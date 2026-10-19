@@ -351,7 +351,7 @@ function StaffServicesDashboard() {
   };
 
   return (
-    <div className={`admin-shell staff-services organized-workspace ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-shell staff-services organized-workspace management-theme ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />

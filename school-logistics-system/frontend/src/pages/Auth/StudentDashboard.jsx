@@ -8,6 +8,7 @@ import StatusBadge from "../../components/StatusBadge";
 import { useAuth } from "../../context/useAuth";
 import { distributionAPI, requestAPI } from "../../services/api";
 import DashboardIcon from "../../components/DashboardIcon";
+import { getUniformStyleImage } from "../../utils/uniforms";
 import "./StudentDashboard.css";
 import useStudentTheme from "../../hooks/useStudentTheme";
 
@@ -170,6 +171,7 @@ function StudentDashboard() {
                     <RequestPicture request={request} />
                     <div>
                       <strong>{request.resourceName || request.resource || "Resource"}</strong>
+                      {request.uniformStyle && <small>{request.uniformStyle}{request.uniformSize ? ` · Size ${request.uniformSize}` : ""}</small>}
                       <small>Requested {new Date(request.date).toLocaleDateString()}</small>
                     </div>
                     <StatusBadge status={request.status} />
@@ -243,12 +245,12 @@ function RequestPicture({ request }) {
     : label.includes("uniform") ? "/school-uniform.svg"
     : label.includes("module") || label.includes("book") ? "/learning-modules.svg"
     : label.includes("student id") || label.includes("identification") ? "/student-id.svg" : "";
-  const src = request.resourceImage || picture;
+  const src = getUniformStyleImage(request.uniformStyle) || request.resourceImage || picture;
   const [failedSrc, setFailedSrc] = useState(null);
 
   return <span className="request-symbol request-picture">
     {src && failedSrc !== src
-      ? <img src={src} alt="" loading="lazy" onError={() => setFailedSrc(src)} />
+      ? <img src={src} alt={request.uniformStyle || name} loading="lazy" onError={() => setFailedSrc(src)} />
       : name.charAt(0).toUpperCase()}
   </span>;
 }

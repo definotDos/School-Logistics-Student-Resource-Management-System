@@ -1,0 +1,74 @@
+[
+  {
+    "_id": "INVENTORY_0001",
+    "resource": "RESOURCE_0006",
+    "available": 0,
+    "reserved": 0,
+    "issued": 0,
+    "lastReceivedBy": "USER_0001",
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-09-08",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0002",
+    "resource": "RESOURCE_0007",
+    "available": 0,
+    "reserved": 0,
+    "issued": 0,
+    "lastReceivedBy": "USER_0001",
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-09-08",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0003",
+    "resource": "RESOURCE_0001",
+    "available": 38,
+    "reserved": 6,
+    "issued": 1,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0004",
+    "resource": "RESOURCE_0002",
+    "available": 19,
+    "reserved": 7,
+    "issued": 2,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-15",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0005",
+    "resource": "RESOURCE_0003",
+    "available": 116,
+    "reserved": 3,
+    "issued": 1,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-12",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0006",
+    "resource": "RESOURCE_0004",
+    "available": 75,
+    "reserved": 5,
+    "issued": 5,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-13",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "INVENTORY_0007",
+    "resource": "RESOURCE_0005",
+    "available": 57,
+    "reserved": 3,
+    "issued": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-09-16",
+    "dataOrigin": "synthetic"
+  }
+]

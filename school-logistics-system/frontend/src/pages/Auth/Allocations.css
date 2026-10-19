@@ -1,0 +1,126 @@
+/* Scoped to the allocation workspace; colors follow the selected theme. */
+.admin-shell.organized-workspace.management-theme .admin-main .allocation-panel {
+  --allocation-blue: #245c87;
+  --allocation-purple: #6d4695;
+  --allocation-teal: #19706c;
+  --allocation-green: #286c45;
+
+  .allocation-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(160px, 1fr));
+    gap: 18px;
+    background: var(--overview-soft);
+  }
+  .allocation-filters label { width: auto; min-width: 0; }
+  .allocation-filters .allocation-search { max-width: none; }
+  .allocation-search-field { position: relative; }
+  .allocation-search-field svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 19px; height: 19px; fill: none; stroke: var(--overview-muted); stroke-width: 1.8;
+    pointer-events: none;
+  }
+  .allocation-filters .allocation-search-field input { padding-left: 43px; }
+  .allocation-results {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 56px; padding: 12px 24px; color: var(--overview-muted); font-size: 12px;
+    border-top: 1px solid var(--overview-edge);
+  }
+  .allocation-results strong { color: var(--overview-text); }
+  .allocation-table th { padding-block: 14px; font-size: 10px; letter-spacing: .08em; }
+  .allocation-table th:first-child { width: 27%; }
+  .allocation-table th:nth-child(2) { width: 26%; }
+  .allocation-table th:nth-child(3) { width: 10%; }
+  .allocation-table th:nth-child(4) { width: 13%; }
+  .allocation-table td { padding-block: 14px; line-height: 1.5; }
+  .allocation-table tbody tr:focus-within { background: var(--overview-soft); }
+  .allocation-resource, .allocation-identity { display: flex; align-items: center; gap: 12px; }
+  .allocation-resource .request-resource-image {
+    display: grid; place-items: center; flex: 0 0 88px; width: 88px; height: 68px;
+    margin: 0; padding: 6px; overflow: hidden; box-sizing: border-box;
+    border: 1px solid var(--overview-edge); border-radius: 8px; background: #f4f5ec;
+    color: #246543;
+  }
+  .allocation-resource .request-resource-image img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
+  .allocation-resource .request-resource-image svg { width: 24px; height: 24px; }
+  .allocation-uniform-options {
+    display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 3px;
+    flex: 0 0 88px; width: 88px; height: 68px; padding: 4px; box-sizing: border-box;
+    background: #f4f5ec; border: 1px solid var(--overview-edge); border-radius: 8px; overflow: hidden;
+  }
+  .allocation-uniform-preview { display: grid; place-items: center; min-width: 0; height: 100%; }
+  .allocation-uniform-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .allocation-uniform-preview small { color: #193e2c; font-size: 9px; text-align: center; }
+  .allocation-resource-copy { display: grid; gap: 4px; min-width: 0; }
+  .allocation-resource-copy small { color: var(--overview-muted); font-size: 10px; line-height: 1.5; }
+  .allocation-resource strong, .allocation-student strong { font-weight: 650; font-size: 13px; }
+  .allocation-resource-icon, .allocation-avatar {
+    display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px;
+    border: 1px solid var(--overview-edge); background: var(--overview-soft); color: var(--overview-accent);
+    border-radius: 10px;
+  }
+  .allocation-resource-icon svg { width: 19px; height: 19px; }
+  .allocation-avatar { position: relative; overflow: hidden; flex-basis: 42px; width: 42px; height: 42px; border-radius: 50%; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+  .allocation-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .allocation-student { min-width: 0; gap: 3px; }
+  .allocation-student small { font-size: 10px; font-variant-numeric: tabular-nums; }
+  .allocation-quantity { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .allocation-quantity small { font-weight: 400; }
+  .allocation-table .status-pill {
+    --badge-color: var(--overview-muted);
+    display: inline-flex; align-items: center; gap: 7px; width: fit-content;
+    padding: 6px 10px; border: 1px solid color-mix(in srgb, var(--badge-color) 25%, transparent);
+    background: color-mix(in srgb, var(--badge-color) 12%, var(--overview-solid));
+    color: var(--badge-color); font-size: 11px; font-weight: 650; white-space: nowrap;
+  }
+  .status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .status-pill.reserved { --badge-color: var(--allocation-blue); }
+  .status-pill.scheduled { --badge-color: var(--allocation-purple); }
+  .status-pill.verified { --badge-color: var(--allocation-teal); }
+  .status-pill.released { --badge-color: var(--allocation-green); }
+  .allocation-distributor { height: 40px; font-size: 12px; border-radius: 9px; }
+  .allocation-distributor.is-unassigned { color: var(--overview-gold); border-color: color-mix(in srgb, var(--overview-gold) 55%, var(--overview-edge)); }
+  .allocation-assignment-hint { display: block; margin-top: 5px; color: var(--overview-muted); font-size: 10px; }
+  .allocation-assignment-control { width: 100%; }
+  .allocation-distributor:disabled { opacity: .65; cursor: not-allowed; }
+  .allocation-assigned-name { display: grid; gap: 5px; }
+  .allocation-assigned-name strong { font-size: 12px; font-weight: 600; }
+  .allocation-assigned-name small { color: var(--overview-muted); font-size: 10px; }
+  .allocation-assignment-hint.allocation-save-error { color: #b83a38; }
+  .allocation-sort { display: flex; align-items: center; gap: 8px; }
+  .allocation-sort select { min-height: 36px; padding: 6px 10px; border: 1px solid var(--overview-edge); border-radius: 8px; background: var(--overview-solid); color: var(--overview-text); font: inherit; }
+  :is(input, select, button):focus-visible { outline: 2px solid var(--overview-accent); outline-offset: 3px; }
+  .allocation-empty > svg { display: block; width: 32px; height: 32px; margin: 0 auto 14px; color: var(--overview-muted); }
+  .allocation-footer { border-top: 1px solid var(--overview-edge); font-size: 11px; }
+}
+
+.admin-shell.organized-workspace.management-theme.dark-mode .admin-main .allocation-panel {
+  --allocation-blue: #a3d2f4;
+  --allocation-purple: #d0b9fa;
+  --allocation-teal: #91d9d3;
+  --allocation-green: #a3dfb6;
+  .allocation-assignment-hint.allocation-save-error { color: #ffb8ae; }
+}
+
+@media (max-width: 1100px) {
+  .admin-shell.organized-workspace.management-theme .admin-main .allocation-panel {
+    .allocation-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .allocation-search { grid-column: 1 / -1; }
+    .allocation-identity { gap: 8px; }
+  }
+}
+@media (max-width: 900px) {
+  .admin-shell.organized-workspace.management-theme .admin-main .allocation-panel {
+    .allocation-table td { padding: 0; }
+    .allocation-table tr { background: var(--overview-solid); border-color: var(--overview-edge); padding: 18px; }
+    .allocation-table-wrap { padding-top: 4px; }
+    .allocation-avatar { display: grid; }
+    .allocation-results { padding-inline: 20px; }
+  }
+}
+@media (max-width: 560px) {
+  .admin-shell.organized-workspace.management-theme .admin-main .allocation-panel {
+    .allocation-filters { gap: 12px; }
+    .allocation-table tr { grid-template-columns: minmax(0, 1fr); }
+    .allocation-results { padding-inline: 16px; flex-wrap: wrap; }
+  }
+}

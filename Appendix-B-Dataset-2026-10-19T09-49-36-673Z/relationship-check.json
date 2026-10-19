@@ -1,0 +1,564 @@
+{
+  "missingReferenceCount": 93,
+  "notes": "Missing targets may reflect deleted records or entities outside the selected collections. No missing records were invented. Aliases preserve the references as observed.",
+  "missingReferences": [
+    {
+      "collection": "inventories",
+      "record": "INVENTORY_0001",
+      "field": "resource",
+      "target": "RESOURCE_0006"
+    },
+    {
+      "collection": "inventories",
+      "record": "INVENTORY_0002",
+      "field": "resource",
+      "target": "RESOURCE_0007"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0001",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0002",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0002",
+      "field": "checkedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0002",
+      "field": "rejectedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0003",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0004",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0005",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0006",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0007",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0007",
+      "field": "checkedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0007",
+      "field": "approvedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0008",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0009",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0010",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0011",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0011",
+      "field": "checkedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0011",
+      "field": "approvedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0012",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0013",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0014",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0015",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0016",
+      "field": "student",
+      "target": "USER_0018"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0019",
+      "field": "student",
+      "target": "USER_0019"
+    },
+    {
+      "collection": "requests",
+      "record": "REQUEST_0019",
+      "field": "releasedBy",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0001",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0001",
+      "field": "assignedStaff",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0002",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0002",
+      "field": "assignedStaff",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0003",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0003",
+      "field": "assignedStaff",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0004",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0004",
+      "field": "assignedStaff",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0005",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0006",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0007",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0008",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0009",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0010",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0011",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0012",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0012",
+      "field": "allocatedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0013",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0013",
+      "field": "allocatedBy",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0014",
+      "field": "student",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0015",
+      "field": "assignedStaff",
+      "target": "USER_0021"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0016",
+      "field": "student",
+      "target": "USER_0018"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0018",
+      "field": "student",
+      "target": "USER_0019"
+    },
+    {
+      "collection": "allocations",
+      "record": "ALLOCATION_0018",
+      "field": "assignedStaff",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "claimschedules",
+      "record": "CLAIMSCHEDULE_0001",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "claimschedules",
+      "record": "CLAIMSCHEDULE_0002",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "claimschedules",
+      "record": "CLAIMSCHEDULE_0004",
+      "field": "student",
+      "target": "USER_0019"
+    },
+    {
+      "collection": "claimschedules",
+      "record": "CLAIMSCHEDULE_0004",
+      "field": "verifiedBy",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "distributions",
+      "record": "DISTRIBUTION_0001",
+      "field": "student",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "distributions",
+      "record": "DISTRIBUTION_0002",
+      "field": "student",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "distributions",
+      "record": "DISTRIBUTION_0004",
+      "field": "student",
+      "target": "USER_0019"
+    },
+    {
+      "collection": "distributions",
+      "record": "DISTRIBUTION_0004",
+      "field": "releasedBy",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0001",
+      "field": "actor",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0005",
+      "field": "actor",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0006",
+      "field": "actor",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0007",
+      "field": "actor",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0008",
+      "field": "actor",
+      "target": "USER_0014"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0019",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0020",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0021",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0025",
+      "field": "actor",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0026",
+      "field": "actor",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0027",
+      "field": "actor",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0028",
+      "field": "actor",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0029",
+      "field": "actor",
+      "target": "USER_0016"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0036",
+      "field": "actor",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0037",
+      "field": "actor",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0038",
+      "field": "actor",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0039",
+      "field": "actor",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0040",
+      "field": "actor",
+      "target": "USER_0017"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0049",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0050",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0051",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0052",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0053",
+      "field": "actor",
+      "target": "USER_0015"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0059",
+      "field": "actor",
+      "target": "USER_0018"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0060",
+      "field": "actor",
+      "target": "USER_0021"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0065",
+      "field": "actor",
+      "target": "USER_0021"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0100",
+      "field": "actor",
+      "target": "USER_0019"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0107",
+      "field": "actor",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0108",
+      "field": "actor",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0109",
+      "field": "actor",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0110",
+      "field": "actor",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0111",
+      "field": "entityId",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0113",
+      "field": "entityId",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0128",
+      "field": "entityId",
+      "target": "USER_0020"
+    },
+    {
+      "collection": "auditlogs",
+      "record": "AUDITLOG_0129",
+      "field": "entityId",
+      "target": "USER_0020"
+    }
+  ]
+}

@@ -8,6 +8,10 @@
   --overview-accent: #246543;
   --overview-soft: #edf3e8;
   --overview-gold: #987324;
+  --summary-total: #305fa0;
+  --summary-pending: #8a5b12;
+  --summary-approved: #267147;
+  --summary-released: #08766e;
   --workspace-muted: var(--overview-muted);
 }
 .dashboard-shell.student-shell.student-overview.organized-workspace.dark-mode {
@@ -19,6 +23,10 @@
   --overview-accent: #a9d7af;
   --overview-soft: #284332;
   --overview-gold: #e4c772;
+  --summary-total: #9fc5f8;
+  --summary-pending: #f0cc7a;
+  --summary-approved: #98d9af;
+  --summary-released: #85d8ce;
 }
 .dashboard-shell.student-shell.student-overview.organized-workspace > .dashboard-content {
   background: radial-gradient(ellipse at top right, #cfb46518, transparent 55%), var(--overview-base);
@@ -49,15 +57,26 @@
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-section-heading h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--overview-text); }
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-section-heading > span { font-size: 12px; color: var(--overview-muted); }
 .dashboard-shell.student-shell.student-overview.organized-workspace :is(.dashboard-stat, .dashboard-panel) { background: var(--overview-solid); border-color: var(--overview-edge); box-shadow: 0 4px 16px #163d2306; border-radius: 16px; backdrop-filter: none; }
-.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat { color: var(--overview-accent); border-top: 3px solid var(--overview-accent); }
-.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat:is(.gold, .blue) { color: var(--overview-gold); border-top-color: var(--overview-gold); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat.navy { --card-accent: var(--summary-total); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat.gold { --card-accent: var(--summary-pending); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat.green { --card-accent: var(--summary-approved); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat.blue { --card-accent: var(--summary-released); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat {
+  color: var(--card-accent);
+  background: color-mix(in srgb, var(--card-accent) 6%, var(--overview-solid));
+  border-color: color-mix(in srgb, var(--card-accent) 30%, var(--overview-edge));
+  border-top: 3px solid var(--card-accent);
+}
 .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat strong { display: block; margin-block: 10px 4px; color: var(--overview-text); font-size: 34px; line-height: 1.2; }
 .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-stat :is(small, .student-stat-heading > span) { color: var(--overview-muted); }
-.dashboard-shell.student-shell.student-overview.organized-workspace .student-stat-heading .dashboard-icon { color: inherit; background: var(--overview-soft); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .student-stat-heading .dashboard-icon { color: var(--card-accent); background: color-mix(in srgb, var(--card-accent) 14%, var(--overview-solid)); }
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 28px; }
-.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a { display: flex; align-items: center; gap: 12px; padding: 18px; border: 1px solid var(--overview-edge); border-radius: 12px; background: var(--overview-solid); color: var(--overview-accent); text-decoration: none; }
-.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a:hover { background: var(--overview-soft); border-color: var(--overview-gold); }
-.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts .dashboard-icon { width: 24px; height: 24px; flex-shrink: 0; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a[href="/resources"] { --shortcut-accent: var(--summary-approved); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a[href="/requests"] { --shortcut-accent: var(--summary-total); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a[href="/claim-schedule"] { --shortcut-accent: var(--summary-released); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a { display: flex; align-items: center; gap: 12px; padding: 18px; border: 1px solid var(--overview-edge); border-radius: 12px; background: var(--overview-solid); color: var(--shortcut-accent, var(--overview-accent)); text-decoration: none; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a:hover { background: color-mix(in srgb, var(--shortcut-accent) 8%, var(--overview-solid)); border-color: var(--shortcut-accent); }
+.dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts .dashboard-icon { box-sizing: border-box; width: 40px; height: 40px; padding: 9px; border-radius: 10px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; background: color-mix(in srgb, var(--shortcut-accent) 14%, var(--overview-solid)); }
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts a > span:first-of-type { flex: 1; min-width: 0; }
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts strong { display: block; font-size: 13px; color: var(--overview-text); }
 .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--overview-muted); }
@@ -68,6 +87,53 @@
 .dashboard-shell.student-shell.student-overview.organized-workspace .claim-panel { display: flex; flex-direction: column; }
 .dashboard-shell.student-shell.student-overview.organized-workspace .claim-panel .panel-action { margin-top: auto; border-color: var(--overview-edge); }
 .dashboard-shell.student-shell.student-overview.organized-workspace :is(a, button):focus-visible { outline: 3px solid var(--overview-gold); outline-offset: 4px; }
+.dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 88px;
+  padding: 16px 22px;
+  transition: background .2s ease;
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-picture {
+  box-sizing: border-box;
+  width: 56px;
+  height: 56px;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid var(--overview-edge);
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #28583e;
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-picture img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 6px;
+}
+.dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-row > [data-status] {
+  justify-self: end;
+  text-align: center;
+}
+@media (max-width: 480px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 6px 12px;
+    padding: 14px 16px;
+  }
+  .dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-picture {
+    grid-row: span 2;
+  }
+  .dashboard-shell.student-shell.student-overview.organized-workspace .requests-panel .request-row > [data-status] {
+    grid-column: 2;
+    justify-self: start;
+    white-space: normal;
+  }
+}
 @media (max-width: 1100px) {
   .dashboard-shell.student-shell.student-overview.organized-workspace .overview-shortcuts { grid-template-columns: 1fr; gap: 10px; }
   .dashboard-shell.student-shell.student-overview.organized-workspace .dashboard-grid { grid-template-columns: 1fr; }

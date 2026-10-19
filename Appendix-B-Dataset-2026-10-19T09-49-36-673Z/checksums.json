@@ -1,0 +1,62 @@
+[
+  {
+    "file": "data/users.json",
+    "sha256": "fbe1ebc83216fc9350f8a44c71deaaa72762cecc0498a65c7a914c19ef6e8563"
+  },
+  {
+    "file": "data/campus.json",
+    "sha256": "77226dac55b50b1c74a70c24ec08113c01e35b93e4ffbb778ad8dcdacd13e626"
+  },
+  {
+    "file": "data/resources.json",
+    "sha256": "41e7ed66a8f194d8b3fc0a6a7f499376263638bc78828aebb7a9d1550bee8911"
+  },
+  {
+    "file": "data/inventories.json",
+    "sha256": "583ba6e38b17bcea25f049b610649e54ca008e8b3c36e0483ac77b77c49fb70d"
+  },
+  {
+    "file": "data/requests.json",
+    "sha256": "92f5600d581c3122b5582e66305927c9ed70429285e38bc4ea46dd1ed3302159"
+  },
+  {
+    "file": "data/allocations.json",
+    "sha256": "5c4cdfa37f940abc725c0afefd8a22ee809893dd00128bca24540407474108be"
+  },
+  {
+    "file": "data/claimschedules.json",
+    "sha256": "19d906d5836d00bccafd87a96f5692c6a8142827d5f1df313261ddb1e37c24e9"
+  },
+  {
+    "file": "data/distributions.json",
+    "sha256": "6d036aa417b3d7565ede0cb6c6758bf1c3876af4afd2f6fc57dbddf6cd4c67c5"
+  },
+  {
+    "file": "data/auditlogs.json",
+    "sha256": "b610e9f2d037dd2a531be714b3c67d7e6ba16900c19f31f68daf2600827403b3"
+  },
+  {
+    "file": "snapshot-summary.json",
+    "sha256": "288a6f09d279e5b8029ff97d3f5e29c472acb9df39a470400edf64973b2e4991"
+  },
+  {
+    "file": "relationship-check.json",
+    "sha256": "65ee571bdf5f98c3ef07e53581566345a943870c629b224bd4e7b72772b489e7"
+  },
+  {
+    "file": "data-dictionary.csv",
+    "sha256": "3b0d33a6d0c06ccfcbfde253724490ee87991809d07cfb9164bacae6053c18a8"
+  },
+  {
+    "file": "data-dictionary.md",
+    "sha256": "19ec34a7e3ec25d4043af1d0c84ac0238cb248ee6d21589c6515670eb4b4de99"
+  },
+  {
+    "file": "README.md",
+    "sha256": "f3e8a14ec15476a26eee852c71c1d5e82268c2abfed210114bb7c4986259644d"
+  },
+  {
+    "file": "validation-report.json",
+    "sha256": "09d34c1feae666ee218bcb588d4470df27af184d9568040829bcc71ead1567f4"
+  }
+]

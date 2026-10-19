@@ -1025,6 +1025,41 @@
 }
 
 /* Keep catalog pictures aligned and fully visible regardless of source dimensions. */
+.admin-shell.organized-workspace .admin-main .catalog-uniform-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  flex: 0 0 156px;
+  width: 156px;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--workspace-border);
+  border-radius: 12px;
+  background: #f1f5f9;
+}
+.admin-shell.organized-workspace .admin-main .catalog-uniform-preview figure {
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+}
+.admin-shell.organized-workspace .admin-main .catalog-uniform-preview img {
+  display: block;
+  width: 100%;
+  height: 54px;
+  object-fit: contain;
+  object-position: center;
+}
+.admin-shell.organized-workspace .admin-main .catalog-uniform-preview figcaption {
+  margin-top: 4px;
+  color: #254635;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+@media (max-width: 700px) {
+  .admin-shell.organized-workspace .admin-main .record-row:has(.catalog-uniform-preview) { flex-wrap: wrap; }
+  .admin-shell.organized-workspace .admin-main .record-row:has(.catalog-uniform-preview) .record-copy { flex: 1 1 140px; min-width: 0; }
+}
 .admin-shell.organized-workspace .admin-main .resource-thumbnail {
   display: grid;
   place-items: center;

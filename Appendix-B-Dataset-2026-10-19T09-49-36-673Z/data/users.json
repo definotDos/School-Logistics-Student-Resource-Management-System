@@ -1,0 +1,132 @@
+[
+  {
+    "_id": "USER_0001",
+    "role": "admin",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "PHINMA University of Pangasinan",
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0002",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-09-24",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0003",
+    "role": "staff",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-01",
+    "updatedAt": "2026-10-17",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0004",
+    "role": "staff",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-07",
+    "updatedAt": "2026-10-11",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0005",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-07",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0006",
+    "role": "staff",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-08",
+    "updatedAt": "2026-10-11",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0007",
+    "role": "staff",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-13",
+    "updatedAt": "2026-10-13",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0008",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-13",
+    "updatedAt": "2026-10-13",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0009",
+    "role": "staff",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-15",
+    "updatedAt": "2026-10-15",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0010",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-15",
+    "updatedAt": "2026-10-15",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0011",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-18",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0012",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-18",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "USER_0013",
+    "role": "student",
+    "status": "active",
+    "campus": "PHINMA University of Pangasinan",
+    "activeCampus": "",
+    "createdAt": "2026-10-19",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  }
+]

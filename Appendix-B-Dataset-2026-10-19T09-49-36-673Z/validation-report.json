@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "recordCount": 259,
+  "collectionCount": 9,
+  "checks": [
+    "All JSON files parse",
+    "Collection and total counts match summary",
+    "Every record marked synthetic",
+    "Sensitive field names excluded",
+    "No raw ObjectId, email or database URI found in exported values",
+    "All package checksums verified"
+  ],
+  "issues": [],
+  "relationshipFindings": "93 missing-target references documented separately; these are source data findings, not export failures."
+}

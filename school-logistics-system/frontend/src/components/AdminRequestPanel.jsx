@@ -37,7 +37,7 @@ export default function AdminRequestPanel({ requests, loading, requestError, app
   return <section className="admin-panel request-workspace" aria-busy={loading}>
     <header className="request-heading"><div><h2>Requests awaiting action</h2><p>{loading ? "Loading requests…" : `${pending} pending review · ${requests.length} total requests`}</p></div><span className="request-queue-tag">Review queue</span></header>
     <div className="request-summary" aria-label="Request summary">
-      {[["pending", "Awaiting review", pending], ["approved", "Approved", requests.filter(row => row.status === "approved").length], ["ready_for_claim", "Ready for claim", requests.filter(row => row.status === "ready_for_claim").length], ["", "All requests", requests.length]].map(([value, title, count]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)}><span>{title}</span><strong>{loading ? "—" : count}</strong></button>)}
+      {[["pending", "Awaiting review", pending], ["approved", "Approved", requests.filter(row => row.status === "approved").length], ["ready_for_claim", "Ready for claim", requests.filter(row => row.status === "ready_for_claim").length], ["", "All requests", requests.length]].map(([value, title, count]) => <button key={value} data-status={value || "all"} type="button" aria-pressed={status === value} onClick={() => setStatus(value)}><span>{title}</span><strong>{loading ? "—" : count}</strong></button>)}
     </div>
     <div className="request-filters">
       <label className="request-search">Search requests<input type="search" placeholder="Student, ID, resource, or campus" value={search} onChange={event => setSearch(event.target.value)} /></label>

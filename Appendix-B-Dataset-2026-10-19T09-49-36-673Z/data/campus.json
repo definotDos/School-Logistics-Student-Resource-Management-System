@@ -1,0 +1,10 @@
+[
+  {
+    "_id": "CAMPUS_0001",
+    "name": "PHINMA University of Pangasinan",
+    "status": "active",
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-19",
+    "dataOrigin": "synthetic"
+  }
+]

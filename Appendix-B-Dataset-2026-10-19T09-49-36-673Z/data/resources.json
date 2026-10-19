@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "RESOURCE_0001",
+    "name": "RESOURCE_LABEL_001",
+    "category": "CATEGORY_LABEL_001",
+    "campus": "PHINMA University of Pangasinan",
+    "status": "Available",
+    "maxQuantityPerStudent": 5,
+    "totalQuantity": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-09",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "RESOURCE_0002",
+    "name": "RESOURCE_LABEL_002",
+    "category": "CATEGORY_LABEL_002",
+    "campus": "PHINMA University of Pangasinan",
+    "status": "Available",
+    "maxQuantityPerStudent": 5,
+    "totalQuantity": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-11",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "RESOURCE_0003",
+    "name": "RESOURCE_LABEL_003",
+    "category": "CATEGORY_LABEL_003",
+    "campus": "PHINMA University of Pangasinan",
+    "status": "Available",
+    "maxQuantityPerStudent": 5,
+    "totalQuantity": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-09-19",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "RESOURCE_0004",
+    "name": "RESOURCE_LABEL_004",
+    "category": "CATEGORY_LABEL_004",
+    "campus": "PHINMA University of Pangasinan",
+    "status": "Available",
+    "maxQuantityPerStudent": 5,
+    "totalQuantity": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-10-12",
+    "dataOrigin": "synthetic"
+  },
+  {
+    "_id": "RESOURCE_0005",
+    "name": "RESOURCE_LABEL_005",
+    "category": "CATEGORY_LABEL_005",
+    "campus": "PHINMA University of Pangasinan",
+    "status": "Available",
+    "maxQuantityPerStudent": 5,
+    "totalQuantity": 0,
+    "createdAt": "2026-09-08",
+    "updatedAt": "2026-09-08",
+    "dataOrigin": "synthetic"
+  }
+]
