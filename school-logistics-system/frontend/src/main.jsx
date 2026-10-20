@@ -13,6 +13,7 @@ import "./student-resources-dark.css";
 import "./student-dark-theme.css";
 import "./sidebar-palette.css";
 import "./landing-palette.css";
+import "./landing-sample.css";
 import "./responsive.css";
 import "./appearance.css";
 import "./components/auth/AuthPalette.css";

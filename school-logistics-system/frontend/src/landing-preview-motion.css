@@ -4,39 +4,42 @@
     animation: none;
   }
 
-  .landing-page .preview-motion-ready .preview-header,
-  .landing-page .preview-motion-ready .stat-card,
-  .landing-page .preview-motion-ready .preview-chart-title {
+  .landing-page .preview-motion-ready .sample-heading,
+  .landing-page .preview-motion-ready .sample-metric,
+  .landing-page .preview-motion-ready .sample-distribution-heading,
+  .landing-page .preview-motion-ready .sample-status {
     opacity: 0;
     transform: translateY(12px);
   }
 
-  .landing-page .preview-motion-ready .chart-bars span {
-    transform: scaleY(0);
-    transform-origin: bottom;
+  .landing-page .preview-motion-ready .sample-status-track > span {
+    transform: scaleX(0);
+    transform-origin: left;
   }
 
-  .landing-page .preview-motion-ready.is-visible .preview-header,
-  .landing-page .preview-motion-ready.is-visible .stat-card,
-  .landing-page .preview-motion-ready.is-visible .preview-chart-title {
+  .landing-page .preview-motion-ready.is-visible .sample-heading,
+  .landing-page .preview-motion-ready.is-visible .sample-metric,
+  .landing-page .preview-motion-ready.is-visible .sample-distribution-heading,
+  .landing-page .preview-motion-ready.is-visible .sample-status {
     animation: campus-preview-reveal 6s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
   }
 
-  .landing-page .preview-motion-ready.is-visible .stat-card:nth-child(1) { animation-delay: 120ms; }
-  .landing-page .preview-motion-ready.is-visible .stat-card:nth-child(2) { animation-delay: 220ms; }
-  .landing-page .preview-motion-ready.is-visible .stat-card:nth-child(3) { animation-delay: 320ms; }
-  .landing-page .preview-motion-ready.is-visible .stat-card:nth-child(4) { animation-delay: 420ms; }
-  .landing-page .preview-motion-ready.is-visible .preview-chart-title { animation-delay: 520ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-metric:nth-child(1) { animation-delay: 120ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-metric:nth-child(2) { animation-delay: 220ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-metric:nth-child(3) { animation-delay: 320ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-distribution-heading { animation-delay: 420ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(1) { animation-delay: 520ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(2) { animation-delay: 620ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(3) { animation-delay: 720ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(4) { animation-delay: 820ms; }
 
-  .landing-page .preview-motion-ready.is-visible .chart-bars span {
+  .landing-page .preview-motion-ready.is-visible .sample-status-track > span {
     animation: campus-preview-grow 6s cubic-bezier(0.22, 1, 0.36, 1) 620ms infinite both;
   }
 
-  .landing-page .preview-motion-ready.is-visible .chart-bars span:nth-child(2) { animation-delay: 720ms; }
-  .landing-page .preview-motion-ready.is-visible .chart-bars span:nth-child(3) { animation-delay: 820ms; }
-  .landing-page .preview-motion-ready.is-visible .chart-bars span:nth-child(4) { animation-delay: 920ms; }
-  .landing-page .preview-motion-ready.is-visible .chart-bars span:nth-child(5) { animation-delay: 1020ms; }
-  .landing-page .preview-motion-ready.is-visible .chart-bars span:nth-child(6) { animation-delay: 1120ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(2) .sample-status-track > span { animation-delay: 720ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(3) .sample-status-track > span { animation-delay: 820ms; }
+  .landing-page .preview-motion-ready.is-visible .sample-status:nth-child(4) .sample-status-track > span { animation-delay: 920ms; }
 }
 
 @keyframes campus-preview-reveal {
@@ -46,9 +49,9 @@
 }
 
 @keyframes campus-preview-grow {
-  0%, 100% { transform: scaleY(0); }
-  15%, 70% { transform: scaleY(1); }
-  85% { transform: scaleY(0); }
+  0%, 100% { transform: scaleX(0); }
+  15%, 70% { transform: scaleX(1); }
+  85% { transform: scaleX(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

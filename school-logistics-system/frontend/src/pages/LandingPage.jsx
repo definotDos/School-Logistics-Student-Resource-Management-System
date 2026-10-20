@@ -261,46 +261,49 @@ export function LandingPage() {
         </div>
 
         <div className="hero-visual" aria-label="Dashboard preview">
-          <div className="dashboard-preview" ref={previewRef}>
-            <div className="preview-header">
-              <span>Campus overview</span>
-              <small className="preview-label">Sample dashboard</small>
-              <div className="preview-icons" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
+          <div className="dashboard-preview campus-sample" ref={previewRef}>
+            <div className="sample-heading">
+              <span><DashboardIcon name="reports" /> Campus Overview</span>
+              <small className="sample-badge">Sample dashboard</small>
             </div>
 
-            <div className="preview-stats">
-              <div className="stat-card">
-                <small>Resources</small>
-                <strong>150+</strong>
-              </div>
-              <div className="stat-card">
-                <small>Requests</small>
-                <strong>50</strong>
-              </div>
-              <div className="stat-card">
-                <small>Approved</small>
-                <strong>18</strong>
-              </div>
-              <div className="stat-card">
-                <small>Pending</small>
-                <strong>32</strong>
-              </div>
+            <div className="sample-metrics">
+              {[
+                { label: 'Total Resources', value: '150+', trend: '↑ +12%', icon: 'inventory' },
+                { label: 'Active Users', value: '1,248', trend: '+8%', icon: 'users' },
+                { label: 'Pending Requests', value: '32', trend: '↓ −6%', icon: 'calendar' },
+              ].map((metric) => (
+                <div className="sample-metric" key={metric.label}>
+                  <DashboardIcon name={metric.icon} />
+                  <span className="sample-metric-label">{metric.label}</span>
+                  <div className="sample-metric-value">
+                    <b>{metric.value}</b>
+                    <small aria-label={`${metric.trend} compared with the previous period`}>{metric.trend}</small>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <p className="preview-chart-title">Resource activity</p>
-            <div className="chart-card" aria-label="Illustrative resource activity chart">
-              <div className="chart-bars">
-                <span style={{ height: '42%' }} />
-                <span style={{ height: '58%' }} />
-                <span style={{ height: '76%' }} />
-                <span style={{ height: '54%' }} />
-                <span style={{ height: '88%' }} />
-                <span style={{ height: '66%' }} />
+            <div className="sample-distribution">
+              <div className="sample-distribution-heading">
+                <span><DashboardIcon name="history" /> Distribution Status</span>
+                <button type="button" onClick={() => scrollToSection('about')}>View All <span aria-hidden="true">→</span></button>
               </div>
+              <ul className="sample-status-list" aria-label="Sample distribution of 150 resources">
+                {[
+                  { label: 'Pending', count: 36, percent: 24, tone: 'pending', icon: 'clock' },
+                  { label: 'Prepared', count: 62, percent: 41, tone: 'prepared', icon: 'settings' },
+                  { label: 'Released', count: 39, percent: 26, tone: 'released', icon: 'claimCalendar' },
+                  { label: 'Completed', count: 13, percent: 9, tone: 'completed', icon: 'audit' },
+                ].map((status) => (
+                  <li className={`sample-status sample-status-${status.tone}`} key={status.label}>
+                    <span className="sample-status-label"><span className="sample-status-icon"><DashboardIcon name={status.icon} /></span>{status.label}</span>
+                    <span className="sample-status-track" aria-hidden="true"><span style={{ width: `${status.count / 150 * 100}%` }} /></span>
+                    <b>{status.percent}%</b>
+                    <span className="sample-status-count">{status.count}/150</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
