@@ -351,7 +351,7 @@ function StaffServicesDashboard() {
   };
 
   return (
-    <div className={`admin-shell staff-services organized-workspace management-theme ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-shell staff-services organized-workspace management-theme landing-background ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
@@ -447,7 +447,7 @@ function StaffOverview({ stats }) {
   };
 
   return (
-    <>
+    <div className="staff-overview">
       <section className="staff-metrics" aria-labelledby="staff-metrics-title">
         <div className="staff-metrics-heading">
           <div><h2 id="staff-metrics-title">At a glance</h2><p>A snapshot of requests, students, and distribution.</p></div>
@@ -569,7 +569,7 @@ function StaffOverview({ stats }) {
           </section>
         ))}
       </section>
-    </>
+    </div>
   );
 }
 

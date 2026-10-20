@@ -1,5 +1,44 @@
 /* Staff Services Dashboard Styles */
 
+/* Match the admin overview rhythm over the shared landing page backdrop. */
+.staff-services.organized-workspace.management-theme.landing-background .staff-overview {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.staff-services.organized-workspace.management-theme.landing-background .staff-overview > :is(.staff-metrics, .admin-grid, .staff-shortcuts) {
+  margin: 0;
+  min-width: 0;
+}
+
+.staff-services.organized-workspace.management-theme.landing-background .staff-overview .admin-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.staff-services.organized-workspace.management-theme.landing-background .staff-metrics-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .staff-services.organized-workspace.management-theme.landing-background .staff-overview .admin-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-services.organized-workspace.management-theme.landing-background .staff-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .staff-services.organized-workspace.management-theme.landing-background .staff-metrics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Keep account settings compact and separate email verification from profile edits. */
 .staff-profile-main .admin-profile-fields {
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);

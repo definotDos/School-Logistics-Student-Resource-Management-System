@@ -1,3 +1,42 @@
+/* Share the landing backdrop while keeping workspace content easy to scan. */
+.admin-shell.organized-workspace.management-theme.landing-background {
+  position: relative;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background > .admin-content {
+  background: transparent;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background .admin-overview {
+  gap: 24px;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background .admin-overview .admin-grid {
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-shell.organized-workspace.management-theme.landing-background .admin-overview .admin-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Request report totals: consistent status colors and a balanced nine-card grid. */
 .admin-shell.organized-workspace .reports-main > .record-panel > .request-summary-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));

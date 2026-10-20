@@ -1,4 +1,49 @@
 /* Overview-only layout and palette; other student pages retain their styles. */
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background {
+  position: relative;
+}
+
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background > .dashboard-content {
+  background: transparent;
+}
+
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .student-dashboard {
+  max-width: 1440px;
+  padding: 32px clamp(18px, 3vw, 40px) 48px;
+}
+
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background :is(.dashboard-stats, .overview-shortcuts) {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .dashboard-grid {
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 0;
+}
+
+.dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .overview-section-heading {
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .dashboard-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background .student-dashboard {
+    padding: 20px 16px 32px;
+  }
+}
+
 .dashboard-shell.student-shell.student-overview.organized-workspace {
   --overview-base: #f4f5ec;
   --overview-solid: #fffef9;

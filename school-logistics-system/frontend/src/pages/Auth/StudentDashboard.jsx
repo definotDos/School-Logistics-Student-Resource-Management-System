@@ -122,7 +122,7 @@ function StudentDashboard() {
   };
 
   return (
-    <div className={`dashboard-shell student-shell student-overview organized-workspace ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={`dashboard-shell student-shell student-overview organized-workspace landing-background ${isDarkMode ? 'dark-mode' : ''}`}>
 
       <Sidebar />
 
