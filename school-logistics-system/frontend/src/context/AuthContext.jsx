@@ -53,8 +53,14 @@ export function AuthProvider({ children }) {
   const resendVerificationCode = async (email) => authAPI.resendVerificationCode(email);
 
   const logout = async () => {
-    try { await authAPI.logout(); }
-    catch (error) { if (![401, 403].includes(error.status)) { window.alert('Unable to revoke your session. Check your connection and try signing out again.'); return false; } }
+    // Keep the loading feedback readable, even when the server responds immediately.
+    const [result] = await Promise.allSettled([
+      authAPI.logout(),
+      new Promise(resolve => window.setTimeout(resolve, 900)),
+    ]);
+    if (result.status === "rejected" && ![401, 403].includes(result.reason?.status)) {
+      throw result.reason;
+    }
     setUser(null);
     clearSession();
     return true;

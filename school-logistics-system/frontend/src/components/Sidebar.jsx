@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { campusAPI } from "../services/api";
 import DashboardIcon from "./DashboardIcon";
+import LogoutModal from "./LogoutModal";
 import { campuses as campusDirectory } from "../data/campuses";
 import useMobileNavigation from "../hooks/useMobileNavigation";
 import "./AccountUtilities.css";
@@ -86,6 +87,7 @@ function Sidebar({ type = "student" }) {
     return () => window.removeEventListener("campuses-updated", load);
   }, []);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
   const displayName = user?.name || "User";
   const initials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
   const assignedCampus = campusDirectory.find((campus) => campus.name === user?.campus);
@@ -98,9 +100,14 @@ function Sidebar({ type = "student" }) {
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
+    setLogoutError("");
     setIsLoggingOut(true);
-    if (await logout()) navigate("/login", { replace: true });
-    else setIsLoggingOut(false);
+    try {
+      if (await logout()) navigate("/", { replace: true });
+    } catch {
+      setLogoutError("We couldn’t sign you out. Check your connection and try again.");
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -156,7 +163,7 @@ function Sidebar({ type = "student" }) {
         <NavLink to="/settings" className="sidebar-utility-link" onClick={() => setNavigationOpen(false)}><DashboardIcon name="settings" />Settings</NavLink>
         <div className="sidebar-user">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{type === "admin" ? "Administrator" : type === "staff" ? "Staff Member" : `${user?.grade || "Grade 11"} | ${user?.strand || "STEM"}`}</small></span></div>
       </div>
-      {isLoggingOut && <div className="logout-notice" role="status"><span className="logout-spinner" aria-hidden="true" /><span><strong>Signed out successfully</strong><small>Please come back soon.</small></span></div>}
+      {(isLoggingOut || logoutError) && <LogoutModal error={logoutError} onRetry={handleLogout} onClose={() => setLogoutError("")} />}
     </aside>
   );
 }
