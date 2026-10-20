@@ -37,19 +37,19 @@
   .allocation-resource .request-resource-image {
     display: grid; place-items: center; flex: 0 0 88px; width: 88px; height: 68px;
     margin: 0; padding: 6px; overflow: hidden; box-sizing: border-box;
-    border: 1px solid var(--overview-edge); border-radius: 8px; background: #f4f5ec;
-    color: #246543;
+    border: 0; border-radius: 0; background: transparent;
+    color: var(--overview-accent);
   }
-  .allocation-resource .request-resource-image img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
+  .allocation-resource .request-resource-image img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; border-radius: 0; }
   .allocation-resource .request-resource-image svg { width: 24px; height: 24px; }
   .allocation-uniform-options {
     display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 3px;
     flex: 0 0 88px; width: 88px; height: 68px; padding: 4px; box-sizing: border-box;
-    background: #f4f5ec; border: 1px solid var(--overview-edge); border-radius: 8px; overflow: hidden;
+    background: transparent; border: 0; border-radius: 0; overflow: hidden;
   }
-  .allocation-uniform-preview { display: grid; place-items: center; min-width: 0; height: 100%; }
-  .allocation-uniform-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
-  .allocation-uniform-preview small { color: #193e2c; font-size: 9px; text-align: center; }
+  .allocation-uniform-preview { display: grid; place-items: center; min-width: 0; min-height: 0; height: 100%; }
+  .allocation-uniform-preview img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+  .allocation-uniform-preview small { color: var(--overview-muted); font-size: 9px; text-align: center; }
   .allocation-resource-copy { display: grid; gap: 4px; min-width: 0; }
   .allocation-resource-copy small { color: var(--overview-muted); font-size: 10px; line-height: 1.5; }
   .allocation-resource strong, .allocation-student strong { font-weight: 650; font-size: 13px; }

@@ -41,9 +41,16 @@ async function deleteUser(req, res) {
 	try {
 		if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: "You cannot delete your own administrator account." });
 		const target = await User.findById(req.params.id);
-		if (target && !require("../middleware/campusScope").canAccessCampus(req, target)) return res.status(403).json({ message: "User belongs to another campus." });
-		for (const model of ["Request", "Allocation", "ClaimSchedule", "Distribution"]) {
-			if (await require(`../models/${model}`).exists({ $or: ["student", "approvedBy", "rejectedBy", "checkedBy", "allocatedBy", "assignedStaff", "verifiedBy", "releasedBy"].map(field => ({ [field]: req.params.id })) })) return res.status(409).json({ message: "This user has workflow records. Suspend the account to preserve its history." });
+		if (!target) return res.status(404).json({ message: "User account was not found." });
+		if (!require("../middleware/campusScope").canAccessCampus(req, target)) return res.status(403).json({ message: "User belongs to another campus." });
+		const references = {
+			Request: ["student", "approvedBy", "rejectedBy", "checkedBy", "cancelledBy", "releasedBy"],
+			Allocation: ["student", "allocatedBy", "assignedStaff"],
+			ClaimSchedule: ["student", "verifiedBy", "cancelledBy"],
+			Distribution: ["student", "verifiedBy", "releasedBy"],
+		};
+		for (const [model, fields] of Object.entries(references)) {
+			if (await require(`../models/${model}`).exists({ $or: fields.map(field => ({ [field]: req.params.id })) })) return res.status(409).json({ message: "This user has workflow records and cannot be permanently deleted. Keep the account suspended to preserve its history." });
 		}
 		const user = await User.findByIdAndDelete(req.params.id);
 		if (!user) return res.status(404).json({ message: "User account was not found." });

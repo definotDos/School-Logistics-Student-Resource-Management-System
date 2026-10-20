@@ -4,7 +4,7 @@ import RequestPanel from "../../components/AdminRequestPanel";
 import AuditLogPanel from "../../components/AuditLogPanel";
 import StudentIdEditor from "../../components/StudentIdEditor";
 import ProfilePanel from "../../components/ProfilePanel";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -162,6 +162,8 @@ function AdminDashboard() {
     setNotice(`${createdResource.name} was added to the resource catalog and is now available to students.`);
   };
   const updateManagedUser = async (user, status) => {
+    setUserError("");
+    setNotice("");
     try {
       const result = await userAPI.updateStatus(user.databaseId, status);
       setRows((current) => ({ ...current, users: current.users.map((item) => item.databaseId === user.databaseId ? { ...item, status: result.user.status, action: result.user.status === "suspended" ? "Restore" : "Suspend" } : item) }));
@@ -171,14 +173,12 @@ function AdminDashboard() {
     }
   };
   const deleteManagedUser = async (user) => {
-    if (!window.confirm(`Delete ${user.name}'s account permanently?`)) return;
-    try {
-      await userAPI.delete(user.databaseId);
-      setRows((current) => ({ ...current, users: current.users.filter((item) => item.databaseId !== user.databaseId) }));
-      setNotice("User account deleted from the database.");
-    } catch (error) {
-      setUserError(error.message);
-    }
+    setUserError("");
+    setNotice("");
+    await userAPI.delete(user.databaseId);
+    setRows((current) => ({ ...current, users: current.users.filter((item) => item.databaseId !== user.databaseId) }));
+    setStaffMembers(current => current.filter(item => (item.id || item._id) !== user.databaseId));
+    setNotice(`${user.name}'s account was deleted successfully.`);
   };
   const assignAllocation = async (allocation, staffId) => {
     if (!staffId) return;
@@ -243,6 +243,44 @@ function ResourceThumbnail({ resource }) {
 
 function RecordPanel({ section, rows, onAction, onAdd }) { const [search, setSearch] = useTabState("RecordPanel.search", ""); const [showForm, setShowForm] = useState(false); const [form, setForm] = useState({ name: "", category: "Academic materials", detail: "" }); const filteredRows = rows.filter((row) => `${row.name} ${row.detail}`.toLowerCase().includes(search.toLowerCase())); const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value })); const submit = async (event) => { event.preventDefault(); if (!form.name.trim() || !form.detail.trim()) return; try { await onAdd({ name: form.name.trim(), detail: `${form.category} · ${form.detail.trim()}`, status: "Published", action: "Edit" }); setForm({ name: "", category: "Academic materials", detail: "" }); setShowForm(false); } catch (error) { window.alert(error.message); } }; return <section className="admin-panel record-panel"><div className="record-toolbar"><div><h2>{sections[section].label}</h2><p>{rows.length} records in this workspace</p></div><div className="record-tools">{onAdd && <button className="admin-secondary" onClick={() => setShowForm((visible) => !visible)}>{showForm ? "Close" : "+ Add resource"}</button>}<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records..." aria-label="Search records" /></div></div>{showForm && <form className="resource-form" onSubmit={submit}><label>Resource name<input value={form.name} onChange={update("name")} placeholder="e.g. Science Laboratory Kit" required /></label><label>Category<select value={form.category} onChange={update("category")}><option>Academic materials</option><option>Uniforms</option><option>Footwear</option><option>Identification</option><option>Other</option></select></label><label>Description or eligibility<input value={form.detail} onChange={update("detail")} placeholder="e.g. Grades 10-12" required /></label><button className="admin-primary" type="submit">Add to catalog</button></form>}<div className="record-list">{filteredRows.map((row, index) => <div className="record-row" key={`${row.name}-${index}`}>{section === "catalog" ? <ResourceThumbnail resource={row} /> : <div className="record-icon">{row.name.slice(0, 2).toUpperCase()}</div>}<div className="record-copy"><strong>{row.name}</strong><small>{row.detail}</small></div><span className={`status-pill ${row.status.toLowerCase()}`}>{row.status}</span><button className="row-action" disabled={row.action === "View"} onClick={() => onAction(row.databaseId, row.action)}>{row.action}</button></div>)}</div>{!filteredRows.length && <div className="empty-state">No matching records found.</div>}</section>; }
 function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, accountCreationReady }) {
+  const { user: currentUser } = useAuth();
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [pendingId, setPendingId] = useState("");
+  const actionLock = useRef(false);
+  const deleteDialog = useRef(null);
+  useEffect(() => {
+    if (deleteTarget) deleteDialog.current?.showModal();
+  }, [deleteTarget]);
+  const closeDelete = () => {
+    if (actionLock.current) return;
+    deleteDialog.current?.close();
+    setDeleteTarget(null);
+    setDeleteError("");
+  };
+  const confirmDelete = async () => {
+    if (!deleteTarget || actionLock.current) return;
+    actionLock.current = true;
+    setPendingId(deleteTarget.databaseId);
+    setDeleteError("");
+    try {
+      await onDelete(deleteTarget);
+      deleteDialog.current?.close();
+      setDeleteTarget(null);
+    } catch (error) {
+      setDeleteError(error.message || "Unable to delete this account. Please try again.");
+    } finally {
+      actionLock.current = false;
+      setPendingId("");
+    }
+  };
+  const changeStatus = async (target) => {
+    if (actionLock.current) return;
+    actionLock.current = true;
+    setPendingId(target.databaseId);
+    try { await onStatus(target, target.status === "suspended" ? "active" : "suspended"); }
+    finally { actionLock.current = false; setPendingId(""); }
+  };
   const [search, setSearch] = useTabState("UserPanel.search", "");
   const [role, setRole] = useTabState("UserPanel.role", "");
   const [status, setStatus] = useTabState("UserPanel.status", "");
@@ -254,9 +292,18 @@ function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, a
   const clearFilters = () => { setSearch(""); setRole(""); setStatus(""); };
 
   return <section className="admin-panel record-panel user-management-panel users-organized">
-    <div className="users-heading"><div><h2>Registered users <span>{users.length}</span></h2><p>Manage accounts and access across your school.</p></div></div>
+    <div className="users-heading"><div><span className="users-eyebrow">Account management</span><h2>Registered users <span>{users.length}</span></h2><p>Manage accounts and access across your school.</p></div></div>
     <div className="users-summary" aria-label="Account summary">
-      {[['Total users', users.length, 'blue'], ['Active', users.filter(user => user.status === 'active').length, 'green'], ['Suspended', users.filter(user => user.status === 'suspended').length, 'rose']].map(([label, count, tone]) => <div key={label} data-summary-tone={tone}><span>{label}</span><strong>{count}</strong></div>)}
+      {[
+        ['Total users', users.length, 'blue', 'users', 'All registered accounts'],
+        ['Active', users.filter(user => user.status === 'active').length, 'green', 'audit', 'Accounts with access'],
+        ['Suspended', users.filter(user => user.status === 'suspended').length, 'rose', 'clock', 'Account access paused'],
+      ].map(([label, count, tone, icon, description]) => <div key={label} data-summary-tone={tone}>
+        <span className="users-metric-label">{label}</span>
+        <span className="users-metric-icon"><DashboardIcon name={icon} /></span>
+        <strong>{count}</strong>
+        <small>{description}</small>
+      </div>)}
     </div>
     <div className="users-create">{accountCreationReady ? <CreateUserForm onCreated={onCreated} /> : <p className="account-review-notice" role="status">New accounts are paused while existing student IDs are reviewed. Correct duplicate IDs below using the school roster. Select All campuses to review every account. Login remains available.</p>}</div>
     <div className="users-filters">
@@ -275,10 +322,18 @@ function UserPanel({ users, error, onStatus, onDelete, onCreated, onIdUpdated, a
         <td><span className={`users-role ${user.role}`}>{user.role}</span></td>
         <td className="users-campus">{user.campus || 'Unassigned'}</td>
         <td><span className={`users-status ${user.status}`}>{user.status}</span></td>
-        <td><div className="users-actions"><button className="row-action" aria-label={`${user.status === 'suspended' ? 'Restore' : 'Suspend'} ${user.name}`} onClick={() => onStatus(user, user.status === "suspended" ? "active" : "suspended")}>{user.status === 'suspended' ? 'Restore' : 'Suspend'}</button><button className="row-action delete-action" aria-label={`Delete ${user.name}`} onClick={() => onDelete(user)}>Delete</button></div></td>
+        <td><div className="users-actions">{user.databaseId === (currentUser?.id || currentUser?._id) ? <span className="users-own-account">Your account</span> : <><button className={`row-action ${user.status === "suspended" ? "restore-action" : "suspend-action"}`} disabled={Boolean(pendingId)} aria-label={`${user.status === 'suspended' ? 'Restore' : 'Suspend'} ${user.name}`} onClick={() => changeStatus(user)}>{pendingId === user.databaseId ? 'Saving…' : user.status === 'suspended' ? 'Restore' : 'Suspend'}</button><button className="row-action delete-action" disabled={Boolean(pendingId)} aria-label={`Delete ${user.name}`} onClick={() => { setDeleteError(""); setDeleteTarget(user); }}>Delete</button></>}</div></td>
       </tr>)}</tbody>
     </table></div>
     {!error && !filteredUsers.length && <div className="users-empty"><strong>{users.length ? 'No matching users' : 'No users yet'}</strong><p>{users.length ? 'Try another search or adjust your filters.' : 'Add a user to get started.'}</p>{hasFilters && <button className="row-action" onClick={clearFilters}>Clear filters</button>}</div>}
+    <dialog ref={deleteDialog} className="users-delete-dialog" aria-labelledby="delete-user-title" aria-describedby="delete-user-description" onCancel={event => { event.preventDefault(); closeDelete(); }}>
+      <h2 id="delete-user-title">Delete user account?</h2>
+      <p id="delete-user-description">This permanently removes the account and prevents sign-in. This action cannot be undone.</p>
+      <div className="users-delete-identity"><strong>{deleteTarget?.name}</strong><span>{deleteTarget?.email}</span><small>{deleteTarget?.studentId || deleteTarget?.employeeId || "No assigned ID"} · {deleteTarget?.role}</small><small>{deleteTarget?.campus}</small></div>
+      <p>Accounts linked to workflow records must remain suspended to preserve their history.</p>
+      {deleteError && <p className="users-delete-error" role="alert">{deleteError}</p>}
+      <div className="users-delete-buttons"><button type="button" className="row-action" autoFocus disabled={Boolean(pendingId)} onClick={closeDelete}>Cancel</button><button type="button" className="row-action delete-action" disabled={Boolean(pendingId)} onClick={confirmDelete}>{pendingId ? "Deleting…" : "Delete permanently"}</button></div>
+    </dialog>
   </section>;
 }
 
