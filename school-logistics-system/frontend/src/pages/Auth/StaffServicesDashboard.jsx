@@ -518,7 +518,7 @@ function StaffOverview({ stats }) {
                   <p>{metric.detail}</p>
                 </div>
                 <strong className="staff-performance-value">{metric.value}<span>%</span></strong>
-                <progress aria-labelledby={`performance-${metric.id}`} value={metric.value} max="100">{metric.value}%</progress>
+                <div className="dashboard-progress" role="progressbar" aria-labelledby={`performance-${metric.id}`} aria-valuenow={metric.value} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${metric.value}%` }} /></div>
               </div>
             ))}
           </div>

@@ -210,7 +210,35 @@ function Overview({ overview }) {
   return <div className="admin-overview">
   <section className="admin-metrics" aria-labelledby="admin-metrics-title"><div className="admin-section-heading"><div><h2 id="admin-metrics-title">At a glance</h2><p>Your resource operations in one place</p></div><span>Overview</span></div><div className="admin-stats"><AdminStat label="Pending requests" value={pendingRequests} change="Live from system" tone="orange" /><AdminStat label="Available resources" value={availableResources} change="Current inventory" tone="blue" /><AdminStat label="Active users" value={activeUsers} change="Registered accounts" tone="green" /><AdminStat label="Scheduled claims" value={scheduledClaims} change="Live schedule count" tone="navy" /></div></section>
   <section className="admin-panel admin-quick"><PanelHeading title="Quick actions" description="Jump straight into common administrator workflows" /><div className="quick-action-grid"><Link to="/admin/requests"><DashboardIcon name="requests" /><span>Review requests<small>Approve and verify</small></span>→</Link><Link to="/admin/inventory"><DashboardIcon name="inventory" /><span>Receive resources<small>Update stock levels</small></span>→</Link><Link to="/admin/distribution"><DashboardIcon name="calendar" /><span>Schedule distribution<small>Plan collection windows</small></span>→</Link><Link to="/admin/reports"><DashboardIcon name="reports" /><span>View analytics<small>Track performance</small></span>→</Link></div></section>
-  <div className="admin-grid"><section className="admin-panel"><PanelHeading title="Needs your attention" description="Prioritized work across the school network" /><div className="attention-list"><Attention icon="studentRequests" title={`${pendingRequests} requests awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" /><Attention icon="inventory" title={`${availableResources} resources in stock`} detail="Monitor inventory levels and receive new stock as needed." action="Manage inventory" href="/admin/inventory" /><Attention icon="claimCalendar" title={`${scheduledClaims} scheduled claims`} detail="Confirm release quantities and collection staff." action="View schedule" href="/admin/distribution" /></div></section><section className="admin-panel"><PanelHeading title="Operations snapshot" description="Current fulfillment performance" /><div className="progress-block"><div><span>Request fulfillment</span><strong>{fulfillmentRate}%</strong></div><div className="progress"><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div></div><div className="progress-block"><div><span>Approval rate</span><strong>{approvalRate}%</strong></div><div className="progress green"><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div></div><div className="progress-block"><div><span>Resources released</span><strong>{resourcesReleased}</strong></div><div className="progress orange"><i style={{ width: `${resourcesReleased ? 100 : 0}%` }} /></div></div></section></div>
+  <div className="admin-grid overview-operations">
+    <section className="admin-panel overview-priorities" aria-label="Needs your attention">
+      <PanelHeading title="Needs your attention" description="Review priorities and keep school operations moving." />
+      <div className="attention-list">
+        <Attention icon="studentRequests" title={`${pendingRequests.toLocaleString()} ${pendingRequests === 1 ? "request" : "requests"} awaiting approval`} detail="Review student eligibility and approve valid requests." action="Review requests" href="/admin/requests" />
+        <Attention icon="inventory" title={`${availableResources.toLocaleString()} resources in stock`} detail="Check availability and receive incoming supplies." action="Manage inventory" href="/admin/inventory" />
+        <Attention icon="claimCalendar" title={`${scheduledClaims.toLocaleString()} scheduled ${scheduledClaims === 1 ? "claim" : "claims"}`} detail="Confirm collection times and assigned staff." action="View schedule" href="/admin/distribution" />
+      </div>
+    </section>
+    <section className="admin-panel overview-performance" aria-label="Operations snapshot">
+      <PanelHeading title="Operations snapshot" description="Track request progress and completed releases." />
+      <div className="overview-performance-body">
+        <div className="progress-block" data-metric="fulfillment">
+          <div><span className="snapshot-metric-label"><DashboardIcon name="studentRequests" /><span>Request fulfillment<small>Completed resource requests</small></span></span><strong>{fulfillmentRate}%</strong></div>
+          <div className="progress" role="progressbar" aria-label="Request fulfillment" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, fulfillmentRate))}><i style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }} /></div>
+        </div>
+        <div className="progress-block" data-metric="approval">
+          <div><span className="snapshot-metric-label"><DashboardIcon name="audit" /><span>Approval rate<small>Requests approved for allocation</small></span></span><strong>{approvalRate}%</strong></div>
+          <div className="progress green" role="progressbar" aria-label="Approval rate" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, approvalRate))}><i style={{ width: `${Math.min(100, Math.max(0, approvalRate))}%` }} /></div>
+        </div>
+        <div className="overview-release-total">
+          <span className="overview-release-icon" aria-hidden="true"><DashboardIcon name="inventory" /></span>
+          <div><span>Resources released</span><small>Recorded releases</small></div>
+          <strong>{resourcesReleased.toLocaleString()}</strong>
+        </div>
+      </div>
+      <footer className="snapshot-footer"><span>Explore your operational performance</span><Link to="/admin/reports">View reports <span aria-hidden="true">&rarr;</span></Link></footer>
+    </section>
+  </div>
 </div>; }
 function AdminStat({ label, value, change, tone }) {
   const icon = { orange: "studentRequests", blue: "inventory", green: "users", navy: "claimCalendar" }[tone];

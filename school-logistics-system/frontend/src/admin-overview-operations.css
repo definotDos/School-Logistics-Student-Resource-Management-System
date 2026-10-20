@@ -1,0 +1,113 @@
+/* Semantic overview palette: amber / pending, blue / stock,
+   lavender / scheduling, green / completed work. */
+.admin-shell.organized-workspace.management-theme .admin-overview {
+  --palette-gold: #94600d;
+  --palette-blue: #24678b;
+  --palette-lavender: #7950a1;
+  --palette-sage: #28744f;
+}
+.admin-shell.organized-workspace.management-theme.dark-mode .admin-overview {
+  --palette-gold: #f2cc78;
+  --palette-blue: #96cee9;
+  --palette-lavender: #ceb5ef;
+  --palette-sage: #9bd9b5;
+}
+.admin-shell.organized-workspace.management-theme .admin-main .admin-overview .overview-operations {
+  align-items: stretch;
+  gap: 24px;
+}
+.admin-shell.organized-workspace.management-theme .admin-main .overview-operations {
+  .admin-panel { overflow: hidden; }
+  .admin-panel-heading { padding: 22px 24px; }
+  .admin-panel-heading h2 { font-size: 18px; letter-spacing: -.025em; }
+  .admin-panel-heading p { margin-top: 6px; color: var(--overview-muted); }
+  .attention-list { display: grid; gap: 12px; margin: 0; padding: 20px; }
+  .attention-row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 14px;
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--workflow-accent) 22%, var(--overview-edge));
+    border-left: 3px solid var(--workflow-accent);
+    background: color-mix(in srgb, var(--workflow-accent) 5%, var(--overview-solid));
+    box-shadow: none;
+  }
+  .attention-row > b {
+    grid-row: 1;
+    align-self: center;
+    border-radius: 12px;
+    transform: none;
+    color: var(--workflow-accent);
+    background: color-mix(in srgb, var(--workflow-accent) 12%, var(--overview-solid));
+    border-color: color-mix(in srgb, var(--workflow-accent) 28%, var(--overview-edge));
+  }
+  .attention-row strong { font-size: 14px; line-height: 1.5; }
+  .attention-row small { color: var(--overview-muted); font-size: 12px; line-height: 1.6; }
+  .attention-row a {
+    grid-column: 2;
+    justify-self: start;
+    padding: 8px 12px;
+    min-height: 36px;
+    box-sizing: border-box;
+    border: 1px solid color-mix(in srgb, var(--workflow-accent) 35%, var(--overview-edge));
+    border-radius: 8px;
+    color: var(--workflow-accent);
+    background: color-mix(in srgb, var(--workflow-accent) 9%, var(--overview-solid));
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+  }
+  .attention-row a:hover {
+    color: var(--workflow-accent);
+    background: color-mix(in srgb, var(--workflow-accent) 18%, var(--overview-solid));
+    border-color: var(--workflow-accent);
+  }
+  .attention-row a:focus-visible { outline: 2px solid var(--workflow-accent); outline-offset: 3px; }
+  .overview-performance { display: flex; flex-direction: column; }
+  .overview-performance-body { display: grid; align-content: start; gap: 16px; padding: 20px; }
+  .progress-block {
+    --metric-accent: var(--palette-blue);
+    padding: 20px;
+    margin: 0;
+    border: 1px solid var(--overview-edge);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--metric-accent) 4%, var(--overview-solid));
+  }
+  .progress-block[data-metric="approval"] { --metric-accent: var(--palette-sage); }
+  .progress-block > div:first-child { align-items: center; gap: 16px; margin: 0; }
+  .progress-block span { color: var(--overview-text); font-size: 13px; font-weight: 500; }
+  .progress-block strong { color: var(--metric-accent); font-size: 28px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .progress { height: 8px; margin-top: 16px; background: color-mix(in srgb, var(--metric-accent) 12%, var(--overview-solid)); }
+  .progress i { background: var(--metric-accent); }
+  .overview-release-total {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid color-mix(in srgb, var(--palette-sage) 30%, var(--overview-edge));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--palette-sage) 8%, var(--overview-solid));
+  }
+  .overview-release-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--palette-sage) 14%, var(--overview-solid)); color: var(--palette-sage); }
+  .overview-release-icon svg { width: 22px; height: 22px; }
+  .overview-release-total div { display: grid; gap: 4px; }
+  .overview-release-total div > span { color: var(--overview-text); font-size: 13px; font-weight: 500; }
+  .overview-release-total small { color: var(--overview-muted); font-size: 11px; }
+  .overview-release-total strong { color: var(--palette-sage); font-size: 30px; font-variant-numeric: tabular-nums; }
+}
+@media (min-width: 1600px) {
+  .admin-shell.organized-workspace.management-theme .admin-main .overview-operations {
+    .attention-row { grid-template-columns: 44px minmax(0, 1fr) auto; min-height: 108px; }
+    .attention-row a { grid-column: 3; }
+  }
+}
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace.management-theme .admin-main .overview-operations {
+    .admin-panel-heading { padding: 18px 16px; }
+    .attention-list, .overview-performance-body { padding: 14px; }
+    .attention-row { padding: 14px; gap: 10px; }
+    .progress-block, .overview-release-total { padding: 16px; }
+  }
+}

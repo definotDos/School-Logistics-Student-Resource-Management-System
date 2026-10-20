@@ -1,0 +1,100 @@
+/* Overview-only polish, shared by the administrator and staff workspaces. */
+.admin-shell.organized-workspace.management-theme .admin-main {
+  .overview-operations .overview-performance { align-self: start; }
+  .overview-operations .overview-performance-body { gap: 14px; padding: 24px; }
+  .overview-operations .progress-block {
+    padding: 20px;
+    border-left: 3px solid var(--metric-accent);
+    border-radius: 14px;
+  }
+  .snapshot-metric-label { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .snapshot-metric-label > svg {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 10px;
+    box-sizing: content-box;
+    border-radius: 12px;
+    color: var(--metric-accent);
+    background: color-mix(in srgb, var(--metric-accent) 12%, transparent);
+  }
+  .snapshot-metric-label small {
+    display: block;
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--overview-muted);
+  }
+  .overview-operations .progress-block strong { font-size: clamp(26px, 2.4vw, 36px); letter-spacing: -.04em; }
+  .snapshot-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--overview-edge);
+    background: color-mix(in srgb, var(--overview-soft) 55%, transparent);
+    color: var(--overview-muted);
+    font-size: 12px;
+  }
+  .snapshot-footer a { display: inline-flex; align-items: center; gap: 12px; padding: 8px 0; color: var(--overview-accent); font-weight: 700; text-decoration: none; }
+  .snapshot-footer a:hover { text-decoration: underline; }
+  :is(.admin-overview, .staff-overview) a:focus-visible { outline: 2px solid var(--overview-accent); outline-offset: 4px; }
+  .staff-performance-metric { border-left: 3px solid var(--performance-accent); }
+  .dashboard-progress {
+    grid-column: 1 / -1;
+    height: 8px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--performance-track);
+  }
+  .dashboard-progress i { display: block; height: 100%; border-radius: inherit; background: var(--performance-accent); }
+  :is(.dashboard-progress, .overview-performance .progress) i {
+    transform-origin: left center;
+    transition: width 900ms cubic-bezier(.22, 1, .36, 1);
+    animation: dashboard-progress-fill 950ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+  :is(.admin-overview, .staff-overview) > * {
+    animation: dashboard-section-enter 550ms ease-out backwards;
+  }
+  :is(.admin-overview, .staff-overview) > :nth-child(2) { animation-delay: 90ms; }
+  :is(.admin-overview, .staff-overview) > :nth-child(3) { animation-delay: 180ms; }
+  :is(.admin-overview, .staff-overview) :is(.admin-stat, .staff-metric, .quick-action-grid a, .staff-shortcut, .attention-row, .staff-action, .progress-block, .staff-performance-metric, .overview-release-total) {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
+  }
+}
+@keyframes dashboard-section-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dashboard-progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-shell.organized-workspace.management-theme .admin-main :is(.admin-overview, .staff-overview) :is(.admin-stat, .staff-metric, .quick-action-grid a, .staff-shortcut, .attention-row, .staff-action, .progress-block, .staff-performance-metric, .overview-release-total):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px #10291c14;
+  }
+}
+@media (max-width: 600px) {
+  .admin-shell.organized-workspace.management-theme .admin-main {
+    .overview-operations .overview-performance-body { padding: 16px; }
+    .overview-operations .progress-block { padding: 16px; }
+    .snapshot-metric-label { gap: 8px; }
+    .snapshot-metric-label > svg { width: 18px; height: 18px; padding: 7px; }
+    .snapshot-footer { padding: 14px 16px; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell.organized-workspace.management-theme .admin-main :is(.admin-overview, .staff-overview) {
+    &, *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+}

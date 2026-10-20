@@ -21,6 +21,8 @@ import "./navigation-glass.css";
 import "./student-overview-glass.css";
 import "./student-overview-organized.css";
 import "./management-overview.css";
+import "./admin-overview-operations.css";
+import "./dashboard-motion.css";
 import "./pages/Auth/Allocations.css";
 import { initializeAppearance } from "./utils/appearance";
 
