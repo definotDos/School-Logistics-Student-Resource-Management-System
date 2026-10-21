@@ -1,9 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./LogoutModal.css";
 
 export default function LogoutModal({ error, onRetry, onClose }) {
   const dialogRef = useRef(null);
+  const [isDarkMode] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("srmsLandingTheme") ?? "true");
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -21,7 +28,7 @@ export default function LogoutModal({ error, onRetry, onClose }) {
   return createPortal(
     <dialog
       ref={dialogRef}
-      className="logout-modal"
+      className={`logout-modal landing-palette${isDarkMode ? " dark-mode" : ""}`}
       aria-labelledby="logout-modal-title"
       aria-describedby="logout-modal-description"
       onCancel={(event) => {

@@ -3,17 +3,17 @@
   width: min(420px, calc(100vw - 32px));
   margin: auto;
   padding: 36px 28px 26px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--landing-border);
   border-radius: 20px;
-  background: #fff;
-  color: #16324f;
+  background: var(--landing-bg);
+  color: var(--landing-text);
   text-align: center;
   font-family: inherit;
-  box-shadow: 0 24px 80px #102b4540;
+  box-shadow: 0 24px 80px #020e0940;
 }
 
 .logout-modal::backdrop {
-  background: #10263c80;
+  background: #041c16a6;
   backdrop-filter: blur(5px);
 }
 
@@ -24,27 +24,27 @@
   height: 72px;
   margin: 0 auto 22px;
   border-radius: 50%;
-  background: #edf5fa;
+  background: var(--landing-soft);
 }
 
 .logout-modal-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #d3e3ef;
-  border-top-color: #22648b;
+  border: 3px solid var(--landing-border);
+  border-top-color: var(--landing-primary);
   border-radius: 50%;
   animation: logout-modal-spin .8s linear infinite;
 }
 
-.logout-modal-symbol-error { background: #fff1ec; color: #ab4425; font-size: 32px; font-weight: 700; }
+.logout-modal-symbol-error { background: var(--landing-accent-soft); color: var(--landing-accent); font-size: 32px; font-weight: 700; }
 .logout-modal h2 { margin: 0 0 10px; font-size: 23px; line-height: 1.3; }
-.logout-modal p { margin: 0; color: #607389; font-size: 14px; line-height: 1.7; }
-.logout-modal-caption { display: block; margin-top: 26px; padding-top: 18px; border-top: 1px solid #edf1f5; color: #75869a; font-size: 12px; }
+.logout-modal p { margin: 0; color: var(--landing-muted); font-size: 14px; line-height: 1.7; }
+.logout-modal-caption { display: block; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--landing-border); color: var(--landing-muted); font-size: 12px; }
 .logout-modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-.logout-modal-actions button { flex: 1; padding: 12px 16px; border: 1px solid #dce4ed; border-radius: 10px; background: #f8fafc; color: #29435c; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.logout-modal-actions .logout-modal-retry { border-color: #22648b; background: #22648b; color: #fff; }
+.logout-modal-actions button { flex: 1; padding: 12px 16px; border: 1px solid var(--landing-border); border-radius: 10px; background: var(--landing-action-soft); color: var(--landing-text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.logout-modal-actions .logout-modal-retry { border-color: var(--landing-primary); background: var(--landing-primary); color: var(--landing-on-primary); }
 .logout-modal-actions button:hover { filter: brightness(.95); }
-.logout-modal-actions button:focus-visible { outline: 3px solid #7fb1d4; outline-offset: 3px; }
+.logout-modal-actions button:focus-visible { outline: 3px solid var(--landing-accent); outline-offset: 3px; }
 
 @keyframes logout-modal-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
