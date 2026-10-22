@@ -32,6 +32,7 @@ exports.verify = handle(async (req, res) => {
   { $set: { 'loginFactor.used': true }, $unset: { 'loginFactor.codeHash': 1 } }, { returnDocument: 'after' });
   if (!consumed || !authorized(consumed)) throw invalid();
   if (rememberDevice) await devices.remember(req, res, consumed);
+  require('../services/authAudit')({ event: 'login_success', userId: String(consumed._id), role: consumed.role, campus: consumed.campus, method: 'email_code', time: new Date().toISOString() });
   res.json({ user: publicUser(consumed), token: createSessionToken(consumed, pending.rememberMe, 'otp') });
 });
 exports.resend = handle(async (req, res) => {
@@ -48,10 +49,12 @@ exports.listDevices = handle(async (req, res) => {
 exports.revokeDevices = handle(async (req, res) => {
   await Device.updateMany({ user: req.user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
   devices.clear(res);
+  require('../services/authAudit')({ event: 'trusted_devices_revoked', userId: String(req.user._id), role: req.user.role, campus: req.user.campus, time: new Date().toISOString() });
   res.json({ message: 'All trusted devices revoked.' });
 });
 exports.logout = handle(async (req, res) => {
   await User.updateOne({ _id: req.user._id }, { $inc: { sessionVersion: 1 }, $unset: { loginFactor: 1 } });
   devices.clear(res);
+  require('../services/authAudit')({ event: 'logout', userId: String(req.user._id), role: req.user.role, campus: req.user.campus, time: new Date().toISOString() });
   res.json({ message: 'Signed out. All sessions and device trust have been revoked.' });
 });

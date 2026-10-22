@@ -4,6 +4,7 @@ const User = require("../models/User");
 const { sendVerificationEmail } = require("../config/email");
 const { publicUser } = require("./authController");
 const hash = code => crypto.createHash("sha256").update(code).digest("hex");
+const { createAuditLog } = require("../services/workflowRecords");
 
 async function requestEmailChange(req, res) {
   try {
@@ -13,6 +14,7 @@ async function requestEmailChange(req, res) {
     const code = crypto.randomBytes(16).toString("hex");
     await sendVerificationEmail(email, code);
     await User.findByIdAndUpdate(req.user._id, { pendingEmail: email, emailChangeHash: hash(code), emailChangeExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+    await createAuditLog(req.user, "email_change_requested", "User", req.user._id, null, null, "Requested an email address change.", { campus: req.user.campus });
     res.json({ message: "Code sent to your new email. Your current email stays active until verification." });
   } catch {
     res.status(503).json({ message: "Unable to send verification email. Please try again." });
@@ -28,6 +30,7 @@ async function confirmEmailChange(req, res) {
       $unset: { pendingEmail: 1, emailChangeHash: 1, emailChangeExpiresAt: 1, passwordResetHash: 1, passwordResetExpiresAt: 1 },
     }, { returnDocument: 'after', runValidators: true });
     if (!user) return res.status(400).json({ message: "Code invalid or expired. Request a new code and try again." });
+    await createAuditLog(user, "email_changed", "User", user._id, null, null, "Changed account email address after verification.", { campus: user.campus, student: user.role === "student" ? user._id : undefined });
     res.json({ user: publicUser(user), message: "Email changed and verified." });
   } catch (error) {
     res.status(error.code === 11000 ? 409 : 500).json({ message: error.code === 11000 ? "That email address is already in use." : "Unable to verify email." });

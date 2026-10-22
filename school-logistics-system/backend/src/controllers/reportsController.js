@@ -389,8 +389,7 @@ async function getAuditLogReport(req, res) {
 		const filter = {};
 		const scope = campusFilter(req);
 		if (scope.campus) {
-			const actors = await require("../models/User").find(scope).select("_id");
-			filter.actor = { $in: actors.map(user => user._id) };
+			filter.campus = scope.campus;
 		}
 
 		if (startDate || endDate) {
@@ -407,6 +406,8 @@ async function getAuditLogReport(req, res) {
 
 		const logs = await AuditLog.find(filter)
 			.populate("actor", "name email role")
+			.populate("student", "name studentId role")
+			.populate("resource", "name category")
 			.sort({ createdAt: -1 })
 			.limit(1000)
 			.lean();
@@ -428,10 +429,14 @@ async function getAuditLogReport(req, res) {
 				timestamp: log.createdAt,
 				actor: log.actor?.name || "Unknown",
 				role: log.actor?.role,
+				campus: log.campus || "",
 				action: log.action,
 				entity: log.entity,
 				entityId: log.entityId,
+				student: log.student?.name || "",
+				resource: log.resource?.name || "",
 				details: log.details,
+				metadata: log.metadata || {},
 				statusChange: log.previousStatus ? `${log.previousStatus} → ${log.newStatus}` : "N/A",
 			})),
 		};

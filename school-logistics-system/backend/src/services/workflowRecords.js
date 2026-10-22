@@ -5,12 +5,24 @@ const User = require("../models/User");
 
 async function createAuditLog(actor, action, entity, entityId, previousStatus, newStatus, details = "", metadata = {}) {
   const target = mongoose.models[entity] ? await mongoose.model(entity).findById(entityId).lean() : null;
-  let campus = metadata.campus || (entity === "Campus" ? target?.name : target?.campus);
+  let campus = metadata.campus || (entity === "Campus" ? target?.name : target?.campus) || (entity === "User" ? target?.campus : undefined);
+  if (!campus && target?.campus) campus = target.campus;
+  if (!campus && target?.request) {
+    const request = await mongoose.model("Request").findById(target.request).select("campus student resourceRef").lean();
+    campus = request?.campus;
+    metadata = { ...metadata, student: metadata.student || request?.student, resource: metadata.resource || request?.resourceRef };
+  }
   if (!campus && target?.resource && entity === "Inventory") {
     campus = (await mongoose.model("Resource").findById(target.resource).lean())?.campus;
   }
+  const student = metadata.student || (target?.student?._id || target?.student) || (entity === "User" && metadata.role === "student" ? entityId : undefined) || (actor.role === "student" ? actor._id : undefined);
+  const resource = metadata.resource || (target?.resourceRef?._id || target?.resourceRef) || (entity === "Resource" ? entityId : undefined);
+  const auditMetadata = { ...metadata };
+  delete auditMetadata.campus;
+  delete auditMetadata.student;
+  delete auditMetadata.resource;
   return AuditLog.create({ actor: actor._id, actorRole: actor.role, action, entity, entityId,
-    previousStatus, newStatus, details, metadata, campus: campus || actor.activeCampus || actor.campus });
+    previousStatus, newStatus, details, metadata: auditMetadata, campus: campus || actor.activeCampus || actor.campus, student, resource });
 }
 
 async function sendNotification(userId, type, title, message, relatedEntityId = null, actionUrl = "") {

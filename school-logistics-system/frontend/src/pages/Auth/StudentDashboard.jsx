@@ -47,6 +47,13 @@ function StudentDashboard() {
     approved: requests.filter((request) => request.status === "approved").length,
     released: requests.filter((request) => ["released", "completed"].includes(request.status)).length,
   };
+  const nextRequestStep = (request) => {
+    const status = String(request.status || "submitted").toLowerCase();
+    if (["rejected", "cancelled", "completed", "released", "claimed"].includes(status)) return status.charAt(0).toUpperCase() + status.slice(1);
+    if (["confirmed", "scheduled"].includes(status)) return "Ready to collect";
+    if (["allocated", "reserved", "approved"].includes(status)) return "Awaiting pickup schedule";
+    return "Being reviewed";
+  };
   const upcomingClaim = schedules.find((schedule) => ["Scheduled", "Confirmed"].includes(schedule.status));
   const claimDate = upcomingClaim?.pickupDate ? new Date(upcomingClaim.pickupDate) : null;
   const firstName = user?.name?.split(" ")[0] || "Student";
@@ -148,7 +155,7 @@ function StudentDashboard() {
 
           {dashboardError && <p className="profile-error" role="alert">{dashboardError}</p>}
 
-          <div className="overview-section-heading"><h2>Your request summary</h2><span>At a glance</span></div>
+          <div className="overview-section-heading"><h2>Your request summary</h2><span>{counts.total} total</span></div>
           <div className="dashboard-stats" aria-label="Request summary">
             <StatCard label="Total Requests" value={counts.total} tone="navy" icon="requests" detail="All your resource requests" />
             <StatCard label="Pending Review" value={counts.pending} tone="gold" icon="history" detail="Awaiting staff review" />
@@ -173,6 +180,7 @@ function StudentDashboard() {
                       <strong>{request.resourceName || request.resource || "Resource"}</strong>
                       {request.uniformStyle && <small>{request.uniformStyle}{request.uniformSize ? ` · Size ${request.uniformSize}` : ""}</small>}
                       <small>Requested {new Date(request.date).toLocaleDateString()}</small>
+                      <small className="request-next-step">Next: {nextRequestStep(request)}</small>
                     </div>
                     <StatusBadge status={request.status} />
                   </div>
@@ -182,7 +190,7 @@ function StudentDashboard() {
 
 
             <section className="dashboard-panel claim-panel">
-              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>{upcomingClaim ? "One collection is scheduled" : "No collection scheduled"}</p></div>{claimDate && <span className="claim-day"><DashboardIcon name="calendar" /><b>{claimDate.getDate()}</b><span>{claimDate.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</span></span>}</div>
+              <div className="panel-heading"><div><span className="dashboard-kicker">Next step</span><h2>Upcoming Claim</h2><p>{upcomingClaim ? `${schedules.filter((schedule) => ["Scheduled", "Confirmed"].includes(schedule.status)).length} collection${schedules.filter((schedule) => ["Scheduled", "Confirmed"].includes(schedule.status)).length === 1 ? "" : "s"} scheduled` : "No collection scheduled"}</p></div>{claimDate && <span className="claim-day"><DashboardIcon name="calendar" /><b>{claimDate.getDate()}</b><span>{claimDate.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</span></span>}</div>
               {upcomingClaim ? <>
                 <div className="claim-resource"><span>{(upcomingClaim.resource?.name || "R").charAt(0)}</span><div><strong>{upcomingClaim.resource?.name || "Resource"}</strong><small>{upcomingClaim.status === "Confirmed" ? "Identity verified" : "Approved and ready for collection"}</small></div></div>
                 <div className="claim-details"><span>◷ <b>{upcomingClaim.startTime} - {upcomingClaim.endTime}</b></span><span>⌖ <b>{upcomingClaim.location}</b></span></div>

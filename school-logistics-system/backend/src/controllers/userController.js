@@ -3,6 +3,7 @@ const { USER_STATUSES, normalizeStatus } = require("../utils/status");
 const User = require("../models/User");
 const { publicUser } = require("./authController");
 const { sendVerificationEmail } = require("../config/email");
+const { createAuditLog } = require("../services/workflowRecords");
 
 async function getMe(req, res) {
 	res.json({ user: publicUser(req.user) });
@@ -31,6 +32,7 @@ async function updateUserStatus(req, res) {
 		if (target && !require("../middleware/campusScope").canAccessCampus(req, target)) return res.status(403).json({ message: "User belongs to another campus." });
 		const user = await User.findByIdAndUpdate(req.params.id, { status }, { returnDocument: "after", runValidators: true });
 		if (!user) return res.status(404).json({ message: "User account was not found." });
+		await createAuditLog(req.user, "account_status_changed", "User", user._id, target.status, user.status, `Account status changed for ${user.name}.`, { campus: user.campus, student: user.role === "student" ? user._id : undefined, role: user.role });
 		res.json({ user: publicUser(user) });
 	} catch {
 		res.status(500).json({ message: "Unable to update account status." });
@@ -54,6 +56,7 @@ async function deleteUser(req, res) {
 		}
 		const user = await User.findByIdAndDelete(req.params.id);
 		if (!user) return res.status(404).json({ message: "User account was not found." });
+		await createAuditLog(req.user, "account_deleted", "User", user._id, user.status, null, `Deleted ${user.role} account ${user.name}.`, { campus: user.campus, role: user.role });
 		res.json({ message: "User account deleted successfully.", id: req.params.id });
 	} catch {
 		res.status(500).json({ message: "Unable to delete user account." });
@@ -79,6 +82,8 @@ async function updateMe(req, res) {
 		if (updates.name !== undefined && (typeof updates.name !== "string" || !updates.name.trim())) return res.status(400).json({ message: "Enter your full name." });
 		const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: "after", runValidators: true });
 		if (!user) return res.status(404).json({ message: "Your account could not be found." });
+		const changedFields = Object.keys(updates);
+		if (changedFields.length) await createAuditLog(user, "profile_updated", "User", user._id, null, null, `Updated profile fields: ${changedFields.join(", ")}.`, { campus: user.campus, student: user.role === "student" ? user._id : undefined, changedFields });
 		res.json({ user: publicUser(user) });
 	} catch (error) {
 		res.status(error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to update profile. Please try again." });
@@ -101,6 +106,7 @@ async function createUser(req, res) {
             await User.deleteOne({ _id: user._id });
             return res.status(503).json({ message: "Verification email is unavailable. The account was not created. Try again later." });
         }
+		await createAuditLog(req.user, "account_created", "User", user._id, null, user.status, `Created ${user.role} account ${user.name}.`, { campus: user.campus, student: user.role === "student" ? user._id : undefined, role: user.role });
 
 		res.status(201).json({ user: publicUser(user) });
 	} catch (error) { res.status(error.code === 11000 ? 409 : error.status === 400 || error.name === "ValidationError" ? 400 : 500).json({ message: error.code === 11000 ? error.keyPattern?.employeeId ? "That employee ID is already registered." : error.keyPattern?.studentId ? "That student ID is already registered." : "Email already exists." : error.status === 400 || error.name === "ValidationError" ? error.message : "Unable to create account." }); }

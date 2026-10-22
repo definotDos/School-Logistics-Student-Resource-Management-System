@@ -1,6 +1,6 @@
 /* Landing page palette: edit semantic tokens here to keep every section aligned.
    Forest green = structure, gold = highlights, sage = supporting surfaces. */
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background) {
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background) {
   color-scheme: light;
   --landing-bg: #f0f6f2;
   --landing-surface: #ffffffb8;
@@ -41,8 +41,8 @@
 }
 
 /* Decorative layers stay behind every section and never intercept interactions. */
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background)::before,
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background)::after {
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background)::before,
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -51,7 +51,7 @@
   border-radius: inherit;
 }
 
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background)::before {
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background)::before {
   background-image:
     radial-gradient(circle at 1px 1px, var(--landing-grid-point) 0 1px, transparent 4px),
     linear-gradient(var(--landing-grid-line) 1px, transparent 1px),
@@ -66,7 +66,7 @@
   mask-image: linear-gradient(90deg, #000c, #0005 35%, #0009 70%, #000c);
 }
 
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background)::after {
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background)::after {
   background-image:
     radial-gradient(ellipse at 0% 50%, transparent calc(68% - 1px), var(--landing-edge-teal) 68%, transparent calc(68% + 1px)),
     radial-gradient(ellipse at 100% 50%, transparent calc(72% - 1px), var(--landing-edge-gold) 72%, transparent calc(72% + 1px)),
@@ -80,7 +80,7 @@
   mask-image: linear-gradient(90deg, #0009, transparent 14%, transparent 86%, #0009);
 }
 
-:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell.student-overview.organized-workspace.landing-background).dark-mode {
+:is(.logout-modal.landing-palette, .landing-page.landing-palette, .admin-shell.organized-workspace.management-theme.landing-background, .dashboard-shell.student-shell:is(.student-overview, .student-pages).organized-workspace.landing-background).dark-mode {
   color-scheme: dark;
   --landing-bg: #041c16;
   --landing-bg-end: #062c2e;

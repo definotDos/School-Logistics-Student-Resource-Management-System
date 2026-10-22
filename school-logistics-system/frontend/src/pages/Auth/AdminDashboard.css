@@ -1,6 +1,40 @@
 /* Share the landing backdrop while keeping workspace content easy to scan. */
 .admin-shell.organized-workspace.management-theme.landing-background {
   position: relative;
+  min-height: 100vh;
+  background-attachment: fixed;
+  overflow: clip;
+}
+
+/* Give the admin workspace the landing page's structured grid and dot field.
+   Decorative layers stay on the shell, behind the unchanged dashboard cards. */
+.admin-shell.organized-workspace.management-theme.landing-background::before {
+  z-index: 0;
+  opacity: 1;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(120 245 206 / 35%) 0 1.2px, transparent 3px),
+    linear-gradient(rgb(72 215 167 / 13%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(72 215 167 / 13%) 1px, transparent 1px);
+  background-size: 28px 28px, 56px 56px, 56px 56px;
+  background-position: left top;
+  -webkit-mask-image: linear-gradient(90deg, #000d, #0008 48%, #000d);
+  mask-image: linear-gradient(90deg, #000d, #0008 48%, #000d);
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background::after {
+  z-index: 0;
+  opacity: .85;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background > .admin-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background .admin-main {
+  max-width: 1520px;
+  padding: clamp(20px, 2.5vw, 36px);
 }
 
 .admin-shell.organized-workspace.management-theme.landing-background > .admin-content {
@@ -10,6 +44,46 @@
 .admin-shell.organized-workspace.management-theme.landing-background .admin-overview {
   gap: 24px;
 }
+
+.admin-overview .admin-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-overview .admin-workflow-step {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 8px 12px;
+  align-content: start;
+  min-height: 176px;
+  padding: 18px;
+  border: 1px solid var(--admin-border, #dce5ef);
+  border-radius: 14px;
+  background: var(--admin-card, #fff);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-overview .admin-workflow-step:hover,
+.admin-overview .admin-workflow-step:focus-visible {
+  border-color: #4c80d8;
+  box-shadow: 0 10px 24px #17345c12;
+  transform: translateY(-2px);
+}
+
+.admin-workflow-number { color: #55708f; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.admin-workflow-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: #edf4ff; color: #2865bb; }
+.admin-workflow-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.admin-workflow-step strong, .admin-workflow-step small, .admin-workflow-link { grid-column: 1 / -1; }
+.admin-workflow-step strong { margin-top: 4px; font-size: 15px; }
+.admin-workflow-step small { color: #5d6c7e; font-size: 12px; line-height: 1.5; }
+.admin-workflow-link { align-self: end; margin-top: 8px; color: #2865bb; font-size: 12px; font-weight: 700; }
+.dark-mode .admin-workflow-step { background: #152238; border-color: #304159; }
+.dark-mode .admin-workflow-step small, .dark-mode .admin-workflow-number { color: #b5c3d7; }
+.dark-mode .admin-workflow-icon { background: #203657; color: #83b5ff; }
 
 .admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
   display: grid;
@@ -22,6 +96,7 @@
 }
 
 @media (max-width: 1100px) {
+  .admin-overview .admin-workflow-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -32,6 +107,7 @@
 }
 
 @media (max-width: 540px) {
+  .admin-overview .admin-workflow-steps { grid-template-columns: minmax(0, 1fr); }
   .admin-shell.organized-workspace.management-theme.landing-background .admin-overview :is(.admin-stats, .quick-action-grid) {
     grid-template-columns: minmax(0, 1fr);
   }

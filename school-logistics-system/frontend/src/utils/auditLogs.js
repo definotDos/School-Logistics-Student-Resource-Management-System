@@ -29,7 +29,7 @@ export function filterAuditLogs(logs, filters) {
     if ((start !== null || end !== null) && !Number.isFinite(timestamp)) return false;
     if (start !== null && timestamp < start) return false;
     if (end !== null && timestamp > end) return false;
-    return !query || [log.actor, log.role, log.action, log.entity, log.entityId, log.details, log.statusChange]
+    return !query || [log.actor, log.role, log.campus, log.student, log.resource, log.action, log.entity, log.entityId, log.details, log.statusChange, ...Object.entries(log.metadata || {}).flat()]
       .some((value) => `${value || ""} ${formatAuditLabel(value || "")}`.toLowerCase().includes(query));
   }).sort((a, b) => {
     const first = a.timestamp ? new Date(a.timestamp).getTime() : NaN;

@@ -65,7 +65,7 @@ export default function AuditLogPanel() {
       <div data-summary-tone="violet"><span>Event types</span><strong>{loading || error ? "—" : options("action").length}</strong></div>
     </div>
     <div className="audit-filters">
-      <label className="audit-search">Search logs<input type="search" value={filters.search} placeholder="Search person, event, details, or record ID" onChange={(event) => updateFilter("search", event.target.value)} /></label>
+      <label className="audit-search">Search logs<input type="search" value={filters.search} placeholder="Search person, student, resource, event, details, or record ID" onChange={(event) => updateFilter("search", event.target.value)} /></label>
       <label>Record type<select value={filters.entity} onChange={(event) => updateFilter("entity", event.target.value)}><option value="">All records</option>{options("entity").map((value) => <option key={value} value={value}>{formatAuditLabel(value)}</option>)}</select></label>
       <label>Event<select value={filters.action} onChange={(event) => updateFilter("action", event.target.value)}><option value="">All events</option>{options("action").map((value) => <option key={value} value={value}>{formatAuditLabel(value)}</option>)}</select></label>
       <label>From date<input type="date" value={filters.start} max={filters.end || undefined} onChange={(event) => updateFilter("start", event.target.value)} aria-invalid={invalidDates} aria-describedby={invalidDates ? "audit-date-error" : undefined} /></label>
@@ -82,7 +82,7 @@ export default function AuditLogPanel() {
           <thead><tr><th scope="col">Event / record</th><th scope="col">Performed by</th><th scope="col">Date and time</th><th scope="col">Status change</th><th scope="col">Details</th></tr></thead>
           <tbody>{visible.map((log) => <tr key={log.eventKey}>
             <td><strong>{formatAuditLabel(log.action)}</strong><small>{formatAuditLabel(log.entity)}</small></td>
-            <td><strong>{log.actor || "Unknown"}</strong><small>{formatAuditLabel(log.role || "Role unavailable")}</small></td>
+            <td><strong>{log.actor || "Unknown"}</strong><small>{formatAuditLabel(log.role || "Role unavailable")}{log.campus ? ` · ${log.campus}` : ""}</small></td>
             <td><time dateTime={log.timestamp || undefined}>{formatAuditTime(log.timestamp)}</time></td>
             <td><span className="audit-status" data-tone={auditStatusTone(log.statusChange)}>{log.statusChange && log.statusChange !== "N/A" ? formatAuditLabel(log.statusChange) : "Recorded"}</span></td>
             <td><button className="row-action" aria-label={`View ${formatAuditLabel(log.action)} by ${log.actor || "Unknown"} at ${formatAuditTime(log.timestamp)}`} onClick={() => setSelected(log)}>View details</button></td>
@@ -102,9 +102,13 @@ export default function AuditLogPanel() {
           <div><dt>Role</dt><dd>{formatAuditLabel(selected.role || "Not available")}</dd></div>
           <div><dt>Date and time</dt><dd>{formatAuditTime(selected.timestamp)}</dd></div>
           <div><dt>Record type</dt><dd>{formatAuditLabel(selected.entity)}</dd></div>
+          {selected.student && <div><dt>Related student</dt><dd>{selected.student}</dd></div>}
+          {selected.resource && <div><dt>Related resource</dt><dd>{selected.resource}</dd></div>}
+          {selected.campus && <div><dt>Campus</dt><dd>{selected.campus}</dd></div>}
           <div className="audit-detail-wide"><dt>Record ID</dt><dd><code>{selected.entityId || "Not available"}</code></dd></div>
           <div className="audit-detail-wide"><dt>Status change</dt><dd><span className="audit-status" data-tone={auditStatusTone(selected.statusChange)}>{selected.statusChange && selected.statusChange !== "N/A" ? formatAuditLabel(selected.statusChange) : "No status change recorded"}</span></dd></div>
           <div className="audit-detail-wide"><dt>Details</dt><dd className="audit-detail-description">{selected.details || "No additional details were recorded for this event."}</dd></div>
+          {Object.keys(selected.metadata || {}).length > 0 && <div className="audit-detail-wide"><dt>Changed fields and context</dt><dd className="audit-detail-description">{Object.entries(selected.metadata).map(([key, value]) => `${formatAuditLabel(key)}: ${Array.isArray(value) ? value.join(", ") : String(value)}`).join("\n")}</dd></div>}
         </dl>
       </>}
     </dialog>

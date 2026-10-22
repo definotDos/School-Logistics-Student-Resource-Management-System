@@ -732,3 +732,5 @@
   .dashboard-shell.student-shell.organized-workspace .sidebar-footer { padding: 8px 14px; }
   .dashboard-shell.student-shell.organized-workspace .sidebar-user { padding: 0; border: 0; min-height: 40px; }
 }
+.student-dashboard .request-next-step { color: #315f9f; font-weight: 650; }
+.dark-mode .student-dashboard .request-next-step { color: #9fc4ff; }

@@ -50,7 +50,7 @@ function ClaimSchedule() {
   }, []);
 
   return (
-    <div className={`dashboard-shell student-shell organized-workspace student-pages ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`dashboard-shell student-shell organized-workspace student-pages landing-background ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar />
 
       <div className="dashboard-content flex flex-1 flex-col">

@@ -38,7 +38,10 @@ const createAuditLog = async (actor, action, entity, entityId, previousStatus, n
 		previousStatus,
 		newStatus,
 		details,
-		actorRole: actor.role
+		actorRole: actor.role,
+		campus: actor.campus || actor.activeCampus,
+		student: entity === "Allocation" ? (await Allocation.findById(entityId).select("student").lean())?.student : undefined,
+		resource: entity === "Allocation" ? (await Allocation.findById(entityId).select("resource").lean())?.resource : undefined,
 	});
 };
 

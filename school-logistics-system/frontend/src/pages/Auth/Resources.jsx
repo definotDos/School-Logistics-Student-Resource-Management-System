@@ -104,7 +104,7 @@ function Resources() {
   };
 
   return (
-    <div className={`dashboard-shell student-shell organized-workspace student-pages resource-browser-shell ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`dashboard-shell student-shell organized-workspace student-pages landing-background resource-browser-shell ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar />
 
       <div className="dashboard-content flex flex-1 flex-col">

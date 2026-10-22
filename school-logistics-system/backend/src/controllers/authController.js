@@ -98,8 +98,10 @@ async function login(req, res) {
 		if (user.emailVerified === false) return res.status(403).json({ message: "Please verify your email before logging in.", requiresVerification: true, email: user.email });
 		if (!authorized(user)) return res.status(403).json({ message: "Unable to sign in with this account." });
         if (!suspicious && await require('../services/trustedDevices').validate(req, user)) {
+            require('../services/authAudit')({ event: 'login_success', userId: String(user._id), role: user.role, campus: user.campus, method: 'trusted_device', time: new Date().toISOString() });
             return res.json({ user: publicUser(user), token: createSessionToken(user, req.body.rememberMe, 'device') });
         }
+        require('../services/authAudit')({ event: 'login_challenge_issued', userId: String(user._id), role: user.role, campus: user.campus, method: 'email_code', time: new Date().toISOString() });
         return res.json(await require('../services/loginFactor').issue(user, req.body.rememberMe));
 	} catch (error) {
         console.error(JSON.stringify({ event: 'login_error', name: error.name, code: error.code, status: error.status }));

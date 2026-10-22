@@ -3,6 +3,7 @@ const User = require("../models/User");
 const { canAccessCampus } = require("../middleware/campusScope");
 const { prepareStudentIds } = require("../utils/studentIds");
 const { publicUser } = require("./authController");
+const { createAuditLog } = require("../services/workflowRecords");
 
 // Serialize administrator corrections while the legacy database has no unique index.
 let correction = Promise.resolve();
@@ -17,8 +18,10 @@ module.exports = (req, res) => {
       if (user.role !== "student") return res.status(400).json({ message: "Only student accounts can have their student ID corrected here." });
       const existing = await User.find({ studentId: { $type: "string" }, _id: { $ne: user._id } }).select("studentId").lean();
       if (existing.some(item => item.studentId.trim().toUpperCase() === studentId)) return res.status(409).json({ message: "That student ID is already registered." });
+      const previousId = user.studentId;
       user.studentId = studentId;
       await user.save();
+      await createAuditLog(req.user, "student_id_corrected", "User", user._id, null, null, `Corrected student ID for ${user.name}.`, { campus: user.campus, student: user._id, previousStudentId: previousId, studentId });
       if (req.app.locals.accountCreationReady === false) {
         try {
           await prepareStudentIds(User);

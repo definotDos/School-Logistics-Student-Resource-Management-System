@@ -38,17 +38,20 @@
   color: var(--overview-text);
 }
 .admin-shell.organized-workspace.management-theme.dark-mode {
-  --overview-base: #101f19;
-  --overview-solid: #192f25;
-  --overview-edge: #365244;
-  --overview-text: #f0f4e6;
-  --overview-muted: #bdcdb9;
-  --overview-accent: #a9d7af;
-  --overview-soft: #223b2e;
-  --overview-gold: #e4c772;
+  --overview-base: #003f35;
+  --overview-solid: #064b40;
+  --overview-edge: #176b5b;
+  --overview-text: #f0f7f3;
+  --overview-muted: #a6c7bc;
+  --overview-accent: #50d6a5;
+  --overview-soft: #0b3b33;
+  --overview-gold: #ffc94f;
 }
 .admin-shell.organized-workspace.management-theme > .admin-content {
   background: radial-gradient(ellipse at top right, #cfb46518, transparent 55%), var(--overview-base);
+}
+.admin-shell.organized-workspace.management-theme.dark-mode > .admin-content {
+  background: radial-gradient(ellipse at top right, #14a98318, transparent 56%), var(--overview-base);
 }
 .admin-shell.organized-workspace.management-theme .admin-topline {
   background: radial-gradient(ellipse at top right, #d9bd6830, transparent 65%), #174a33;

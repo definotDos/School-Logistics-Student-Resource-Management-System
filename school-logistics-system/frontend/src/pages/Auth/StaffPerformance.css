@@ -37,6 +37,8 @@
 .dark-mode .staff-performance-metric--teal { --performance-accent: #62d6bb; --performance-tint: #173b3a; }
 .dark-mode .staff-performance-metric--violet { --performance-accent: #bda0ff; --performance-tint: #322b4e; }
 .staff-performance-metric { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 18px 12px; padding: 20px; border: 1px solid var(--performance-border); border-radius: 12px; background: var(--performance-row); }
+.staff-performance-metric .dashboard-progress { grid-column: 1 / -1; height: 8px; overflow: hidden; border-radius: 999px; background: var(--performance-track); }
+.staff-performance-metric .dashboard-progress i { display: block; height: 100%; border-radius: inherit; background: var(--performance-accent); }
 .staff-performance-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; color: var(--performance-accent); background: var(--performance-tint); }
 .staff-performance svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .staff-performance .staff-performance-label h3 { margin: 0; color: var(--performance-ink); font-size: 14px; line-height: 1.5; }

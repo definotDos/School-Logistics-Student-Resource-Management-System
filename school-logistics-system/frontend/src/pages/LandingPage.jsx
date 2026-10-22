@@ -25,10 +25,10 @@ const navItems = [
 ]
 
 const benefitItems = [
-  { icon: 'clock', title: 'Reduce delays', text: 'Track requests and resources efficiently across the campus.' },
-  { icon: 'allocation', title: 'Centralized management', text: 'Manage inventory, requests, and allocations from one place.' },
-  { icon: 'speed', title: 'Fast & efficient', text: 'Save time with quick approvals and real-time campus updates.' },
-  { icon: 'reports', title: 'Reports & insights', text: 'Make better decisions using easy-to-read operational data.' },
+  { icon: 'clock', title: 'Know what needs attention', text: 'See request status and the next step without chasing updates.' },
+  { icon: 'allocation', title: 'Keep stock accountable', text: 'Coordinate inventory, approvals, allocation, and collection in one workspace.' },
+  { icon: 'speed', title: 'Make collection smoother', text: 'Give students pickup details and help staff prepare each distribution.' },
+  { icon: 'reports', title: 'Learn from operations', text: 'Use campus reports and activity history to spot delays and plan resources.' },
 ]
 
 const audienceCards = [
@@ -264,14 +264,14 @@ export function LandingPage() {
           <div className="dashboard-preview campus-sample" ref={previewRef}>
             <div className="sample-heading">
               <span><DashboardIcon name="reports" /> Campus Overview</span>
-              <small className="sample-badge">Sample dashboard</small>
+            <small className="sample-badge">Illustrative preview</small>
             </div>
 
             <div className="sample-metrics">
               {[
-                { label: 'Total Resources', value: '150+', trend: '↑ +12%', icon: 'inventory' },
-                { label: 'Active Users', value: '1,248', trend: '+8%', icon: 'users' },
-                { label: 'Pending Requests', value: '32', trend: '↓ −6%', icon: 'calendar' },
+                { label: 'Resources', value: 'Inventory', trend: 'Campus stock', icon: 'inventory' },
+                { label: 'Requests', value: 'Tracked', trend: 'From submission', icon: 'users' },
+                { label: 'Collection', value: 'Scheduled', trend: 'Pickup details', icon: 'calendar' },
               ].map((metric) => (
                 <div className="sample-metric" key={metric.label}>
                   <DashboardIcon name={metric.icon} />
@@ -289,18 +289,18 @@ export function LandingPage() {
                 <span><DashboardIcon name="history" /> Distribution Status</span>
                 <button type="button" onClick={() => scrollToSection('about')}>View All <span aria-hidden="true">→</span></button>
               </div>
-              <ul className="sample-status-list" aria-label="Sample distribution of 150 resources">
+              <ul className="sample-status-list" aria-label="Illustration of the resource request workflow">
                 {[
-                  { label: 'Pending', count: 36, percent: 24, tone: 'pending', icon: 'clock' },
-                  { label: 'Prepared', count: 62, percent: 41, tone: 'prepared', icon: 'settings' },
-                  { label: 'Released', count: 39, percent: 26, tone: 'released', icon: 'claimCalendar' },
-                  { label: 'Completed', count: 13, percent: 9, tone: 'completed', icon: 'audit' },
+                  { label: 'Submitted', percent: 25, tone: 'pending', icon: 'clock' },
+                  { label: 'Reviewed', percent: 50, tone: 'prepared', icon: 'settings' },
+                  { label: 'Prepared', percent: 75, tone: 'released', icon: 'claimCalendar' },
+                  { label: 'Collected', percent: 100, tone: 'completed', icon: 'audit' },
                 ].map((status) => (
                   <li className={`sample-status sample-status-${status.tone}`} key={status.label}>
                     <span className="sample-status-label"><span className="sample-status-icon"><DashboardIcon name={status.icon} /></span>{status.label}</span>
-                    <span className="sample-status-track" aria-hidden="true"><span style={{ width: `${status.count / 150 * 100}%` }} /></span>
-                    <b>{status.percent}%</b>
-                    <span className="sample-status-count">{status.count}/150</span>
+                    <span className="sample-status-track" aria-hidden="true"><span style={{ width: `${status.percent}%` }} /></span>
+                    <b aria-hidden="true">{String(status.percent / 25).padStart(2, '0')}</b>
+                    <span className="sample-status-count">Workflow</span>
                   </li>
                 ))}
               </ul>

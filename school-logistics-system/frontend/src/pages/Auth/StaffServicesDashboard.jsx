@@ -351,7 +351,7 @@ function StaffServicesDashboard() {
   };
 
   return (
-    <div className={`admin-shell staff-services organized-workspace management-theme landing-background ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`admin-shell staff-services organized-workspace management-theme landing-background admin-campus-theme ${isDarkMode ? "dark-mode" : ""}`}>
       <Sidebar type="staff" />
       <div className="admin-content">
         <Navbar isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((prev) => !prev)} />
@@ -503,13 +503,13 @@ function StaffOverview({ stats }) {
               <h2 id="staff-performance-title">Performance Metrics</h2>
               <p>Request, claim, and distribution performance.</p>
             </div>
-            <span className="staff-performance-badge">Sample data</span>
+              <span className="staff-performance-badge">Awaiting live metrics</span>
           </header>
           <div className="staff-performance-list">
             {[
-              { id: "fulfillment", label: "Request fulfillment", detail: "Fulfillment of student resource requests", icon: "studentRequests", tone: "blue", value: liveStats.pending_requests ? 78 : 0 },
-              { id: "claims", label: "Claim completion", detail: "Completion of scheduled student claims", icon: "audit", tone: "teal", value: liveStats.scheduled_claims ? 85 : 0 },
-              { id: "accuracy", label: "Distribution accuracy", detail: "Accuracy of recorded resource releases", icon: "distribution", tone: "violet", value: liveStats.resources_released ? 92 : 0 },
+              { id: "fulfillment", label: "Request fulfillment", detail: "Live rate will appear in Reports when available", icon: "studentRequests", tone: "blue" },
+              { id: "claims", label: "Claim completion", detail: "Live rate will appear in Reports when available", icon: "audit", tone: "teal" },
+              { id: "accuracy", label: "Distribution accuracy", detail: "Live rate will appear in Reports when available", icon: "distribution", tone: "violet" },
             ].map((metric) => (
               <div className={`staff-performance-metric staff-performance-metric--${metric.tone}`} key={metric.id}>
                 <span className="staff-performance-icon"><DashboardIcon name={metric.icon} /></span>
@@ -517,13 +517,13 @@ function StaffOverview({ stats }) {
                   <h3 id={`performance-${metric.id}`}>{metric.label}</h3>
                   <p>{metric.detail}</p>
                 </div>
-                <strong className="staff-performance-value">{metric.value}<span>%</span></strong>
-                <div className="dashboard-progress" role="progressbar" aria-labelledby={`performance-${metric.id}`} aria-valuenow={metric.value} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${metric.value}%` }} /></div>
+                <strong className="staff-performance-value">—</strong>
+                <div className="dashboard-progress" aria-hidden="true"><i style={{ width: "0%" }} /></div>
               </div>
             ))}
           </div>
           <footer className="staff-performance-footer">
-            <p>Sample percentages are shown until live performance rates are available.</p>
+            <p>Performance rates are not available yet. Use the live request and distribution counts above to manage today’s work.</p>
             <Link to="/staff/reports" className="staff-performance-report"><DashboardIcon name="reports" />View Reports<span aria-hidden="true">&rarr;</span></Link>
           </footer>
         </section>

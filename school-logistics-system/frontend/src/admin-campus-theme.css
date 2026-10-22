@@ -1,0 +1,173 @@
+/* Admin and staff surfaces use the landing page's Campus Overview palette.
+   Keep solid colors separate from gradients for inputs and color-mix(). */
+.admin-shell.organized-workspace.management-theme.landing-background.admin-campus-theme,
+.dashboard-shell.student-shell.organized-workspace.landing-background {
+  --overview-base: var(--landing-bg);
+  --overview-solid: #f5fbf7;
+  --overview-soft: #e5f2eb;
+  --overview-edge: #abcdbd;
+  --overview-text: #183c2d;
+  --overview-muted: #53695c;
+  --campus-panel-fill: radial-gradient(ellipse at top right, #b7e6d580, transparent 65%), linear-gradient(145deg, #f5fcf8, #e6f3ec);
+  --campus-card-fill: linear-gradient(135deg, #ffffffa6, #d7eee352);
+  --campus-panel-edge: #82b69e;
+  --campus-panel-shadow: 0 16px 40px #173b2910, inset 0 1px 20px #ffffff40;
+  --campus-space: 24px;
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background.admin-campus-theme.dark-mode,
+.dashboard-shell.student-shell.organized-workspace.landing-background.dark-mode {
+  --overview-solid: #04372c;
+  --overview-soft: #002b23;
+  --overview-edge: #27796399;
+  --overview-text: #edf8f3;
+  --overview-muted: #a6c7bc;
+  --overview-accent: #5bdfa1;
+  --overview-gold: #f4d46d;
+  --campus-panel-fill: radial-gradient(ellipse at top right, #07564580, transparent 65%), linear-gradient(145deg, #04372c, #00251e);
+  --campus-card-fill: linear-gradient(135deg, #0e594529, #002b232e);
+  --campus-panel-edge: #299c80;
+  --campus-panel-shadow: 0 24px 64px #001e2433, inset 0 1px 20px #38c99b0d;
+}
+
+/* Reuse the exact grid scale and colors defined by landing-palette.css. */
+.admin-shell.organized-workspace.management-theme.landing-background.admin-campus-theme::before {
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--landing-grid-point) 0 1px, transparent 4px),
+    linear-gradient(var(--landing-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--landing-grid-line) 1px, transparent 1px);
+  background-size: var(--landing-grid-block) var(--landing-grid-block), var(--landing-grid-size) var(--landing-grid-size), var(--landing-grid-size) var(--landing-grid-size);
+  -webkit-mask-image: linear-gradient(90deg, #000c, #0005 35%, #0009 70%, #000c);
+  mask-image: linear-gradient(90deg, #000c, #0005 35%, #0009 70%, #000c);
+}
+
+.admin-shell.organized-workspace.management-theme.landing-background.admin-campus-theme::after { opacity: 1; }
+.admin-shell.organized-workspace.management-theme.landing-background.admin-campus-theme > .admin-content { background: transparent; }
+
+.admin-shell.organized-workspace.management-theme.admin-campus-theme .admin-main {
+  /* Shared surfaces keep management sections consistent. */
+  :is(.admin-panel, .account-card, .account-identity-card, .staff-account-card, .staff-account-summary, .notification-compose, .notification-history) {
+    min-width: 0;
+    background: var(--campus-panel-fill);
+    border: 1px solid var(--campus-panel-edge);
+    border-radius: 20px;
+    box-shadow: var(--campus-panel-shadow);
+    color: var(--overview-text);
+  }
+
+  .admin-overview .admin-panel {
+    background: var(--campus-panel-fill);
+    border-color: var(--campus-panel-edge);
+    border-radius: 20px;
+    box-shadow: var(--campus-panel-shadow);
+  }
+
+  :is(.admin-stat, .campus-card, .create-user-card, .request-status-chart),
+  :is(.users-summary, .audit-summary, .allocation-summary, .distribution-summary) > div,
+  .request-summary button,
+  .admin-overview :is(.admin-stat.orange, .admin-stat.blue, .admin-stat.green, .admin-stat.navy, .admin-workflow-step, .quick-action-grid a, .attention-row, .progress-block, .overview-release-total) {
+    background: var(--campus-card-fill);
+    border: 1px solid var(--overview-edge);
+    border-radius: 14px;
+    box-shadow: none;
+    min-width: 0;
+  }
+
+  :is(.admin-panel-heading, .record-toolbar, .users-heading, .allocation-heading, .request-heading),
+  .admin-overview .admin-panel-heading {
+    padding: var(--campus-space);
+    background: transparent;
+    border-bottom: 1px solid var(--overview-edge);
+  }
+
+  .admin-overview { display: grid; gap: var(--campus-space); }
+  .admin-overview :is(.admin-workflow-steps, .quick-action-grid, .attention-list, .overview-performance-body) {
+    padding: var(--campus-space);
+    margin: 0;
+    gap: 16px;
+  }
+  .admin-overview :is(.admin-stats, .admin-grid) { margin: 0; gap: var(--campus-space); }
+  .admin-overview .overview-operations { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .admin-overview .admin-workflow-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-overview .admin-workflow-step { grid-template-rows: auto auto 1fr auto; }
+  .admin-overview :is(.admin-workflow-step small, .admin-workflow-number) { color: var(--overview-muted); }
+  .admin-overview :is(.admin-workflow-link, .admin-workflow-icon) { color: var(--overview-gold); }
+  .admin-overview .admin-workflow-icon { background: var(--overview-soft); }
+  .admin-overview :is(.admin-workflow-step, .quick-action-grid a):hover {
+    background: var(--overview-soft);
+    border-color: var(--campus-panel-edge);
+  }
+  :is(.request-summary button.active, .request-summary button:hover) { border-color: var(--overview-gold); }
+  :is(.audit-dialog, .request-dialog, .users-delete-dialog) { background: var(--overview-solid); color: var(--overview-text); }
+}
+
+/* Staff overview: metrics, work queue, performance, then grouped shortcuts. */
+.admin-shell.staff-services.organized-workspace.management-theme.admin-campus-theme .admin-main {
+  .staff-overview { display: grid; gap: var(--campus-space); min-width: 0; }
+  .staff-overview > :is(.staff-metrics, .admin-grid, .staff-shortcuts) { margin: 0; }
+  .staff-overview > .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: var(--campus-space);
+  }
+  :is(.staff-actions, .staff-performance, .staff-shortcuts) {
+    padding: var(--campus-space);
+    border-radius: 20px;
+    border-color: var(--campus-panel-edge);
+    background: var(--campus-panel-fill);
+    box-shadow: var(--campus-panel-shadow);
+  }
+  .staff-records {
+    background: var(--campus-panel-fill);
+    border-color: var(--campus-panel-edge);
+    border-radius: 20px;
+    box-shadow: var(--campus-panel-shadow);
+  }
+  :is(.staff-metric, .staff-action, .staff-shortcut, .staff-performance-metric, .staff-records .record-row) {
+    min-width: 0;
+    background: var(--campus-card-fill);
+    border: 1px solid var(--overview-edge);
+    border-radius: 14px;
+    box-shadow: none;
+  }
+  .staff-metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  :is(.staff-actions-list, .staff-performance-list, .staff-shortcuts-grid) { gap: 16px; }
+  .staff-shortcuts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .staff-shortcut { height: 100%; box-sizing: border-box; }
+  :is(.staff-actions-heading, .staff-performance-heading, .staff-shortcuts-heading) {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--overview-edge);
+  }
+  .staff-records :is(.record-toolbar, .record-list) { padding: var(--campus-space); }
+  .staff-records .record-toolbar { background: transparent; }
+  :is(.staff-record-filters, .staff-record-footer) { padding: 16px var(--campus-space); }
+  .staff-shortcut:hover { background: var(--overview-soft); border-color: var(--campus-panel-edge); }
+}
+
+@media (max-width: 1100px) {
+  .admin-shell.staff-services.organized-workspace.management-theme.admin-campus-theme .admin-main {
+    :is(.staff-metrics-grid, .staff-shortcuts-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .staff-overview > .admin-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-shell.staff-services.organized-workspace.management-theme.admin-campus-theme .admin-main :is(.staff-metrics-grid, .staff-shortcuts-grid) { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 1100px) {
+  .admin-shell.organized-workspace.management-theme.admin-campus-theme .admin-main .admin-overview :is(.admin-workflow-steps, .admin-stats, .quick-action-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .admin-shell.organized-workspace.management-theme.admin-campus-theme { --campus-space: 16px; }
+  .admin-shell.organized-workspace.management-theme.admin-campus-theme .admin-main .admin-overview .overview-operations { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 520px) {
+  .admin-shell.organized-workspace.management-theme.admin-campus-theme .admin-main .admin-overview :is(.admin-workflow-steps, .admin-stats, .quick-action-grid) { grid-template-columns: minmax(0, 1fr); }
+}

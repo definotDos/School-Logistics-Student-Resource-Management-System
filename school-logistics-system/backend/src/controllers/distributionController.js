@@ -7,6 +7,7 @@ const Distribution = require("../models/Distribution");
 const Notification = require("../models/Notification");
 const AuditLog = require("../models/AuditLog");
 const Resource = require("../models/Resource");
+const mongoose = require("mongoose");
 
 // ============================================
 // HELPER FUNCTIONS
@@ -21,7 +22,10 @@ const createAuditLog = async (actor, action, entity, entityId, previousStatus, n
 		previousStatus,
 		newStatus,
 		details,
-		actorRole: actor.role
+		actorRole: actor.role,
+		campus: actor.campus || actor.activeCampus,
+		student: entity === "Distribution" || entity === "ClaimSchedule" ? (await mongoose.model(entity).findById(entityId).select("student").lean())?.student : undefined,
+		resource: entity === "Distribution" || entity === "ClaimSchedule" ? (await mongoose.model(entity).findById(entityId).select("resource").lean())?.resource : undefined,
 	});
 };
 

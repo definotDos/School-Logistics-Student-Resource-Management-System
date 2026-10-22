@@ -1,6 +1,7 @@
 const { campusFilter, canAccessCampus } = require("../middleware/campusScope");
 const Resource = require("../models/Resource");
 const Inventory = require("../models/Inventory");
+const { createAuditLog } = require("../services/workflowRecords");
 
 async function listResources(req, res) {
 	try {
@@ -21,6 +22,7 @@ async function createResource(req, res) {
 		if (!canAccessCampus(req, { campus }) || !await require("../models/Campus").exists({ name: campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus in your workspace." });
 		const resource = await Resource.create({ name: name.trim(), category: category.trim(), description, campus: campus.trim(), sizingRule, status: Number(quantity) ? "Available" : "Issued" });
 		const stock = await Inventory.create({ resource: resource._id, available: Number(quantity), lastReceivedBy: req.user._id });
+		await createAuditLog(req.user, "resource_created", "Resource", resource._id, null, resource.status, `Created ${resource.name} with ${Number(quantity)} units.`, { campus: resource.campus, metadata: { category: resource.category, quantity: Number(quantity) } });
 		res.status(201).json({ resource: { ...resource.toObject(), stock } });
 	} catch (error) {
 		if (error.code === 11000) return res.status(409).json({ message: "This resource already exists." });
@@ -38,6 +40,7 @@ async function receiveStock(req, res) {
 		const stock = await Inventory.findOneAndUpdate({ resource: req.params.resourceId }, { $inc: { available: quantity }, $set: { lastReceivedBy: req.user._id } }, { returnDocument: "after" });
 		if (!stock) return res.status(404).json({ message: "Resource inventory was not found." });
 		await Resource.findByIdAndUpdate(req.params.resourceId, { status: "Available" });
+		await createAuditLog(req.user, "stock_received", "Inventory", stock._id, String(stock.available - quantity), String(stock.available), `Received ${quantity} units of ${resource.name}.`, { campus: resource.campus, resource: resource._id, metadata: { quantity, available: stock.available } });
 		res.json({ stock });
 	} catch {
 		res.status(500).json({ message: "Unable to receive stock." });
@@ -56,6 +59,7 @@ async function updateResource(req, res) {
 		if (updates.campus !== undefined && updates.campus !== existing.campus) return res.status(409).json({ message: "A resource with a stock ledger cannot be moved between campuses." });
 		const resource = await Resource.findByIdAndUpdate(req.params.resourceId, updates, { returnDocument: "after", runValidators: true });
 		if (!resource) return res.status(404).json({ message: "Resource not found." });
+		await createAuditLog(req.user, "resource_updated", "Resource", resource._id, existing.status, resource.status, `Updated resource fields: ${Object.keys(updates).join(", ")}.`, { campus: resource.campus, resource: resource._id, metadata: { changedFields: Object.keys(updates) } });
 		res.json({ resource });
 	} catch (error) {
 		res.status(400).json({ message: error.message || "Unable to update resource." });

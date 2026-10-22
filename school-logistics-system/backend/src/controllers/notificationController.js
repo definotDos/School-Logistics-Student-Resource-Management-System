@@ -1,6 +1,7 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { campusFilter, canAccessCampus } = require("../middleware/campusScope");
+const { createAuditLog } = require("../services/workflowRecords");
 
 async function getNotifications(req, res) {
   try {
@@ -51,6 +52,8 @@ async function createNotification(req, res) {
       sentBy: req.user?._id || null,
     });
 
+    await createAuditLog(req.user, "notification_sent", "Notification", notification._id, null, "sent", `Sent notification to ${recipient.role}.`, { campus: recipient.campus, student: recipient.role === "student" ? recipient._id : undefined, metadata: { recipientRole: recipient.role, type } });
+
     res.status(201).json({ message: "Notification saved to database.", notification });
   } catch (error) {
     res.status(error?.name === "VersionError" ? 409 : ["ValidationError", "CastError"].includes(error?.name) ? 400 : 500).json({ message: "Unable to create notification.", error: error.message });
@@ -60,6 +63,7 @@ async function createNotification(req, res) {
 async function markRead(req, res) {
   const notification = await Notification.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, { read: true, readAt: new Date() }, { returnDocument: "after" });
   if (!notification) return res.status(404).json({ message: "Notification not found." });
+  await createAuditLog(req.user, "notification_read", "Notification", notification._id, "unread", "read", "Notification marked as read.", { campus: notification.campus || req.user.campus, student: req.user.role === "student" ? req.user._id : undefined });
   res.json({ notification });
 }
 module.exports = { getNotifications, createNotification, markRead };
