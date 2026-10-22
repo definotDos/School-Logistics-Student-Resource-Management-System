@@ -84,7 +84,7 @@ export function CreateUserForm({ onCreated }) {
         <fieldset disabled={busy}>
           <legend>Personal details</legend>
           <label htmlFor="create-user-name">Full name<input {...fieldProps('name')} required autoComplete="name" maxLength={100} placeholder="Enter full name" value={form.name} /><small id="create-user-name-help">Enter 2 to 100 characters. Numbers are not allowed.</small>{fieldError('name')}</label>
-          <label htmlFor="create-user-email">Email address<input {...fieldProps('email')} required type="email" autoComplete="email" maxLength={254} placeholder="name@phinmaed.com" value={form.email} /><small id="create-user-email-help">Use the user's @phinmaed.com email address.</small>{fieldError('email')}</label>
+          <label htmlFor="create-user-email">Email address<input {...fieldProps('email')} required type="email" autoComplete="email" maxLength={254} placeholder="name@phinmaed.com" value={form.email} /><small id="create-user-email-help">Use the user's @gmail.com or @phinmaed.com email address.</small>{fieldError('email')}</label>
           <label htmlFor="create-user-employeeId">Employee ID<input {...fieldProps('employeeId')} required autoCapitalize="characters" spellCheck={false} maxLength={13} placeholder="UP-25-12345-A" value={form.employeeId} /><small id="create-user-employeeId-help">Format: UP-25-12345-A (3 to 5 digits in the third group).</small>{fieldError('employeeId')}</label>
         </fieldset>
         <fieldset disabled={busy}>

@@ -1,0 +1,27 @@
+.employee-signup-dialog { position: fixed; inset: 0; margin: auto; box-sizing: border-box; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; padding: 0; border: 1px solid #386757; border-radius: 24px; background: radial-gradient(ellipse at top, #204d3d, transparent 65%), #102e25; color: #f0f7f3; box-shadow: 0 24px 80px #0008; }
+.employee-signup-dialog::backdrop { background: #061a15b8; backdrop-filter: blur(5px); }
+.employee-signup-content { position: relative; padding: 32px clamp(20px, 5vw, 36px) 24px; }
+.employee-signup-content > img { display: block; margin: 0 auto 16px; object-fit: contain; background: transparent; filter: drop-shadow(0 6px 12px #0003); }
+.employee-signup-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border: 1px solid #628375; border-radius: 50%; background: transparent; color: inherit; font-size: 25px; cursor: pointer; }
+.employee-signup-content .employee-signup-eyebrow { margin: 0; text-align: center; color: #9dd9be; font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+.employee-signup-content h2 { margin: 10px 0 12px; text-align: center; font-size: clamp(24px, 5vw, 30px); line-height: 1.2; letter-spacing: -.6px; text-wrap: balance; }
+.employee-signup-content p { line-height: 1.6; color: #bdd1c7; }
+.employee-signup-description { max-width: 390px; margin: 0 auto; text-align: center; font-size: 14px; text-wrap: pretty; }
+.employee-signup-options { display: grid; gap: 12px; margin: 24px 0 20px; }
+.employee-signup-options a { display: grid; gap: 8px; padding: 20px; border: 1px solid #537d6c; border-radius: 14px; color: #effaf4; text-decoration: none; background: #ffffff06; }
+.employee-signup-options a:hover { background: #ffffff12; border-color: #a5e4be; }
+.employee-signup-options strong { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 17px; }
+.employee-signup-options strong > .dashboard-icon { width: 24px; height: 24px; flex-shrink: 0; fill: none; stroke: #b8e8cb; stroke-width: 1.7; }
+.employee-signup-options strong > span { margin-left: auto; flex-shrink: 0; }
+.employee-signup-options strong span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #a5e4be12; color: #c3f4d3; }
+.employee-signup-options span, .employee-signup-options small { line-height: 1.5; }
+.employee-signup-options > a > span { font-size: 14px; }
+.employee-signup-options small { color: #b7ccbf; font-size: 12px; }
+.employee-signup-footer { margin: 0; padding-top: 18px; border-top: 1px solid #ffffff14; text-align: center; font-size: 14px; }
+.employee-signup-footer a { color: #c3f4d3; }
+.employee-signup-dialog :focus-visible { outline: 3px solid #b9f4ce; outline-offset: 4px; }
+@media (max-width: 480px) {
+  .employee-signup-content { padding-top: 28px; }
+  .employee-signup-options a { padding: 16px; }
+  .employee-signup-close { top: 12px; right: 12px; }
+}

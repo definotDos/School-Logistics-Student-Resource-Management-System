@@ -96,7 +96,7 @@ async function createUser(req, res) {
         const fields = accountFields(req.body, true);
         if (!require("../middleware/campusScope").canAccessCampus(req, fields) || !await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus in your workspace." });
         if (await User.exists({ email: fields.email })) return res.status(409).json({ message: "Email already exists." });
-        if (await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
+        if ((fields.studentId || fields.employeeId) && await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
         const verificationCode = String(require("crypto").randomInt(100000, 1000000));
         const temporaryPassword = fields.role === "staff" ? require("crypto").randomBytes(18).toString("base64url") : undefined;
         const user = await User.create({ ...fields, ...(temporaryPassword ? { temporaryPasswordHash: require("crypto").createHash("sha256").update(temporaryPassword).digest("hex") } : {}), activationPending: fields.role === "staff", ...(fields.role === "staff" ? {} : { password: await require("bcryptjs").hash(req.body.password, 12) }), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });

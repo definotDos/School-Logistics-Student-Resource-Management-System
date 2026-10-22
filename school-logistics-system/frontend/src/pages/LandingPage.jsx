@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import DashboardIcon from '../components/DashboardIcon'
+import EmployeeSignupDialog from '../components/auth/EmployeeSignupDialog'
 import useMobileNavigation from '../hooks/useMobileNavigation'
 import '../landing-preview-motion.css'
 
@@ -127,6 +128,7 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [isDarkMode, setIsDarkMode] = useState(readTheme)
   const [activeNav, setActiveNav] = useState('top')
+  const [signupOptionsOpen, setSignupOptionsOpen] = useState(false)
   const previewRef = useRef(null)
   const { navigationOpen, setNavigationOpen, navigationRef, toggleRef } = useMobileNavigation(760)
 
@@ -197,7 +199,7 @@ export function LandingPage() {
   return (
     <main id="top" className={`landing-page landing-palette ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="landing-header" ref={navigationRef}>
-        <button type="button" className="brand-wrap" onClick={() => scrollToSection('top')} aria-label="School Logistics System home">
+        <button type="button" className="brand-wrap" onClick={() => setSignupOptionsOpen(true)} aria-label="School Logistics System: admin and staff previews" aria-haspopup="dialog">
           <span className="brand-mark landing-brand-mark">
             <img className="landing-brand-logo" src="/Logo.jpg" alt="" width="48" height="48" />
           </span>
@@ -231,6 +233,7 @@ export function LandingPage() {
         </nav>
       </header>
 
+      {signupOptionsOpen && <EmployeeSignupDialog onClose={() => setSignupOptionsOpen(false)} />}
       <section id="home" className="landing-hero">
         <div className="hero-copy">
           <div className="landing-badge">School Logistics System</div>
@@ -330,7 +333,7 @@ export function LandingPage() {
           {audienceCards.map((card) => (
             <article key={card.title} className={`audience-card ${card.tone}`}>
               <div className="landing-icon-badge"><DashboardIcon name={card.icon} /></div>
-              <h3>{card.title}</h3>
+              <h3>{['admin', 'staff', 'student'].includes(card.tone) ? <Link className="dashboard-preview-card-link" to={`/preview/${card.tone}`} aria-label={`${card.title}: preview dashboard`}>{card.title}</Link> : card.title}</h3>
               <p>{card.description}</p>
             </article>
           ))}

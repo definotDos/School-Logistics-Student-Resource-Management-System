@@ -1,6 +1,7 @@
 const User = require('../src/models/User');
 const Campus = require('../src/models/Campus');
 jest.mock('../src/config/email', () => ({ sendVerificationEmail: jest.fn() }));
+jest.mock('../src/services/workflowRecords', () => ({ createAuditLog: jest.fn().mockResolvedValue(undefined) }));
 const auth = require('../src/controllers/authController');
 const users = require('../src/controllers/userController');
 const emailChange = require('../src/controllers/emailChangeController');
@@ -9,12 +10,12 @@ const valid = { name: 'Student Name', email: 'student@phinmaed.com', password: '
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
 afterEach(() => jest.restoreAllMocks());
 
-test.each(['a@gmail.com', 'a@phinmaed.com.evil.test', 'a@sub.phinmaed.com', 'a..b@phinmaed.com', '.a@phinmaed.com', 'a@phinmaed.com\nother', { $ne: null }, ['a@phinmaed.com'], null])('rejects invalid school email %j', email => expect(emailValid(email)).toBe(false));
+test.each(['a@yahoo.com', 'a@gmail.com.evil.test', 'a@sub.gmail.com', 'a..b@gmail.com', 'a@phinmaed.com.evil.test', 'a@sub.phinmaed.com', 'a..b@phinmaed.com', '.a@phinmaed.com', 'a@phinmaed.com\nother', { $ne: null }, ['a@phinmaed.com'], null])('rejects invalid school email %j', email => expect(emailValid(email)).toBe(false));
 test('normalizes valid emails and IDs', () => {
   expect(accountFields({ ...valid, email: ' Student@PHINMAED.COM ', studentId: ' 03-01-2425-023456 ' })).toMatchObject({ email: valid.email, studentId: valid.studentId });
 });
 test.each([
-  { email: 'a@gmail.com' }, { studentId: 'UP-25-12345-A' }, { studentId: 'STU-123' },
+  { email: 'a@yahoo.com' }, { studentId: 'UP-25-12345-A' }, { studentId: 'STU-123' },
   { name: {} }, { name: ' ' }, { campus: [] }, { password: 'a'.repeat(73) },
   { password: '😀'.repeat(19) }, { strand: 'Other' }, { strand: '' },
   { role: 'staff' }, { role: 'admin' }, { role: { $ne: '' } }, { accountType: 'staff' },
@@ -63,7 +64,7 @@ test('duplicate email is rejected before administrator creation', async () => {
   expect(res.status).toHaveBeenCalledWith(409); expect(create).not.toHaveBeenCalled();
 });
 test('model validation rejects role/ID mismatches outside controllers', async () => {
-  await expect(new User({ ...valid, role: 'admin' }).validate()).rejects.toThrow('ID must match');
+  await expect(new User({ ...valid, role: 'admin' }).validate()).rejects.toThrow('ID field does not match');
   await expect(new User(valid).validate()).resolves.toBeUndefined();
 });
 test('all configured courses are accepted', () => {
@@ -97,4 +98,10 @@ test('public signup can defer course selection, while administrator creation req
 });
 test.each(['STU-123456', '03-01-2425-1234', '03-01-2425-1234567', '03-2425-123', '03-2425-12345', '03-2425-abcd', '03-01-2526-12345', ''])('rejects invalid student ID %s', studentId => {
   expect(() => accountFields({ ...valid, studentId })).toThrow();
+});
+
+test.each(['a@gmail.com', ' Student.Name+school@GMAIL.COM ', 'a@phinmaed.com'])('accepts supported email %s', email => {
+ expect(emailValid(email)).toBe(true);
+ expect(accountFields({ ...valid, email }).email).toBe(email.trim().toLowerCase());
+ expect(new User({ ...valid, email }).validateSync()).toBeUndefined();
 });

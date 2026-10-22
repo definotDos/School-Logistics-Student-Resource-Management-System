@@ -58,3 +58,32 @@ test('expired or reused reset codes are rejected', async () => {
  await auth.resetPassword({ body: { email: 'a@phinmaed.com', code: 'a'.repeat(32), password: 'newpassword123' } }, res);
  expect(res.status).toHaveBeenCalledWith(400);
 });
+
+ test('Gmail signup delivers an OTP, resends it, and verifies the account', async () => {
+  const email = 'student@gmail.com';
+  const user = { _id: 'gmail-user', email, emailVerified: false, save: jest.fn().mockResolvedValue(undefined) };
+  jest.spyOn(require('../src/models/Campus'), 'exists').mockResolvedValue({ _id: 'campus' });
+  const find = jest.spyOn(User, 'findOne').mockResolvedValueOnce(null).mockReturnValueOnce({ collation: jest.fn().mockResolvedValue(null) });
+  jest.spyOn(User, 'create').mockImplementation(async fields => Object.assign(user, fields));
+  mail.sendVerificationEmail.mockResolvedValue({ accepted: [email] });
+  const signup = response();
+  await auth.signup({ body: { name: 'Student Name', email: ' Student@GMAIL.COM ', password: 'password123', campus: 'Main', role: 'student', studentId: '03-01-2425-023456' } }, signup);
+  expect(signup.status).toHaveBeenCalledWith(201);
+  expect(signup.json).toHaveBeenCalledWith(expect.objectContaining({ requiresVerification: true, email }));
+  expect(mail.sendVerificationEmail).toHaveBeenLastCalledWith(email, expect.stringMatching(/^\d{6}$/));
+  expect(user.emailVerified).toBe(false);
+  find.mockResolvedValueOnce(user);
+  const resend = response();
+  await auth.resendVerificationCode({ body: { email } }, resend);
+  expect(resend.status).toHaveBeenCalledWith(200);
+  expect(mail.sendVerificationEmail).toHaveBeenLastCalledWith(email, user.verificationCode, false, undefined);
+  find.mockReturnValue({ select: jest.fn().mockResolvedValue(user) });
+  const invalid = response();
+  await auth.verifyEmail({ body: { email, code: '000000' } }, invalid);
+  expect(invalid.status).toHaveBeenCalledWith(400);
+  const verify = response();
+  await auth.verifyEmail({ body: { email, code: user.verificationCode } }, verify);
+  expect(user.emailVerified).toBe(true);
+  expect(user.verificationCode).toBeUndefined();
+  expect(verify.json).toHaveBeenCalledWith({ message: 'Email verified successfully. You can now log in.' });
+ });

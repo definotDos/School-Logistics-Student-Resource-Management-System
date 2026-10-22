@@ -62,6 +62,9 @@ async function sendVerificationEmail(email, code, activation = false, temporaryP
             : `<p>Your School Logistics verification code is:</p><p style="font-size:24px;font-weight:bold;letter-spacing:4px">${code}</p><p>This code expires in 15 minutes.</p>`,
 	});
 
+	if (!result.accepted?.length || result.rejected?.length) {
+		throw Object.assign(new Error('Email was not accepted'), { code: 'EMAIL_PROVIDER_REJECTED' });
+	}
 	return result;
 }
 

@@ -48,7 +48,7 @@ export function LoginPage({ onLogin, onChangeMode, error, isSubmitting = false }
     if (isSubmitting || isLocked) return
     const normalizedEmail = email.trim()
     if (!normalizedEmail) return setValidationError('Enter your email address.')
-    if (!emailValid(normalizedEmail)) return setValidationError('Use a valid @phinmaed.com email address.')
+    if (!emailValid(normalizedEmail)) return setValidationError('Use a valid @gmail.com or @phinmaed.com email address.')
     if (!password) return setValidationError('Enter your password.')
     setValidationError('')
     const result = await onLogin(normalizedEmail, password, rememberMe)

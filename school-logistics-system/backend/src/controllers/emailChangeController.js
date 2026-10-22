@@ -9,7 +9,7 @@ const { createAuditLog } = require("../services/workflowRecords");
 async function requestEmailChange(req, res) {
   try {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
-    if (!emailValid(email) || email === req.user.email) return res.status(400).json({ message: "Enter a different, valid @phinmaed.com email address." });
+    if (!emailValid(email) || email === req.user.email) return res.status(400).json({ message: "Enter a different, valid @gmail.com or @phinmaed.com email address." });
     if (await User.exists({ email })) return res.status(409).json({ message: "That email address is already in use." });
     const code = crypto.randomBytes(16).toString("hex");
     await sendVerificationEmail(email, code);

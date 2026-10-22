@@ -78,7 +78,7 @@ export default function ProfilePanel({ setNotice }) {
               <button type="submit" disabled={saving || !hasChanges}>{saving ? "Saving..." : "Save changes"}</button>
             </footer>
           </form>
-          <section className="staff-account-card" aria-label="School email settings">
+          <section className="staff-account-card" aria-label="Email settings">
             <header><span className="staff-account-section-icon"><DashboardIcon name="school" /></span><div><h3>Email settings</h3><p>Manage the email address linked to your account.</p></div></header>
             <div className="staff-account-body"><EmailChange /></div>
           </section>

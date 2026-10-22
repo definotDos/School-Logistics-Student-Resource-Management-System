@@ -9,6 +9,8 @@ import OtpVerification from '../../components/auth/OtpVerification'
 export function AuthPage() {
   const location = useLocation()
   const mode = location.pathname === '/login' ? 'login' : 'signup'
+  const requestedRole = new URLSearchParams(location.search).get('role')
+  const signupRole = ['admin', 'staff'].includes(requestedRole) ? requestedRole : 'student'
   const [pending, setPending] = useState(null)
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -74,6 +76,8 @@ export function AuthPage() {
         pending ? <OtpVerification pending={pending} onPending={setPending} onCancel={() => setPending(null)} onVerify={async details => openDashboard(await verifyMfa(details))} /> : <LoginPage isSubmitting={isSubmitting} onLogin={handleLogin} onChangeMode={handleModeChange} error={authError} />
       ) : (
         <SignupPage
+          key={signupRole}
+          initialRole={signupRole}
           onSignup={handleSignup}
           onChangeMode={handleModeChange}
           error={authError}

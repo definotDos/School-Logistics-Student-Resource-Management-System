@@ -18,7 +18,7 @@ const documents = {
     title: 'Privacy Policy',
     intro: 'An overview of the information used to provide account access and campus resource services.',
     sections: [
-      ['Account information', 'The signup form asks for your name, school email, student or employee ID, account type, campus, and password. Email verification is part of account registration.'],
+      ['Account information', 'The signup form asks for your name, email address, student or employee ID, account type, campus, and password. Email verification is part of account registration.'],
       ['Requests and activity', 'Information you submit through resource requests is used to process and track those requests. Keep your submissions relevant and avoid including unnecessary personal information.'],
       ['Browser storage', 'The application uses browser session storage for sign-in information and the email address used during verification. On a shared device, sign out when you finish.'],
       ['Campus administration', 'Campus staff use the system to manage resources and requests. Ask your campus administrator about access to your records and the school’s information handling practices.'],

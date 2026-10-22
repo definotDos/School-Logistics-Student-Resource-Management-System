@@ -11,7 +11,7 @@ const API_URL = resolveApiBase(import.meta.env.VITE_API_URL);
 export async function apiRequest(endpoint, options = {}) {
   if (options.body && typeof options.body === "string") {
     const body = JSON.parse(options.body);
-    if (body.email !== undefined && !emailValid(body.email)) throw new Error("Use a valid @phinmaed.com email address.");
+    if (body.email !== undefined && !emailValid(body.email)) throw new Error("Use a valid @gmail.com or @phinmaed.com email address.");
     if (endpoint === "/users/me") {
       if (body.name !== undefined && (typeof body.name !== "string" || body.name.trim().length < 2 || body.name.trim().length > 100 || Array.from(body.name).some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127))) throw new Error("Enter a full name of 2 to 100 characters.");
       if (body.strand !== undefined && !courses.includes(body.strand)) throw new Error("Choose a supported course or strand.");

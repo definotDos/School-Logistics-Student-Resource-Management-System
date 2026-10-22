@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import AuthPage from "./pages/Auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
+import AdminPreview from "./pages/AdminPreview";
 import StudentDashboard from "./pages/Auth/StudentDashboard";
 import Resources from "./pages/Auth/Resources";
 import Requests from "./pages/Auth/Requests";
@@ -33,6 +34,12 @@ function App() {
 
       {/* Landing page */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/preview/admin" element={<AdminPreview />} />
+      <Route path="/preview/admin/:section" element={<AdminPreview />} />
+      <Route path="/preview/staff" element={<AdminPreview role="staff" />} />
+      <Route path="/preview/staff/:section" element={<AdminPreview role="staff" />} />
+      <Route path="/preview/student" element={<AdminPreview role="student" />} />
+      <Route path="/preview/student/:section" element={<AdminPreview role="student" />} />
 
       {/* Authentication */}
       <Route path="/login" element={<AuthPage />} />

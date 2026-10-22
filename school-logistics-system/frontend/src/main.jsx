@@ -26,6 +26,7 @@ import "./dashboard-motion.css";
 import "./pages/Auth/Allocations.css";
 import "./admin-campus-theme.css";
 import "./student-campus-theme.css";
+import "./components/NotificationTheme.css";
 import { initializeAppearance } from "./utils/appearance";
 
 initializeAppearance();

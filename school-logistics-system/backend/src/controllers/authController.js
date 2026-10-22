@@ -39,11 +39,25 @@ async function checkEmployeeId(req, res) {
 
 async function signup(req, res) {
 	try {
-        const fields = accountFields(req.body);
+        let registrationBody = req.body;
+        let adminRegistration = false;
+        if (req.body?.role === 'admin') {
+            const expected = process.env.ADMIN_REGISTRATION_CODE;
+            const supplied = req.body.adminRegistrationCode;
+            if (!expected || expected.length < 16) return res.status(403).json({ message: 'Admin registration is not configured. Contact your system administrator.' });
+            if (typeof supplied !== 'string' || supplied.length > 256 || !crypto.timingSafeEqual(
+                crypto.createHash('sha256').update(supplied).digest(),
+                crypto.createHash('sha256').update(expected).digest(),
+            )) return res.status(403).json({ message: 'The administrator registration code is invalid.' });
+            registrationBody = { ...req.body };
+            delete registrationBody.adminRegistrationCode;
+            adminRegistration = true;
+        }
+        const fields = accountFields(registrationBody, false, adminRegistration);
         const { email: normalizedEmail } = fields;
         if (!await require("../models/Campus").exists({ name: fields.campus, status: "active" })) return res.status(400).json({ message: "Choose an active campus." });
         if (await User.findOne({ email: normalizedEmail })) return res.status(409).json({ message: "An account with this email already exists." });
-        if (await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
+        if ((fields.studentId || fields.employeeId) && await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
 		const verificationCode = createVerificationCode();
 		const user = await User.create({
             ...fields,
@@ -113,7 +127,7 @@ async function login(req, res) {
 async function verifyEmail(req, res) {
 	try {
 		const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @phinmaed.com email address." });
+        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @gmail.com or @phinmaed.com email address." });
 		const code = typeof req.body.code === "string" ? req.body.code.trim() : "";
         if (!/^\d{6}$/.test(code)) return res.status(400).json({ message: "Enter the six-digit verification code." });
 		const user = await User.findOne({ email }).select("+verificationCode +verificationExpiresAt");
@@ -131,7 +145,7 @@ async function verifyEmail(req, res) {
 async function resendVerificationCode(req, res) {
 	try {
 		const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @phinmaed.com email address." });
+        if (!emailValid(email)) return res.status(400).json({ message: "Use a valid @gmail.com or @phinmaed.com email address." });
 		if (!email) return res.status(400).json({ message: "Email is required." });
 		const user = await User.findOne({ email });
 		if (!user) return res.status(404).json({ message: "No account was found with that email." });

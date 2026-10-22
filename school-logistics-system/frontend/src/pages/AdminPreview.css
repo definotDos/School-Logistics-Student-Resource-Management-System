@@ -1,0 +1,69 @@
+.landing-page .audience-card:is(.admin, .staff, .student) { position: relative; }
+.dashboard-preview-card-link { color: inherit; text-decoration: none; }
+.dashboard-preview-card-link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.dashboard-preview-card-link:focus-visible { outline: none; }
+.dashboard-preview-card-link:focus-visible::after { outline: 3px solid #d4b264; outline-offset: 4px; }
+
+/* Use the authenticated dashboard's shell and visual system. Scope preview
+   additions so legacy global aside/main rules cannot collapse this layout. */
+.admin-public-preview.admin-shell { height: 100dvh; min-height: 0; }
+.admin-public-preview.admin-shell > .app-sidebar { position: relative; inset: auto; width: 244px; min-height: 0; height: 100dvh; overflow-y: auto; }
+.admin-public-preview.admin-shell > .admin-content { flex: 1; width: 0; min-width: 0; min-height: 0; overflow-y: auto; }
+.admin-public-preview .admin-main { display: block; width: 100%; min-height: 0; margin: 0 auto; }
+.admin-public-preview .sidebar-brand { text-decoration: none; color: inherit; }
+.admin-public-preview .sidebar-brand img { border-radius: 12px; flex-shrink: 0; }
+.admin-public-preview .preview-back { display: block; padding: 16px; color: inherit; text-decoration: none; }
+.admin-public-preview .header-context strong { display: block; }
+.admin-public-preview .header-context { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.admin-public-preview .header-profile { text-decoration: none; }
+.admin-public-preview .preview-notice { display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 24px; border: 1px solid var(--overview-edge); border-radius: 14px; background: var(--campus-panel-fill); color: var(--overview-text); }
+.admin-public-preview .preview-notice > .dashboard-icon { width: 24px; height: 24px; flex-shrink: 0; }
+.admin-public-preview .preview-notice p { margin: 4px 0 0; color: var(--overview-muted); font-size: 12px; line-height: 1.6; }
+.admin-public-preview .preview-notice a { margin-left: auto; color: inherit; font-weight: 700; white-space: nowrap; }
+.admin-public-preview .preview-panel { padding: 24px; }
+.admin-public-preview .preview-panel h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; color: var(--overview-text); font-size: 18px; }
+.admin-public-preview .preview-panel p { margin: 0 0 24px; color: var(--overview-muted); font-size: 14px; }
+.admin-public-preview .preview-table-wrap { overflow-x: auto; }
+.admin-public-preview .preview-panel table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-public-preview .preview-panel th { background: var(--campus-card-fill); color: var(--overview-muted); font-size: 12px; white-space: nowrap; }
+.admin-public-preview .preview-panel :is(th, td) { padding: 18px 12px; border-bottom: 1px solid var(--overview-edge); }
+.admin-public-preview .preview-placeholder { display: block; height: 12px; min-width: 52px; width: 80%; max-width: 200px; background: var(--overview-edge); border-radius: 6px; }
+.admin-public-preview .preview-profile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin: 28px 0; }
+.admin-public-preview .preview-profile :is(strong, small) { display: block; font-size: 13px; margin: 12px 0; }
+.admin-public-preview .preview-profile small { color: var(--overview-muted); }
+.admin-public-preview .preview-panel button:disabled { padding: 12px 18px; border-radius: 10px; border: 1px solid var(--overview-edge); background: var(--campus-card-fill); color: var(--overview-muted); cursor: not-allowed; }
+.admin-public-preview .preview-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.admin-public-preview a:focus-visible { outline: 3px solid #b48b2c; outline-offset: 3px; }
+.admin-public-preview .student-preview-overview { color: var(--overview-text); }
+.admin-public-preview .student-preview-overview .overview-section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.admin-public-preview .student-preview-overview .overview-section-heading h2 { font-size: 18px; font-weight: 700; }
+.admin-public-preview .student-preview-overview .overview-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.admin-public-preview .student-preview-overview .overview-shortcuts a { display: flex; align-items: center; gap: 12px; padding: 18px; text-decoration: none; }
+.admin-public-preview .student-preview-overview .overview-shortcuts a > span:first-of-type { flex: 1; }
+.admin-public-preview .student-preview-overview .overview-shortcuts :is(strong, small) { display: block; }
+.admin-public-preview .student-preview-overview .overview-shortcuts small { margin-top: 5px; line-height: 1.5; }
+.admin-public-preview .student-preview-overview .student-empty-state { display: grid; justify-items: center; gap: 12px; padding: 28px; text-align: center; }
+.admin-public-preview .student-preview-overview :is(.dashboard-stat, .dashboard-panel, .overview-shortcuts a) { background: var(--campus-panel-fill); border: 1px solid var(--overview-edge); border-radius: 16px; color: var(--overview-text); }
+.admin-public-preview .student-preview-overview :is(h2, strong, .stat-top, .panel-heading h2) { color: var(--overview-text); }
+.admin-public-preview .student-preview-overview :is(p, small, .dashboard-stat small, .panel-heading p) { color: var(--overview-muted); }
+.admin-public-preview .student-preview-overview .stat-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-public-preview .student-preview-overview .dashboard-icon { width: 24px; height: 24px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.admin-public-preview .student-preview-overview .request-row > div { flex: 1; }
+.admin-public-preview .student-preview-overview .request-row { border-color: var(--overview-edge); }
+.admin-public-preview .student-preview-overview :is(.panel-action, .panel-heading a) { color: var(--overview-text); background: transparent; }
+@media (max-width: 760px) {
+  .admin-public-preview .student-preview-overview .overview-shortcuts { grid-template-columns: 1fr; }
+  .admin-public-preview.admin-shell { display: flex; flex-direction: column; }
+  .admin-public-preview.admin-shell > .app-sidebar { width: 100%; height: auto; max-height: 60dvh; flex: 0 0 auto; }
+  .admin-public-preview.admin-shell > .admin-content { width: 100%; }
+  .admin-public-preview .app-sidebar:not(.navigation-open) .preview-back { display: none; }
+  .admin-public-preview .app-header { flex-wrap: wrap; }
+  .admin-public-preview .header-actions { flex-wrap: wrap; }
+  .admin-public-preview .preview-profile { grid-template-columns: 1fr; }
+  .admin-public-preview .preview-notice { flex-wrap: wrap; }
+  .admin-public-preview .preview-notice > div { flex: 1; min-width: 180px; }
+}
+@media (max-width: 850px) {
+  .admin-public-preview.admin-shell .admin-topline { align-items: stretch; gap: 20px; }
+  .admin-public-preview.admin-shell .admin-topline > :is(.admin-title-copy, .admin-campus-context) { flex: 0 0 auto; width: 100%; min-height: 0; }
+}

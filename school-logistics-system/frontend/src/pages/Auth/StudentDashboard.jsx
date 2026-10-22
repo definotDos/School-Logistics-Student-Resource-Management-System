@@ -234,7 +234,7 @@ function StudentDashboard() {
                   {profileError && <p className="profile-error" role="alert">{profileError}</p>}
                   <div className="profile-modal-actions"><button type="button" className="profile-cancel" onClick={() => setProfileOpen(false)}>Cancel</button><button type="submit" className={`profile-save ${profileSaved ? "saved" : ""}`} disabled={profileSaving || profileSaved}>{profileSaving ? "Saving..." : profileSaved ? "Saved" : "Save changes"}</button></div>
                 </form>
-                <details className="profile-email-settings"><summary>School email settings</summary><div className="profile-form-grid profile-personal-fields"><EmailChange /></div></details>
+                <details className="profile-email-settings"><summary>Email settings</summary><div className="profile-form-grid profile-personal-fields"><EmailChange /></div></details>
               </section>
             </div>
           )}

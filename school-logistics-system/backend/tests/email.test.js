@@ -60,3 +60,9 @@ test('staff email separates OTP and temporary password with activation instructi
  expect(message.text).toContain('new password');
  expect(message.text).toContain('15 minutes');
 });
+
+test('signup rejects a provider refusal instead of reporting a sent OTP', async () => {
+ const sendMail = jest.fn().mockResolvedValue({ accepted: [], rejected: ['student@gmail.com'] });
+ require('nodemailer').createTransport.mockReturnValue({ sendMail });
+ await expect(require('../src/config/email').sendVerificationEmail('student@gmail.com', '123456')).rejects.toMatchObject({ code: 'EMAIL_PROVIDER_REJECTED' });
+});

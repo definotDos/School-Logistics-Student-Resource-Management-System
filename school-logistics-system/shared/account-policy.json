@@ -1,6 +1,7 @@
 {
   "emailDomain": "phinmaed.com",
-  "emailPattern": "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@phinmaed\\.com$",
+  "emailDomains": ["phinmaed.com", "gmail.com"],
+  "emailPattern": "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:phinmaed|gmail)\\.com$",
   "studentIdPattern": "^[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{6}$",
   "employeeIdPattern": "^UP-[0-9]{2}-[0-9]{3,5}-[A-Z]$",
   "studentIdHelp": "Use 2-2-4-6 digits separated by hyphens. Example: 03-01-2425-045768.",

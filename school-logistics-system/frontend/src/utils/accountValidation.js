@@ -6,7 +6,7 @@ export const emailValid = value => typeof value === 'string' && value.trim().len
 export function validateActivation({ email = '', code = '', password = '', confirmPassword = '', temporaryPassword = '' }, emailOnly = false) {
  const errors = {};
  if (!email.trim()) errors.email = 'Enter your email address.';
- else if (!emailValid(email)) errors.email = 'Use a valid @phinmaed.com email address.';
+ else if (!emailValid(email)) errors.email = 'Use a valid @gmail.com or @phinmaed.com email address.';
  if (emailOnly) return errors;
  if (!code.trim()) errors.code = 'Enter the verification code from your email.';
  else if (!/^\d{6}$/.test(code.trim())) errors.code = 'Enter a 6-digit verification code.';
@@ -21,17 +21,17 @@ export function validateActivation({ email = '', code = '', password = '', confi
  return errors;
 }
 export const idType = value => new RegExp(policy.studentIdPattern).test(String(value || '').trim().toUpperCase()) ? 'student' : new RegExp(policy.employeeIdPattern).test(String(value || '').trim().toUpperCase()) ? 'employee' : null;
-export function validateAccount(form, administrator = false) {
+export function validateAccount(form, administrator = false, adminRegistration = false) {
  const errors = {};
  if (typeof form.name !== 'string' || form.name.trim().length < 2 || form.name.trim().length > 100 || Array.from(form.name).some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)) errors.name = 'Enter a full name of 2 to 100 characters.';
  if (typeof form.name === 'string' && /\p{N}/u.test(form.name)) errors.name = 'Full name must not contain numbers.';
- if (!emailValid(form.email)) errors.email = 'Use a valid @phinmaed.com email address.';
+ if (!emailValid(form.email)) errors.email = 'Use a valid @gmail.com or @phinmaed.com email address.';
  if (!form.campus) errors.campus = 'Choose an active campus.';
  if (!(administrator && form.role === 'staff') && (!form.password || form.password.length < 8 || new TextEncoder().encode(form.password).length > 72)) errors.password = 'Password must contain at least 8 characters and at most 72 UTF-8 bytes.';
  const field = form.role === 'student' ? 'studentId' : 'employeeId';
  const type = idType(form[field]);
- if (!type || (form.role === 'student') !== (type === 'student')) errors[field] = form.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp;
- if (!policy.roles.includes(form.role) || (!administrator && !['student', 'staff'].includes(form.role))) errors.role = 'Choose a student or staff account.';
+ if (!(form.role === 'admin' && !form[field]) && (!type || (form.role === 'student') !== (type === 'student'))) errors[field] = form.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp;
+ if (!policy.roles.includes(form.role) || (!administrator && !adminRegistration && !['student', 'staff'].includes(form.role))) errors.role = 'Choose a student or staff account.';
  if (form.role === 'student' && (administrator || form.strand !== undefined) && !courses.includes(form.strand)) errors.strand = 'Choose a supported course or strand.';
  return errors;
 }

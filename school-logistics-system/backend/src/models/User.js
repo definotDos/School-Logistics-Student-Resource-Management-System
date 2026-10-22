@@ -5,7 +5,7 @@ const { emailValid, idType, courses, policy } = require("../utils/accountValidat
 const userSchema = new mongoose.Schema(
 	{
 		name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
-		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @phinmaed.com email address." } },
+		email: { type: String, required: true, unique: true, lowercase: true, trim: true, validate: { validator: emailValid, message: "Use a valid @gmail.com or @phinmaed.com email address." } },
 		emailVerified: { type: Boolean, default: false },
 		temporaryPasswordHash: { type: String, select: false },
 		activationPending: { type: Boolean, default: false },
@@ -48,7 +48,7 @@ userSchema.pre('validate', function () {
     const field = this.role === 'student' ? 'studentId' : 'employeeId';
     const other = this.role === 'student' ? 'employeeId' : 'studentId';
     if (this[other]) this.invalidate(other, 'ID field does not match the account role.');
-    if (idType(this[field]) !== (this.role === 'student' ? 'student' : 'employee')) this.invalidate(field, 'ID must match the account role. ' + (this.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp));
+    if (!(this.role === 'admin' && !this[field]) && idType(this[field]) !== (this.role === 'student' ? 'student' : 'employee')) this.invalidate(field, 'ID must match the account role. ' + (this.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp));
   }
   if (this.isModified('strand')) {
     if (this.role === 'student' && !courses.includes(this.strand)) this.invalidate('strand', 'Choose a supported course or strand.');
