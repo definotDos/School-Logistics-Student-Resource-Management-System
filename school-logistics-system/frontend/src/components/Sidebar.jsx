@@ -87,6 +87,7 @@ function Sidebar({ type = "student" }) {
     return () => window.removeEventListener("campuses-updated", load);
   }, []);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const displayName = user?.name || "User";
   const initials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
@@ -153,7 +154,7 @@ function Sidebar({ type = "student" }) {
             </NavLink>
           ))}
           </div>)}
-        <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={isLoggingOut}>
+        <button className="sidebar-logout" type="button" onClick={() => setLogoutModalOpen(true)} disabled={isLoggingOut} aria-haspopup="dialog">
           <span className="nav-icon" aria-hidden="true">↪</span>
           <span className="sidebar-label">{isLoggingOut ? "Signing out..." : "Logout"}</span>
         </button>
@@ -163,7 +164,7 @@ function Sidebar({ type = "student" }) {
         <NavLink to="/settings" className="sidebar-utility-link" onClick={() => setNavigationOpen(false)}><DashboardIcon name="settings" />Settings</NavLink>
         <div className="sidebar-user">{user?.avatar ? <img src={user.avatar} alt="" /> : <b>{initials}</b>}<span><strong>{displayName}</strong><small>{type === "admin" ? "Administrator" : type === "staff" ? "Staff Member" : `${user?.grade || "Grade 11"} | ${user?.strand || "STEM"}`}</small></span></div>
       </div>
-      {(isLoggingOut || logoutError) && <LogoutModal error={logoutError} onRetry={handleLogout} onClose={() => setLogoutError("")} />}
+      {logoutModalOpen && <LogoutModal isLoggingOut={isLoggingOut} error={logoutError} onConfirm={handleLogout} onClose={() => { setLogoutModalOpen(false); setLogoutError(""); }} />}
     </aside>
   );
 }

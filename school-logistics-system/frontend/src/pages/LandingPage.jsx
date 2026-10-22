@@ -84,7 +84,7 @@ const contactMembers = [
     image: '/Narvarte.png',
   },
   {
-    name: 'Cabrales, Phevy Cyra',
+    name: 'Cabrales, Phoebe Cyra',
     role: 'UI/UX Designer',
     email: 'phce.cabrales.up@phinmaed.com',
     number: '0993 761 0887',

@@ -36,6 +36,8 @@
   animation: logout-modal-spin .8s linear infinite;
 }
 
+.logout-modal-icon { width: 32px; height: 32px; color: var(--landing-primary); }
+
 .logout-modal-symbol-error { background: var(--landing-accent-soft); color: var(--landing-accent); font-size: 32px; font-weight: 700; }
 .logout-modal h2 { margin: 0 0 10px; font-size: 23px; line-height: 1.3; }
 .logout-modal p { margin: 0; color: var(--landing-muted); font-size: 14px; line-height: 1.7; }
