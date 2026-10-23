@@ -153,11 +153,11 @@ async function resendVerificationCode(req, res) {
 		const verificationCode = createVerificationCode();
 		user.verificationCode = verificationCode;
 		user.verificationExpiresAt = verificationExpiry();
-		const temporaryPassword = user.activationPending ? crypto.randomBytes(18).toString("base64url") : undefined;
+		const temporaryPassword = user.activationPending ? require("../utils/staffCredentials").generateTemporaryPassword() : undefined;
 		if (temporaryPassword) user.temporaryPasswordHash = hashResetCode(temporaryPassword);
 		await user.save();
 		await sendVerificationEmail(email, verificationCode, user.activationPending === true, temporaryPassword);
-		return res.status(200).json({ message: "A new verification code was sent to your email." });
+		return res.status(200).json({ message: user.activationPending ? "A new OTP and 10-digit temporary password were sent to your email. Use the latest email to activate your account." : "A new verification code was sent to your email." });
 	} catch (error) {
 		console.error(JSON.stringify({ event: 'verification_delivery_failed', name: error.name, code: error.code, responseCode: error.responseCode }));
 		return res.status(500).json({ message: "Unable to resend verification code." });
@@ -201,10 +201,10 @@ async function resetPassword(req, res) {
 async function activateAccount(req, res) {
  try {
   const { email, code, password, confirmPassword, temporaryPassword } = req.body || {};
-  if (!emailValid(email) || typeof code !== 'string' || !/^\d{6}$/.test(code.trim()) || !passwordValid(password) || password !== confirmPassword) {
-   return res.status(400).json({ message: 'Enter your email, six-digit code, and matching passwords of at least 8 characters and at most 72 UTF-8 bytes.' });
+  if (!emailValid(email) || typeof code !== 'string' || !/^\d{6}$/.test(code.trim()) || !passwordValid(password) || (confirmPassword !== undefined && password !== confirmPassword)) {
+   return res.status(400).json({ message: 'Enter your email, six-digit code, and a new password of at least 8 characters and at most 72 UTF-8 bytes.' });
   }
-  if (typeof temporaryPassword !== 'string' || !/^[A-Za-z0-9_-]{24}$/.test(temporaryPassword)) return res.status(400).json({ message: 'Enter the temporary password from your latest activation email. If your email has no password, select Resend code.' });
+  if (typeof temporaryPassword !== 'string' || !/^\d{10}$/.test(temporaryPassword)) return res.status(400).json({ message: 'Enter the 10-digit temporary password from your latest activation email. Select Resend code if you need new credentials.' });
   if (password === temporaryPassword) return res.status(400).json({ message: 'Choose a new password different from your temporary password.' });
   const user = await User.findOneAndUpdate({ temporaryPasswordHash: hashResetCode(temporaryPassword), email: email.trim().toLowerCase(), role: 'staff', activationPending: true, emailVerified: false,
    verificationCode: code.trim(), verificationExpiresAt: { $gt: new Date() } }, {

@@ -14,7 +14,7 @@ export function SignupPage({
   onVerifyEmail,
   onResendVerificationCode,
 }) {
-  const [form, setForm] = useState({ name: '', email: '', studentId: '', employeeId: '', password: '', confirmPassword: '', adminRegistrationCode: '', role: initialRole, campus: 'PHINMA University of Pangasinan' })
+  const [form, setForm] = useState({ name: '', email: '', studentId: '', employeeId: '', password: '', adminRegistrationCode: '', role: initialRole, campus: 'PHINMA University of Pangasinan' })
   const [showPassword, setShowPassword] = useState(false)
   const [legalDocument, setLegalDocument] = useState(null)
   const [validationErrors, setValidationErrors] = useState({})
@@ -36,7 +36,7 @@ export function SignupPage({
     setForm({ ...form, [key]: key === 'studentId' ? formatStudentId(event.target.value) : event.target.value })
     setValidationErrors(current => ({ ...current, [key]: '' }))
   }
-  const identityLabel = form.role === 'student' ? 'Student ID' : 'Employee ID'
+  const identityLabel = form.role === 'student' ? 'School ID' : 'Employee ID'
   const roleLabel = form.role === 'admin' ? 'Admin' : form.role === 'staff' ? 'Staff' : 'Student'
 
   const identityField = form.role === 'student' ? 'studentId' : 'employeeId'
@@ -44,7 +44,6 @@ export function SignupPage({
     event.preventDefault()
     if (isSubmitting) return
     const errors = validateAccount(form, false, form.role === 'admin')
-    if (form.password !== form.confirmPassword || !form.confirmPassword) errors.confirmPassword = 'Re-enter your password. Both passwords must match.'
     if (form.role === 'admin' && !form.adminRegistrationCode.trim()) errors.adminRegistrationCode = 'Enter the registration code provided by your system administrator.'
     if (Object.keys(errors).length) return setValidationErrors(errors)
     setValidationErrors({})
@@ -53,7 +52,7 @@ export function SignupPage({
       if (form.role !== 'admin') details[identityField] = form[identityField]
       if (form.role === 'admin') details.adminRegistrationCode = form.adminRegistrationCode.trim()
       const result = await onSignup(details)
-      if (result?.requiresVerification) setForm(current => ({ ...current, password: '', confirmPassword: '', adminRegistrationCode: '' }))
+      if (result?.requiresVerification) setForm(current => ({ ...current, password: '', adminRegistrationCode: '' }))
       if (result?.requiresVerification) { const email = result.email || form.email.trim().toLowerCase(); sessionStorage.setItem('srmsVerificationEmail', email); setVerificationEmail(email) }
     } catch {
       // handled upstream
@@ -166,31 +165,26 @@ export function SignupPage({
         </label>
         {form.role !== 'admin' && <label className="auth-field compact-field">
           <span>{identityLabel}</span>
-          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={form.role === 'student' ? '03-01-2425-023456' : 'UP-25-12345-A'} maxLength={17} inputMode={form.role === 'student' ? 'numeric' : 'text'} value={form[identityField]} onChange={update(identityField)} required aria-invalid={Boolean(validationErrors[identityField])} />
-          <small className="signup-field-hint">{form.role === 'student' ? policy.studentIdHelp : policy.employeeIdHelp}</small>
+          <input className={validationErrors[identityField] ? 'input-invalid' : ''} placeholder={form.role === 'student' ? 'School ID' : 'UP-25-12345-A'} maxLength={17} inputMode={form.role === 'student' ? 'numeric' : 'text'} value={form[identityField]} onChange={update(identityField)} required aria-invalid={Boolean(validationErrors[identityField])} />
+          {form.role !== 'student' && <small className="signup-field-hint">{policy.employeeIdHelp}</small>}
           {validationErrors[identityField] && <small className="field-error">{validationErrors[identityField]}</small>}
         </label>}
         <label className="auth-field compact-field form-wide">
           <span>Email address</span>
-          <input className={validationErrors.email ? 'input-invalid' : ''} type="email" placeholder="Your Gmail Account" value={form.email} onChange={update('email')} autoComplete="email" required aria-invalid={Boolean(validationErrors.email)} />
+          <input className={validationErrors.email ? 'input-invalid' : ''} type="email" placeholder="Your Gmail Or School Email" value={form.email} onChange={update('email')} autoComplete="email" required aria-invalid={Boolean(validationErrors.email)} />
           {validationErrors.email && <small className="field-error">{validationErrors.email}</small>}
         </label>
-        <label className="auth-field compact-field form-wide">
-          <span>Password</span>
+        <div className="auth-field compact-field form-wide">
+          <label htmlFor="signup-password">Password</label>
           <span className="password-control">
-            <input className={validationErrors.password ? 'input-invalid' : ''} type={showPassword ? 'text' : 'password'} placeholder="Create a password" value={form.password} onChange={update('password')} autoComplete="new-password" required aria-invalid={Boolean(validationErrors.password)} />
-            <button className="password-toggle" type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}>
+            <input id="signup-password" className={validationErrors.password ? 'input-invalid' : ''} type={showPassword ? 'text' : 'password'} placeholder="Create a password" value={form.password} onChange={update('password')} autoComplete="new-password" required aria-invalid={Boolean(validationErrors.password)} />
+            <button className="password-toggle" type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} aria-controls="signup-password">
               {showPassword ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A10.9 10.9 0 0 1 12 4c5.4 0 9.2 5.1 9.8 6-.3.5-1.5 2.2-3.4 3.6M6.2 6.2C3.8 7.8 2.4 10.2 2.2 10.6c.6.9 4.4 5.4 9.8 5.4 1.3 0 2.5-.3 3.6-.8" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.2 12S5.8 5 12 5s9.8 7 9.8 7-3.6 7-9.8 7-9.8-7-9.8-7Z" /><circle cx="12" cy="12" r="2.7" /></svg>}
             </button>
           </span>
           <small className="signup-field-hint">Use at least 8 characters.</small>
           {validationErrors.password && <small className="field-error">{validationErrors.password}</small>}
-        </label>
-        <label className="auth-field compact-field form-wide">
-          <span>Confirm password</span>
-          <input type={showPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={update('confirmPassword')} autoComplete="new-password" placeholder="Re-enter your password" required aria-invalid={Boolean(validationErrors.confirmPassword)} />
-          {validationErrors.confirmPassword && <small className="field-error">{validationErrors.confirmPassword}</small>}
-        </label>
+        </div>
         {form.role === 'admin' && <label className="auth-field compact-field form-wide">
           <span>Administrator registration code</span>
           <input type="password" value={form.adminRegistrationCode} onChange={update('adminRegistrationCode')} autoComplete="off" maxLength={256} placeholder="Code from your system administrator" required aria-invalid={Boolean(validationErrors.adminRegistrationCode)} />
@@ -201,7 +195,7 @@ export function SignupPage({
           <input id="signup-terms" type="checkbox" required aria-labelledby="signup-terms-label" />
           <span id="signup-terms-label"><label htmlFor="signup-terms">I agree to the </label><button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('terms')}>Terms of Service</button> and <button type="button" aria-haspopup="dialog" onClick={() => setLegalDocument('privacy')}>Privacy Policy</button>.</span>
         </div>
-        <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Sending verification code...">Sign up &amp; send OTP</AuthLoadingButton>
+        <AuthLoadingButton className="auth-submit form-wide" loading={isSubmitting} loadingText="Sending verification code...">sign up</AuthLoadingButton>
         <p className="signup-account-note form-wide">Use your Gmail or school email address. We will send a 6-digit code to verify your account.</p>
       </form>
       <p className="auth-footer"><Link to="/">Back to home</Link>{form.role !== 'student' && <> · <Link to={`/signup?role=${form.role === 'admin' ? 'staff' : 'admin'}`}>{form.role === 'admin' ? 'Staff' : 'Admin'} sign up</Link></>}</p>

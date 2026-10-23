@@ -230,6 +230,37 @@
   .auth-page:is(.is-login, .is-signup) .signup-form { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Keep registration rows aligned even when only one field has help text. */
+.auth-page.is-signup .signup-form .auth-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: start;
+}
+.auth-page.is-signup .signup-form .password-control input { padding-right: 48px; }
+.auth-page.is-signup .signup-form .auth-field > label {
+  color: #e1e9df;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.auth-page.is-signup .signup-form .password-control { position: relative; display: block; }
+.auth-page.is-signup .signup-form .password-control input { display: block; width: 100%; }
+.auth-page.is-signup .signup-form .password-toggle {
+  position: absolute;
+  inset: 0 4px 0 auto;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  margin-block: auto;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transform: none;
+  cursor: pointer;
+}
+.auth-page.is-signup .signup-form .password-toggle svg { width: 20px; height: 20px; pointer-events: none; }
+
 /* Use the available laptop height without nesting a scrolling form card. */
 @media (min-width: 761px) {
   .auth-page:is(.is-login, .is-signup) {
@@ -261,6 +292,14 @@
   .auth-page.is-signup .signup-form .terms { padding: 10px 12px; }
   .auth-page:is(.is-login, .is-signup) .auth-footer { margin-top: 14px; line-height: 1.5; }
   .auth-page:is(.is-login, .is-signup) .auth-footer + .auth-footer { padding-top: 12px; }
+}
+
+@media (min-width: 761px) {
+  .auth-page.is-signup .auth-panel-inner { width: min(100%, 560px); max-width: 560px; padding: 20px 24px; }
+  .auth-page.is-signup .signup-form { gap: 10px 14px; align-items: start; }
+  .auth-page.is-signup .signup-form .signup-field-hint { font-size: 11px; line-height: 1.4; }
+  .auth-page.is-signup .signup-form .terms { padding: 8px 10px; line-height: 1.5; }
+  .auth-page.is-signup .signup-account-note { font-size: 11px; line-height: 1.4; }
 }
 
 @media (min-width: 761px) and (max-height: 700px) {

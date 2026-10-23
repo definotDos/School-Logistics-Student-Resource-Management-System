@@ -47,18 +47,18 @@ async function getTransporter() {
 
 async function sendVerificationEmail(email, code, activation = false, temporaryPassword) {
 	if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error("The signup email address is invalid.");
-	if (activation && !/^[A-Za-z0-9_-]{24}$/.test(temporaryPassword || '')) throw new Error("A temporary password is required for staff activation.");
-	const instructions = "Open the School Logistics login page and choose Activate account. Enter your email, OTP, and temporary password, then create and confirm a new password. These credentials expire in 15 minutes and can only activate your account once. If they expire, select Resend code to receive a new OTP and temporary password.";
+	if (activation && !/^\d{10}$/.test(temporaryPassword || '')) throw new Error("A 10-digit temporary password is required for staff activation.");
+	const instructions = "Open the School Logistics login page and choose Activate account. Enter your email, OTP, and temporary password, then create a new password. These credentials expire in 15 minutes and can only activate your account once. If they expire, select Resend code to receive a new OTP and temporary password.";
 	const activeTransporter = await getTransporter();
 	const result = await activeTransporter.sendMail({
 		from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 		to: email,
 		subject: activation ? "Activate your School Logistics staff account" : "School Logistics email verification code",
 		text: activation
-            ? `School Logistics | Staff account setup\n\nYour OTP: ${code}\nYour pass: ${temporaryPassword}\n\n${instructions}\n\nKeep these credentials private.`
+            ? `School Logistics | Staff account setup\n\nOTP (6 digits): ${code}\nTemporary password (10 digits): ${temporaryPassword}\n\n${instructions}\n\nKeep these credentials private.`
             : `Your School Logistics verification code is ${code}. It expires in 15 minutes.`,
 		html: activation
-            ? `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#20344a"><h2>Staff account setup</h2><p>Welcome to School Logistics. Use these credentials to activate your account.</p><table style="width:100%;background:#eef5fa;padding:16px;border-radius:8px"><tr><th style="text-align:left;padding:8px">Your OTP:</th><td style="padding:8px;font-family:monospace;font-size:20px">${code}</td></tr><tr><th style="text-align:left;padding:8px">Your pass:</th><td style="padding:8px;font-family:monospace">${temporaryPassword}</td></tr></table><h3>Activate your account</h3><p>${instructions}</p><p style="color:#526477">Keep these credentials private.</p></div>`
+            ? `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#20344a"><h2>Staff account setup</h2><p>Welcome to School Logistics. Use these credentials to activate your account.</p><table style="width:100%;background:#eef5fa;padding:16px;border-radius:8px"><tr><th style="text-align:left;padding:8px">OTP (6 digits):</th><td style="padding:8px;font-family:monospace;font-size:20px">${code}</td></tr><tr><th style="text-align:left;padding:8px">Temporary password (10 digits):</th><td style="padding:8px;font-family:monospace">${temporaryPassword}</td></tr></table><h3>Activate your account</h3><p>${instructions}</p><p style="color:#526477">Keep these credentials private.</p></div>`
             : `<p>Your School Logistics verification code is:</p><p style="font-size:24px;font-weight:bold;letter-spacing:4px">${code}</p><p>This code expires in 15 minutes.</p>`,
 	});
 

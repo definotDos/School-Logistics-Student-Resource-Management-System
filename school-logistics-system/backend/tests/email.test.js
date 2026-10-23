@@ -52,11 +52,11 @@ test('login email contains a five-minute code and rejects provider refusal', asy
 test('staff email separates OTP and temporary password with activation instructions', async () => {
  const sendMail = jest.fn().mockResolvedValue({ accepted: ['staff@phinmaed.com'] });
  require('nodemailer').createTransport.mockReturnValue({ sendMail });
- await require('../src/config/email').sendVerificationEmail('staff@phinmaed.com', '123456', true, 'Abcdefghijklmnopqrstuv12');
+ await require('../src/config/email').sendVerificationEmail('staff@phinmaed.com', '123456', true, '1234567890');
  const message = sendMail.mock.calls[0][0];
- expect(message.text).toContain('Your OTP: 123456\nYour pass: Abcdefghijklmnopqrstuv12');
- expect(message.html).toContain('Your OTP:');
- expect(message.html).toContain('Your pass:');
+ expect(message.text).toContain('OTP (6 digits): 123456\nTemporary password (10 digits): 1234567890');
+ expect(message.html).toContain('OTP (6 digits):');
+ expect(message.html).toContain('Temporary password (10 digits):');
  expect(message.text).toContain('new password');
  expect(message.text).toContain('15 minutes');
 });
@@ -65,4 +65,11 @@ test('signup rejects a provider refusal instead of reporting a sent OTP', async 
  const sendMail = jest.fn().mockResolvedValue({ accepted: [], rejected: ['student@gmail.com'] });
  require('nodemailer').createTransport.mockReturnValue({ sendMail });
  await expect(require('../src/config/email').sendVerificationEmail('student@gmail.com', '123456')).rejects.toMatchObject({ code: 'EMAIL_PROVIDER_REJECTED' });
+});
+
+test.each(['123456789', '12345678901', '123456789a'])('staff email rejects malformed temporary password %s', async password => {
+ const sendMail = jest.fn();
+ require('nodemailer').createTransport.mockReturnValue({ sendMail });
+ await expect(require('../src/config/email').sendVerificationEmail('staff@phinmaed.com', '123456', true, password)).rejects.toThrow('10-digit temporary password');
+ expect(sendMail).not.toHaveBeenCalled();
 });

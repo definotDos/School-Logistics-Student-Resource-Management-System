@@ -71,7 +71,7 @@ export function CreateUserForm({ onCreated }) {
     try {
       const payload = { ...form, role: "staff", name: form.name.trim(), email: form.email.trim().toLowerCase(), employeeId: form.employeeId.trim().toUpperCase() };
       const result = await userAPI.create(payload); onCreated?.(result.user);
-      setNotice("Staff account created. An OTP and a temporary password were emailed. Staff must choose Activate account on the login page to set a new password.");
+      setNotice("Staff account created. A 6-digit OTP and a 10-digit temporary password were emailed. Staff must choose Activate account on the login page to set a new password.");
       setFieldErrors({}); setTouched({});
       setForm({ name: "", email: "", role: "staff", employeeId: "", campus: "" });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
@@ -91,7 +91,7 @@ export function CreateUserForm({ onCreated }) {
           <legend>Account access</legend>
           <label htmlFor="create-user-role">Role<input id="create-user-role" name="role" value="Staff" readOnly aria-describedby="create-user-role-help" /><small id="create-user-role-help">Staff receive access to their campus workspace.</small></label>
           <label htmlFor="create-user-campus">Campus<select {...fieldProps('campus')} disabled={campusLoading || !!campusError || !campuses.length} required value={form.campus}><option value="">{campusLoading ? "Loading campuses..." : "Choose campus"}</option>{campuses.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}</select><small id="create-user-campus-help">Assign the user's active campus.</small>{fieldError('campus')}</label>
-          <div className="create-user-guidance" role="note"><DashboardIcon name="notification" /><div><strong>Activation by email</strong><p>An OTP and a temporary password will be emailed. Select Activate account on the login page, enter both, and choose a new password.</p></div></div>
+          <div className="create-user-guidance" role="note"><DashboardIcon name="notification" /><div><strong>Activation by email</strong><p>A 6-digit OTP and a 10-digit temporary password will be emailed. Select Activate account on the login page, enter both, and choose a new password.</p></div></div>
         </fieldset>
       </div>
       {campusError && <div role="alert" className="create-user-message create-user-error"><strong>Unable to load campuses</strong><p>{campusError}</p><button type="button" className="admin-secondary" onClick={() => { setCampusError(""); setCampusLoading(true); setCampusAttempt(attempt => attempt + 1); }}>Retry</button></div>}

@@ -98,7 +98,7 @@ async function createUser(req, res) {
         if (await User.exists({ email: fields.email })) return res.status(409).json({ message: "Email already exists." });
         if ((fields.studentId || fields.employeeId) && await User.findOne(fields.role === 'student' ? { studentId: fields.studentId } : { employeeId: fields.employeeId }).collation({ locale: "en", strength: 2 })) return res.status(409).json({ message: "That ID is already registered." });
         const verificationCode = String(require("crypto").randomInt(100000, 1000000));
-        const temporaryPassword = fields.role === "staff" ? require("crypto").randomBytes(18).toString("base64url") : undefined;
+        const temporaryPassword = fields.role === "staff" ? require("../utils/staffCredentials").generateTemporaryPassword() : undefined;
         const user = await User.create({ ...fields, ...(temporaryPassword ? { temporaryPasswordHash: require("crypto").createHash("sha256").update(temporaryPassword).digest("hex") } : {}), activationPending: fields.role === "staff", ...(fields.role === "staff" ? {} : { password: await require("bcryptjs").hash(req.body.password, 12) }), emailVerified: false, verificationCode, verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000) });
         try {
             await sendVerificationEmail(fields.email, verificationCode, fields.role === "staff", temporaryPassword);

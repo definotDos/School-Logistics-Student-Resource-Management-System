@@ -1,10 +1,11 @@
 const bcrypt = require('bcryptjs');
 const User = require('../src/models/User');
 jest.mock('../src/config/email', () => ({ sendVerificationEmail: jest.fn(), sendPasswordResetEmail: jest.fn() }));
+jest.mock('../src/services/workflowRecords', () => ({ createAuditLog: jest.fn().mockResolvedValue(undefined) }));
 const auth = require('../src/controllers/authController');
 const mail = require('../src/config/email');
 const response = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn() });
-const body = { temporaryPassword: 'Abcdefghijklmnopqrstuv12', email: 'staff@phinmaed.com', code: '123456', password: 'staffpassword123', confirmPassword: 'staffpassword123' };
+const body = { temporaryPassword: '1234567890', email: 'staff@phinmaed.com', code: '123456', password: 'staffpassword123', confirmPassword: 'staffpassword123' };
 afterEach(() => jest.restoreAllMocks());
 test('admin creates staff without a password and emails activation instructions', async () => {
  jest.spyOn(require('../src/models/Campus'), 'exists').mockResolvedValue({});
@@ -19,11 +20,13 @@ test('admin creates staff without a password and emails activation instructions'
  const secret = mail.sendVerificationEmail.mock.calls.at(-1)[3];
  expect(create.mock.calls[0][0].temporaryPasswordHash).toBe(require('crypto').createHash('sha256').update(secret).digest('hex'));
  expect(res.json.mock.calls[0][0].user).not.toHaveProperty('temporaryPasswordHash');
- expect(mail.sendVerificationEmail).toHaveBeenCalledWith(body.email, expect.stringMatching(/^\d{6}$/), true, expect.stringMatching(/^[A-Za-z0-9_-]{24}$/));
+ expect(mail.sendVerificationEmail).toHaveBeenCalledWith(body.email, expect.stringMatching(/^\d{6}$/), true, expect.stringMatching(/^\d{10}$/));
 });
-test('activation atomically verifies email, hashes password and consumes the unexpired code', async () => {
+test.each([true, false])('activation verifies email and consumes credentials with confirmation supplied: %s', async includeConfirmation => {
  const update = jest.spyOn(User, 'findOneAndUpdate').mockResolvedValue({});
- const res = response(); await auth.activateAccount({ body }, res);
+ const activationBody = { ...body };
+ if (!includeConfirmation) delete activationBody.confirmPassword;
+ const res = response(); await auth.activateAccount({ body: activationBody }, res);
  const [filter, changes] = update.mock.calls[0];
  expect(filter).toMatchObject({ role: 'staff', activationPending: true, emailVerified: false, verificationCode: body.code });
  expect(filter.temporaryPasswordHash).toBe(require('crypto').createHash('sha256').update(body.temporaryPassword).digest('hex'));
@@ -34,7 +37,7 @@ test('activation atomically verifies email, hashes password and consumes the une
  expect(changes.$unset.verificationCode).toBe(1);
  expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining('Account activated') });
 });
-test.each([{ temporaryPassword: '' }, { password: body.temporaryPassword, confirmPassword: body.temporaryPassword }, { confirmPassword: 'different' }, { password: 'short', confirmPassword: 'short' }, { code: 'bad' }, { email: 'bad' }])('rejects invalid activation input %j', async fields => {
+test.each([{ temporaryPassword: '' }, { temporaryPassword: '123456789' }, { temporaryPassword: '12345678901' }, { temporaryPassword: '123456789a' }, { temporaryPassword: 1234567890 }, { password: body.temporaryPassword, confirmPassword: body.temporaryPassword }, { confirmPassword: 'different' }, { password: 'short', confirmPassword: 'short' }, { code: 'bad' }, { email: 'bad' }])('rejects invalid activation input %j', async fields => {
  const update = jest.spyOn(User, 'findOneAndUpdate'); const res = response();
  await auth.activateAccount({ body: { ...body, ...fields } }, res);
  expect(res.status).toHaveBeenCalledWith(400); expect(update).not.toHaveBeenCalled();
@@ -63,7 +66,7 @@ test('resend preserves the staff activation instructions', async () => {
  const secret = mail.sendVerificationEmail.mock.calls.at(-1)[3];
  expect(user.temporaryPasswordHash).toBe(require('crypto').createHash('sha256').update(secret).digest('hex'));
  expect(user.save).toHaveBeenCalled();
- expect(mail.sendVerificationEmail).toHaveBeenCalledWith(body.email, expect.stringMatching(/^\d{6}$/), true, expect.stringMatching(/^[A-Za-z0-9_-]{24}$/));
+ expect(mail.sendVerificationEmail).toHaveBeenCalledWith(body.email, expect.stringMatching(/^\d{6}$/), true, expect.stringMatching(/^\d{10}$/));
 });
 test('pending staff schema permits missing password but ordinary accounts require one', () => {
  const fields = { name: 'Staff Member', email: body.email, employeeId: 'UP-25-12345-A', campus: 'Main', role: 'staff' };

@@ -3,7 +3,7 @@ export { policy };
 export const courses = Object.values(policy.programGroups).flat();
 export const levelsForProgram = program => policy.programLevels[Object.keys(policy.programGroups).find(group => policy.programGroups[group].includes(program))] || [];
 export const emailValid = value => typeof value === 'string' && value.trim().length <= 254 && value.trim().split('@')[0].length <= 64 && new RegExp(policy.emailPattern, 'i').test(value.trim());
-export function validateActivation({ email = '', code = '', password = '', confirmPassword = '', temporaryPassword = '' }, emailOnly = false) {
+export function validateActivation({ email = '', code = '', password = '', temporaryPassword = '' }, emailOnly = false) {
  const errors = {};
  if (!email.trim()) errors.email = 'Enter your email address.';
  else if (!emailValid(email)) errors.email = 'Use a valid @gmail.com or @phinmaed.com email address.';
@@ -11,13 +11,11 @@ export function validateActivation({ email = '', code = '', password = '', confi
  if (!code.trim()) errors.code = 'Enter the verification code from your email.';
  else if (!/^\d{6}$/.test(code.trim())) errors.code = 'Enter a 6-digit verification code.';
  if (!temporaryPassword) errors.temporaryPassword = 'Enter the temporary password from your email.';
- else if (!/^[A-Za-z0-9_-]{24}$/.test(temporaryPassword)) errors.temporaryPassword = 'Copy the temporary password from your latest email.';
+ else if (!/^\d{10}$/.test(temporaryPassword)) errors.temporaryPassword = 'Enter the 10-digit temporary password from your latest email. Select Resend code if needed.';
  if (password && password === temporaryPassword) errors.password = 'Choose a different password from your temporary password.';
  if (!password) errors.password = 'Create a password.';
  else if (password.length < 8) errors.password = 'Use at least 8 characters.';
  else if (new TextEncoder().encode(password).length > 72) errors.password = 'Password is too long. Use at most 72 UTF-8 bytes.';
- if (!confirmPassword) errors.confirmPassword = 'Re-enter your password.';
- else if (password !== confirmPassword) errors.confirmPassword = 'Passwords do not match.';
  return errors;
 }
 export const idType = value => new RegExp(policy.studentIdPattern).test(String(value || '').trim().toUpperCase()) ? 'student' : new RegExp(policy.employeeIdPattern).test(String(value || '').trim().toUpperCase()) ? 'employee' : null;
